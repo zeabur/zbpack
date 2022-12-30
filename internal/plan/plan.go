@@ -5,6 +5,7 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/python"
 	. "github.com/zeabur/zbpack/internal/types"
+	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/utils"
 	"os"
 	"path"
@@ -25,7 +26,17 @@ func NewPlanner(absPath string, submoduleName string) Planner {
 }
 
 func (b planner) Plan() (PlanType, PlanMeta) {
-
+// PHP project
+if utils.HasFile(b.absPath, "index.php", "composer.json") {
+	framework := php.DetermineProjectFramework(b.absPath)
+	phpVersion := php.GetPhpVersion(b.absPath)
+	// entry := php.DetermineEntry(b.absPath)
+	// dependencyPolicy := php.DetermineDependencyPolicy(b.absPath)
+	return PlanTypePhp, PlanMeta{
+		"framework":  string(framework),
+		"phpVersion": phpVersion,
+	}
+}
 	// Node.js project
 	if utils.HasFile(b.absPath, "package.json") {
 		pkgManager := nodejs.DeterminePackageManager(b.absPath)
@@ -89,11 +100,6 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	// custom Dockerfile
 	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
 		return PlanTypeDocker, PlanMeta{}
-	}
-
-	// PHP project
-	if utils.HasFile(b.absPath, "index.php", "composer.json") {
-		return PlanTypePhp, PlanMeta{}
 	}
 
 	// Java project
