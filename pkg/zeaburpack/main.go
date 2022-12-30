@@ -1,10 +1,11 @@
 package zeaburpack
 
 import (
-	. "github.com/zeabur/zbpack/internal/types"
 	"os"
 	"path"
 	"strings"
+
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type BuildOptions struct {

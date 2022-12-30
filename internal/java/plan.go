@@ -1,12 +1,13 @@
 package java
 
 import (
-	"github.com/zeabur/zbpack/internal/utils"
 	"os"
 	"path"
 	"strings"
 
-	. "github.com/zeabur/zbpack/internal/types"
+	"github.com/zeabur/zbpack/internal/utils"
+
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 func DetermineProjectType(absPath string) JavaProjectType {

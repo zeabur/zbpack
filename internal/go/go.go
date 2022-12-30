@@ -1,6 +1,6 @@
 package _go
 
-import "github.com/zeabur/zbpack/internal/types"
+import "github.com/zeabur/zbpack/pkg/types"
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	return `FROM golang:1.18 as builder

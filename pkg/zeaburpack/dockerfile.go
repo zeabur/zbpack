@@ -8,7 +8,7 @@ import (
 	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/static"
-	. "github.com/zeabur/zbpack/internal/types"
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type generateDockerfileOptions struct {

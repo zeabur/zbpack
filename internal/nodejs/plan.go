@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	. "github.com/zeabur/zbpack/internal/types"
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 func DeterminePackageManager(absPath string) NodePackageManager {

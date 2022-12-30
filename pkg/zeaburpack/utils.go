@@ -2,7 +2,8 @@ package zeaburpack
 
 import (
 	"fmt"
-	"github.com/zeabur/zbpack/internal/types"
+
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(log string)) {
