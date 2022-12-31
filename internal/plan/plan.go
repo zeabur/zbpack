@@ -9,8 +9,11 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/python"
-	. "github.com/zeabur/zbpack/internal/types"
 	"github.com/zeabur/zbpack/internal/utils"
+<<<<<<< HEAD
+=======
+	. "github.com/zeabur/zbpack/pkg/types"
+>>>>>>> 8ed33e97f4e34c2bb271d6dc5e362683220b8132
 )
 
 type Planner interface {

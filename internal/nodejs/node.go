@@ -1,6 +1,6 @@
 package nodejs
 
-import "github.com/zeabur/zbpack/internal/types"
+import "github.com/zeabur/zbpack/pkg/types"
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
