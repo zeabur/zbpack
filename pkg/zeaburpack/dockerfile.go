@@ -7,6 +7,7 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
+	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/internal/types"
 )
@@ -48,6 +49,7 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	case PlanTypePython:
 		opt.HandleLog("Using PlanTypePython to build image.")
 		df, err := python.GenerateDockerfile(planMeta)
+
 		if err != nil {
 			return "", err
 		}
@@ -58,8 +60,11 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 		return "", err
 	case PlanTypePhp:
 		opt.HandleLog("Using PlanTypePhp to build image.")
-		err := fmt.Errorf("php is not supported yet")
-		return "", err
+		df, err := php.GenerateDockerfile(planMeta)
+		if err != nil {
+			return "", err
+		}
+		dockerfile = df
 	case PlanTypeJava:
 		opt.HandleLog("Using PlanTypeJava to build image.")
 		df, err := java.GenerateDockerfile(planMeta)
