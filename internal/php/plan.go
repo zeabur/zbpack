@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	. "github.com/zeabur/zbpack/internal/types"
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 func GetPhpVersion(absPath string) string {

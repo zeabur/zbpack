@@ -3,7 +3,7 @@ package php
 import (
 	"fmt"
 
-	"github.com/zeabur/zbpack/internal/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
