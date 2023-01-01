@@ -20,7 +20,7 @@ RUN pnpm install
 	needPuppeteer := meta["needPuppeteer"] == "true"
 	if needPuppeteer {
 		installCmd += `
-RUN apt-get update && apt-get install -y libnss3 
+RUN apt-get update && apt-get install -y libnss3 libgconf-2-4 
 `
 	}
 
