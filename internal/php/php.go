@@ -13,7 +13,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	getUnzipLibraryCmd := `RUN apt update && apt install unzip
 `
 	installCmd := "RUN composer install\n"
-	startCmd := `CMD php artisan serve --host 0.0.0.0`
+	startCmd := `CMD php artisan serve --port=8080`
 
 	dockerFile := getPhpImage + copyCmd + getComposerCmd + getUnzipLibraryCmd + installCmd + startCmd
 	return dockerFile, nil

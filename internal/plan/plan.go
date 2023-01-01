@@ -31,7 +31,6 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	if utils.HasFile(b.absPath, "index.php", "composer.json") {
 		framework := php.DetermineProjectFramework(b.absPath)
 		phpVersion := php.GetPhpVersion(b.absPath)
-		// dependencyPolicy := php.DetermineDependencyPolicy(b.absPath)
 		return PlanTypePhp, PlanMeta{
 			"framework":  string(framework),
 			"phpVersion": phpVersion,

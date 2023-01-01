@@ -49,7 +49,6 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	case PlanTypePython:
 		opt.HandleLog("Using PlanTypePython to build image.")
 		df, err := python.GenerateDockerfile(planMeta)
-
 		if err != nil {
 			return "", err
 		}
