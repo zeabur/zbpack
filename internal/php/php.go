@@ -8,8 +8,10 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
 	getPhpImage := "FROM php:" + phpVersion + "\n"
 	copyCmd := "COPY . .\n"
+	//Get composer for next step install
 	getComposerCmd := `RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 `
+	//The next step "composer install" will need to unzip some files
 	getUnzipLibraryCmd := `RUN apt update && apt install unzip
 `
 	installCmd := "RUN composer install\n"
