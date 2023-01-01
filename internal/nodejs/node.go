@@ -98,6 +98,7 @@ RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 
 RUN groupadd -r puppeteer 
 RUN useradd -r -g puppeteer -G audio,video puppeteer
 RUN chown -R puppeteer:puppeteer /src
+RUN mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer
 USER puppeteer
 `
 	}
