@@ -35,6 +35,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		startCmd := nodejs.GetStartCommand(b.absPath)
 		mainFile := nodejs.GetMainFile(b.absPath)
 		nodeVersion := nodejs.GetNodeVersion(b.absPath)
+		needPuppeteer := nodejs.DetermineNeedPuppeteer(b.absPath)
 		return PlanTypeNodejs, PlanMeta{
 			"packageManager": string(pkgManager),
 			"framework":      string(framework),
@@ -42,6 +43,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 			"startCommand":   startCmd,
 			"mainFile":       mainFile,
 			"nodeVersion":    nodeVersion,
+			"needPuppeteer":  needPuppeteer,
 		}
 	}
 

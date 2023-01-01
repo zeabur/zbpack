@@ -17,6 +17,13 @@ RUN pnpm install
 `
 	}
 
+	needPuppeteer := meta["needPuppeteer"] == "true"
+	if needPuppeteer {
+		installCmd += `
+RUN apt-get update && apt-get install -y libnss3 
+`
+	}
+
 	buildCmd := "RUN npm run " + meta["buildCommand"]
 	switch pkgManager {
 	case string(types.NodePackageManagerYarn):

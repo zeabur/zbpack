@@ -75,6 +75,27 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 
 }
 
+func DetermineNeedPuppeteer(absPath string) string {
+	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
+	if err != nil {
+		return "false"
+	}
+
+	packageJson := struct {
+		Dependencies map[string]string `json:"dependencies"`
+	}{}
+
+	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
+		return "false"
+	}
+
+	if _, hasPuppeteer := packageJson.Dependencies["puppeteer"]; hasPuppeteer {
+		return "true"
+	}
+
+	return "false"
+}
+
 func GetBuildCommand(absPath string) string {
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
