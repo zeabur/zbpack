@@ -1,8 +1,6 @@
 package php
 
 import (
-	"fmt"
-
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -18,8 +16,5 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	startCmd := `CMD php artisan serve --host 0.0.0.0`
 
 	dockerFile := getPhpImage + copyCmd + getComposerCmd + getUnzipLibraryCmd + installCmd + startCmd
-	fmt.Println("=======Dockerfile=========")
-	fmt.Println(dockerFile)
-	fmt.Println("=======Dockerfile=========")
 	return dockerFile, nil
 }

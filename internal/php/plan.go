@@ -2,7 +2,6 @@ package php
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -26,10 +25,8 @@ func GetPhpVersion(absPath string) string {
 	}
 	versionRange := strings.Split(composerJson.Require["php"], "|")
 	if len(versionRange) == 1 {
-		fmt.Println("isVersion")
 		return strings.Trim(versionRange[0], "^")
 	} else {
-		fmt.Println("isVersionRange")
 		return strings.Trim(versionRange[1], "^")
 	}
 
@@ -49,7 +46,6 @@ func DetermineProjectFramework(absPath string) PhpFramework {
 		return PhpFrameworkNone
 	}
 	if _, isLaravel := composerJson.Require["laravel/framework"]; isLaravel {
-		fmt.Println("isLaravel")
 		return PhpFrameworkLaravel
 	}
 
