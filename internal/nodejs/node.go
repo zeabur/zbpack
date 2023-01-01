@@ -17,13 +17,6 @@ RUN pnpm install
 `
 	}
 
-	needPuppeteer := meta["needPuppeteer"] == "true"
-	if needPuppeteer {
-		installCmd += `
-RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
-`
-	}
-
 	buildCmd := "RUN npm run " + meta["buildCommand"]
 	switch pkgManager {
 	case string(types.NodePackageManagerYarn):
@@ -97,12 +90,25 @@ EXPOSE 8080
 `, nil
 	}
 
+	puppeteerCmd := ""
+	needPuppeteer := meta["needPuppeteer"] == "true"
+	if needPuppeteer {
+		puppeteerCmd = `
+RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
+RUN groupadd -r puppeteer 
+RUN useradd -r -g puppeteer -G audio,video puppeteer
+RUN chown -R puppeteer:puppeteer /src
+USER puppeteer
+`
+	}
+
 	return `FROM node:` + nodeVersion + ` 
 ENV PORT=8080
 WORKDIR /src
 COPY . .
 ` + installCmd + `
 ` + buildCmd + `
+` + puppeteerCmd + `
 EXPOSE 8080
 ` + startCmd, nil
 }
