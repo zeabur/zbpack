@@ -101,7 +101,8 @@ RUN chown -R puppeteer:puppeteer /src
 RUN mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer
 USER puppeteer
 `
-		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
+
+		startCmd = "CMD " + "node node_modules/puppeteer/install.js && " + startCmd[4:]
 	}
 
 	return `FROM node:` + nodeVersion + ` 
