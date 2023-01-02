@@ -63,3 +63,9 @@ const (
 	JavaFrameworkSpringBoot JavaFramework = "spring-boot"
 	JavaFrameworkNone       JavaFramework = "none"
 )
+type PhpFramework string
+
+const (
+	PhpFrameworkLaravel PhpFramework = "laravel"
+	PhpFrameworkNone    PhpFramework = "none"
+)
