@@ -39,6 +39,7 @@ const (
 	NodeProjectFrameworkVueCli         NodeProjectFramework = "vue-cli"
 	NodeProjectFrameworkNone           NodeProjectFramework = "none"
 	NodeProjectFrameworkUmi            NodeProjectFramework = "umi"
+	NodeProjectFrameworkSvelte         NodeProjectFramework = "svelte"
 )
 
 type PythonFramework string
@@ -63,6 +64,7 @@ const (
 	JavaFrameworkSpringBoot JavaFramework = "spring-boot"
 	JavaFrameworkNone       JavaFramework = "none"
 )
+
 type PhpFramework string
 
 const (

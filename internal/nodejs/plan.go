@@ -39,6 +39,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkNone
 	}
 
+	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
+		return NodeProjectFrameworkSvelte
+	}
+
 	if _, isQwik := packageJson.DevDependencies["@builder.io/qwik"]; isQwik {
 		return NodeProjectFrameworkQwik
 	}
