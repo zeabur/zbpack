@@ -11,9 +11,12 @@ func main() {
 		path = os.Args[1]
 	}
 
+	trueValue := true
+
 	err := zeaburpack.Build(
 		&zeaburpack.BuildOptions{
-			Path: &path,
+			Path:        &path,
+			Interactive: &trueValue,
 		},
 	)
 

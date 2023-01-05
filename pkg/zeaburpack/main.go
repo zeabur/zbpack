@@ -35,6 +35,9 @@ type BuildOptions struct {
 
 	// UserVars is a map of user variables that will be used in the Dockerfile.
 	UserVars *map[string]string
+
+	// Interactive is a flag to indicate if the build should be interactive.
+	Interactive *bool
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -61,6 +64,9 @@ func Build(opt *BuildOptions) error {
 		img := path.Base(*opt.Path)
 		opt.ResultImage = &img
 	}
+
+	*opt.ResultImage = strings.ToLower(*opt.ResultImage)
+	*opt.ResultImage = strings.ReplaceAll(*opt.ResultImage, "_", "-")
 
 	if opt.UserVars == nil {
 		emptyUserVars := make(map[string]string)
@@ -116,13 +122,20 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
+	// If the build is interactive, we will print the Dockerfile to the console.
+	buildImageHandleLog := &handleLog
+	if opt.Interactive != nil && *opt.Interactive {
+		buildImageHandleLog = nil
+	}
+
 	err = buildImage(
 		&BuildImageOptions{
-			Dockerfile:  dockerfile,
-			AbsPath:     *opt.Path,
-			UserVars:    *opt.UserVars,
-			ResultImage: *opt.ResultImage,
-			HandleLog:   handleLog,
+			Dockerfile:          dockerfile,
+			AbsPath:             *opt.Path,
+			UserVars:            *opt.UserVars,
+			ResultImage:         *opt.ResultImage,
+			HandleLog:           buildImageHandleLog,
+			PlainDockerProgress: opt.Interactive != nil && !*opt.Interactive,
 		},
 	)
 	if err != nil {
