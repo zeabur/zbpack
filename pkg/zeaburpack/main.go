@@ -130,5 +130,11 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
+	if opt.Interactive != nil && *opt.Interactive {
+		handleLog("\n\033[32mBuild successful\033[0m\n")
+		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
+		handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+	}
+
 	return nil
 }
