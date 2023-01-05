@@ -10,6 +10,7 @@ import (
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
+	"os"
 )
 
 type generateDockerfileOptions struct {
@@ -30,7 +31,12 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 
 	switch planType {
 	case PlanTypeDocker:
-		return "", nil
+		fileContent, err := os.ReadFile("dockerfile")
+		if err != nil {
+			return "", err
+		}
+		dockerfile = string(fileContent)
+		return dockerfile, nil
 	case PlanTypeNodejs:
 		df, err := nodejs.GenerateDockerfile(planMeta)
 		if err != nil {

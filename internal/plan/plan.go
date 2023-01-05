@@ -27,6 +27,12 @@ func NewPlanner(absPath string, submoduleName string) Planner {
 }
 
 func (b planner) Plan() (PlanType, PlanMeta) {
+
+	// custom Dockerfile
+	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
+		return PlanTypeDocker, PlanMeta{}
+	}
+
 	// PHP project
 	if utils.HasFile(b.absPath, "index.php", "composer.json") {
 		framework := php.DetermineProjectFramework(b.absPath)
@@ -97,11 +103,6 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	// Ruby project
 	if utils.HasFile(b.absPath, "Gemfile") {
 		return PlanTypeRuby, PlanMeta{}
-	}
-
-	// custom Dockerfile
-	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
-		return PlanTypeDocker, PlanMeta{}
 	}
 
 	// Java project
