@@ -6,12 +6,35 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+const (
+	reset  = "\033[0m"
+	yellow = "\033[0;33m"
+	blue   = "\033[0;34m"
+)
+
 func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(log string)) {
-	handleLog("========== Plan determined ==========")
-	handleLog("Plan type: " + string(plan))
-	handleLog("Plan meta: ")
+	table := fmt.Sprintf(
+		"%s╔══════════════════════════ %s%s %s═════════════════════════╗\n",
+		blue, yellow, "Build Plan", blue,
+	)
+
+	table += fmt.Sprintf(
+		"%s║%s %-16s %s│%s %-42s %s║%s\n",
+		blue, reset, "provider", blue, reset, string(plan), blue, reset,
+	)
+
 	for k, v := range meta {
-		handleLog(fmt.Sprintf("  %s: \"%s\"", k, v))
+		table += blue + "║───────────────────────────────────────────────────────────────║\n" + reset
+		table += fmt.Sprintf(
+			"%s║%s %-16s %s│%s %-42s %s║\n%s",
+			blue, reset, k, blue, reset, v, blue, reset,
+		)
 	}
-	handleLog("\n")
+
+	table += fmt.Sprintf(
+		"%s╚═══════════════════════════════════════════════════════════════╝%s\n",
+		blue, reset,
+	)
+
+	handleLog(table)
 }
