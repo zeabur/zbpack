@@ -11,11 +11,12 @@ import (
 )
 
 type BuildImageOptions struct {
-	Dockerfile  string
-	AbsPath     string
-	UserVars    map[string]string
-	ResultImage string
-	HandleLog   func(log string)
+	Dockerfile          string
+	AbsPath             string
+	UserVars            map[string]string
+	ResultImage         string
+	HandleLog           *func(log string)
+	PlainDockerProgress bool
 }
 
 func buildImage(opt *BuildImageOptions) error {
@@ -52,13 +53,31 @@ func buildImage(opt *BuildImageOptions) error {
 		return err
 	}
 
-	cmd := exec.Command(
-		"docker", "build",
+	dockerCmd := []string{
+		"build",
 		"-t", opt.ResultImage,
 		"-f", dockerfilePath,
-		"--progress", "plain",
-		opt.AbsPath,
-	)
+	}
+
+	if opt.PlainDockerProgress {
+		dockerCmd = append(dockerCmd, "--progress", "plain")
+	} else {
+		dockerCmd = append(dockerCmd, "--progress", "tty")
+	}
+
+	dockerCmd = append(dockerCmd, opt.AbsPath)
+
+	cmd := exec.Command("docker", dockerCmd...)
+
+	if opt.HandleLog == nil {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 
 	errPipe, err := cmd.StderrPipe()
 	if err != nil {
@@ -77,14 +96,14 @@ func buildImage(opt *BuildImageOptions) error {
 	go func() {
 		scanner := bufio.NewScanner(errPipe)
 		for scanner.Scan() {
-			opt.HandleLog(scanner.Text())
+			(*opt.HandleLog)(scanner.Text())
 		}
 	}()
 
 	go func() {
 		scanner := bufio.NewScanner(outPipe)
 		for scanner.Scan() {
-			opt.HandleLog(scanner.Text())
+			(*opt.HandleLog)(scanner.Text())
 		}
 	}()
 
