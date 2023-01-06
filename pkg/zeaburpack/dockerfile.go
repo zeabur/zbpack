@@ -31,7 +31,15 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 
 	switch planType {
 	case PlanTypeDocker:
-		fileContent, err := os.ReadFile("dockerfile")
+
+		dockerfileName := ""
+		if _, err := os.Stat("dockerfile"); err == nil {
+			dockerfileName = "dockerfile"
+		} else {
+			dockerfileName = "Dockerfile"
+		}
+
+		fileContent, err := os.ReadFile(dockerfileName)
 		if err != nil {
 			return "", err
 		}
