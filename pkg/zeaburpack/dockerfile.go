@@ -11,6 +11,7 @@ import (
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
 	"os"
+	"path"
 )
 
 type generateDockerfileOptions struct {
@@ -33,10 +34,10 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	case PlanTypeDocker:
 
 		dockerfileName := ""
-		if _, err := os.Stat("dockerfile"); err == nil {
-			dockerfileName = "dockerfile"
+		if _, err := os.Stat(path.Join(opt.AbsPath, "dockerfile")); err == nil {
+			dockerfileName = path.Join(opt.AbsPath, "dockerfile")
 		} else {
-			dockerfileName = "Dockerfile"
+			dockerfileName = path.Join(opt.AbsPath, "Dockerfile")
 		}
 
 		fileContent, err := os.ReadFile(dockerfileName)
