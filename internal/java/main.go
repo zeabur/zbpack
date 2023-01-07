@@ -5,31 +5,27 @@ import "github.com/zeabur/zbpack/pkg/types"
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	projectType := meta["type"]
 	framework := meta["framework"]
+	jdkVersion := meta["jdk"]
 
 	isMaven := projectType == string(types.JavaProjectTypeMaven)
 	isGradle := projectType == string(types.JavaProjectTypeGradle)
 	isSpringBoot := framework == string(types.JavaFrameworkSpringBoot)
 
-	// TODO: select the correct base image jdk version
-	baseImage := "openjdk:8-jdk-alpine"
-	if isMaven {
-		baseImage = "maven:latest"
-	}
-	if isGradle {
-		baseImage = "gradle:latest"
-	}
+	baseImage := "openjdk:" + jdkVersion + "-jdk-slim"
 
 	dockerfile := ""
 
 	switch projectType {
 	case string(types.JavaProjectTypeMaven):
-		dockerfile += `FROM ` + baseImage + ` 
+		dockerfile += `FROM ` + baseImage + `
+RUN apt-get update && apt-get install -y maven
 WORKDIR /src
 COPY . .
 RUN mvn clean dependency:list install
 `
 	case string(types.JavaProjectTypeGradle):
 		dockerfile += `FROM ` + baseImage + `
+RUN apt-get update && apt-get install -y gradle
 WORKDIR /src
 COPY . .
 RUN gradle build
