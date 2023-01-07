@@ -112,9 +112,11 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	) {
 		projectType := java.DetermineProjectType(b.absPath)
 		framework := java.DetermineFramework(projectType, b.absPath)
+		jdkVersion := java.DetermineJDKVersion(projectType, b.absPath)
 		return PlanTypeJava, PlanMeta{
 			"type":      string(projectType),
 			"framework": string(framework),
+			"jdk":       jdkVersion,
 		}
 	}
 
