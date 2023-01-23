@@ -28,13 +28,6 @@ func GetPhpVersion(absPath string) string {
 		return "8.0"
 	}
 
-	// for example, ">=16.0.0 <17.0.0"
-	// versionRange := composerJson.Engines.Node
-
-	// isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
-	// if isVersion {
-	// 	return versionRange
-	// }
 	versionRange := composerJson.Require["php"]
 
 	isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
@@ -42,9 +35,6 @@ func GetPhpVersion(absPath string) string {
 		return versionRange
 	}
 	ranges := strings.Split(versionRange, " ")
-	// equalMin := false
-	// maxVer := -1
-	// equalMax := false
 	for _, r := range ranges {
 		if strings.HasPrefix(r, ">=") {
 			minVerString := strings.TrimPrefix(r, ">=")
@@ -57,7 +47,6 @@ func GetPhpVersion(absPath string) string {
 			}
 			value += 0.1
 			minVerString = fmt.Sprintf("%f", value)
-			// equalMin = false
 			return minVerString
 		} else if strings.HasPrefix(r, "<=") {
 			maxVerString := strings.TrimPrefix(r, "<=")
