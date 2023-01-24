@@ -15,8 +15,11 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	installCMD := `
 RUN apt-get update 
-RUN apt-get install -y nginx
+RUN apt-get install -y nginx zip
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+RUN install-php-extensions zip
 `
 
 	nginxConf = strings.ReplaceAll(nginxConf, "\n", "\\n")
