@@ -1,70 +1,63 @@
 package php
 
 import (
+	_ "embed"
 	"github.com/zeabur/zbpack/pkg/types"
+	"strings"
 )
+
+//go:embed nginx.conf
+var nginxConf string
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
 	getPhpImage := "FROM php:" + phpVersion + "-fpm\n"
-	// environment command: apt-lib + php-extenstion + composer
-	envInstallCmd := `
-	RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    unzip \
-    git \
-    curl \
-    lua-zlib-dev \
-    libmemcached-dev \
-    nginx
-	RUN apt-get install -y supervisor
-	RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-	RUN apt-get clean && rm -rf /var/lib/apt/lists/*`
-	// copy source code
+
+	installCMD := `
+RUN apt-get update 
+RUN apt-get install -y nginx
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+`
+
+	nginxConf = strings.ReplaceAll(nginxConf, "\n", "\\n")
+	nginxConf = strings.ReplaceAll(nginxConf, "$", "\\$")
+
+	// copy source code to /var/www/public, which is Nginx root directory
 	copyCommand := `
-	COPY --chown=www-data:www-data . /var/www  
-	COPY ./docker/supervisor.conf /etc/supervisord.conf
-	COPY ./docker/php.ini /usr/local/etc/php/conf.d/app.ini
-	COPY ./docker/nginx.conf /etc/nginx/sites-enabled/default`
+COPY --chown=www-data:www-data . /var/www/public
+WORKDIR /var/www/public
+`
 
 	switch meta["framework"] {
 	case "laravel":
+		// if laravel, copy source code to /var/www, because laravel has its own public directory
 		copyCommand = `
-		COPY --chown=www-data:www-data . /var/www  
-		RUN chmod -R 755 /var/www/storage
-		COPY ./docker/supervisor.conf /etc/supervisord.conf
-		COPY ./docker/php.ini /usr/local/etc/php/conf.d/app.ini
-		COPY ./docker/nginx.conf /etc/nginx/sites-enabled/default`
+COPY --chown=www-data:www-data . /var/www  
+WORKDIR /var/www
+`
 	}
-	// PHP Error Log Files
-	phpErrLog := `
-	RUN mkdir /var/log/php
-	RUN touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log`
-	//composer install
-	composerInstallCmd := `
-	RUN composer install --optimize-autoloader --no-dev`
 
-	//startCmd
+	// generate Nginx config to let it pass the request to php-fpm
+	copyCommand += `
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
+`
+
+	// install dependencies with composer
+	composerInstallCmd := `
+RUN composer install --optimize-autoloader --no-dev
+`
+
 	startCmd := `
-	EXPOSE ${PORT}
-	CMD ["php","artisan","cache:clear"]
-	CMD ["php","artisan","route:cache"]
-	CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]
-	`
-	dockerFile := getPhpImage + `WORKDIR /var/www
-	ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-	RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached` +
-		envInstallCmd +
+EXPOSE ${PORT}
+CMD nginx; php-fpm
+`
+
+	dockerFile := getPhpImage +
+		installCMD +
 		copyCommand +
-		phpErrLog +
 		composerInstallCmd +
 		startCmd
+
 	return dockerFile, nil
 }
