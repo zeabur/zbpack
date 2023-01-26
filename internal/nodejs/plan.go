@@ -59,6 +59,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkNextJs
 	}
 
+	if _, isNestJs := packageJson.Dependencies["@nestjs/core"]; isNestJs {
+		return NodeProjectFrameworkNestJs
+	}
+
 	if _, isRemix := packageJson.Dependencies["@remix-run/react"]; isRemix {
 		return NodeProjectFrameworkRemix
 	}

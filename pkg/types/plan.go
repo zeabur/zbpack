@@ -40,6 +40,7 @@ const (
 	NodeProjectFrameworkNone           NodeProjectFramework = "none"
 	NodeProjectFrameworkUmi            NodeProjectFramework = "umi"
 	NodeProjectFrameworkSvelte         NodeProjectFramework = "svelte"
+	NodeProjectFrameworkNestJs         NodeProjectFramework = "nest.js"
 )
 
 type PythonFramework string
