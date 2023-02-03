@@ -59,7 +59,11 @@ func buildImage(opt *BuildImageOptions) error {
 		"-f", dockerfilePath,
 	}
 
-	dockerCmd = append(dockerCmd, "--progress", "plain")
+	if opt.PlainDockerProgress {
+		dockerCmd = append(dockerCmd, "--progress", "plain")
+	} else {
+		dockerCmd = append(dockerCmd, "--progress", "tty")
+	}
 
 	dockerCmd = append(dockerCmd, opt.AbsPath)
 
