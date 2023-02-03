@@ -118,6 +118,7 @@ func Build(opt *BuildOptions) error {
 		},
 	)
 	if err != nil {
+		println("Failed to generate Dockerfile: " + err.Error())
 		handleBuildFailed(err)
 		return err
 	}
@@ -139,6 +140,7 @@ func Build(opt *BuildOptions) error {
 		},
 	)
 	if err != nil {
+		println("Failed to build image: " + err.Error())
 		handleBuildFailed(err)
 		return err
 	}
