@@ -74,6 +74,7 @@ func buildImage(opt *BuildImageOptions) error {
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
+			println("failed to run docker build: " + err.Error())
 			return err
 		}
 		return nil
