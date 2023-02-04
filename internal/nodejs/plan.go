@@ -71,7 +71,11 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkCreateReactApp
 	}
 
-	if _, isNuxtjsApp := packageJson.Dependencies["nuxt"]; isNuxtjsApp {
+	if _, isNuxtJs := packageJson.Dependencies["nuxt"]; isNuxtJs {
+		return NodeProjectFrameworkNuxtJs
+	}
+
+	if _, isNuxtJs := packageJson.DevDependencies["nuxt"]; isNuxtJs {
 		return NodeProjectFrameworkNuxtJs
 	}
 
