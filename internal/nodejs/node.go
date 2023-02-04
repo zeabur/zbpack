@@ -38,6 +38,8 @@ RUN pnpm install
 	if meta["startCommand"] == "" {
 		if meta["mainFile"] != "" {
 			startCmd = "CMD node " + meta["mainFile"]
+		} else if meta["framework"] == "nuxt" {
+			startCmd = "CMD node .output/server/index.mjs"
 		} else {
 			startCmd = "CMD node index.js"
 		}
