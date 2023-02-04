@@ -36,6 +36,7 @@ const (
 	NodeProjectFrameworkNextJs         NodeProjectFramework = "next.js"
 	NodeProjectFrameworkRemix          NodeProjectFramework = "remix"
 	NodeProjectFrameworkNuxtJs         NodeProjectFramework = "nuxt.js"
+	NodeProjectFrameworkNuxtJs3        NodeProjectFramework = "nuxt.js"
 	NodeProjectFrameworkVueCli         NodeProjectFramework = "vue-cli"
 	NodeProjectFrameworkNone           NodeProjectFramework = "none"
 	NodeProjectFrameworkUmi            NodeProjectFramework = "umi"

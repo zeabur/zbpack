@@ -75,6 +75,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkNuxtJs
 	}
 
+	if _, isNuxtjs3App := packageJson.DevDependencies["nuxt"]; isNuxtjs3App {
+		return NodeProjectFrameworkNuxtJs3
+	}
+
 	if _, isVueCliApp := packageJson.DevDependencies["@vue/cli-service"]; isVueCliApp {
 		return NodeProjectFrameworkVueCli
 	}
