@@ -1,17 +1,14 @@
 package deno
 
 import (
-    "encoding/json"
+	"encoding/json"
 	"os"
 	"path"
-	// "strings"
 	"github.com/zeabur/zbpack/internal/utils"
-
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 func DetermineFramework(absPath string) DenoFramework {
-	// Don't ignore fresh.gen.ts
 	if utils.HasFile(absPath, "fresh.gen.ts") {
 		return DenoFrameworkFresh
 	}
