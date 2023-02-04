@@ -1,7 +1,7 @@
 package deno
 
 import (
-	"encoding/json"
+    "encoding/json"
 	"os"
 	"path"
 	// "strings"
@@ -20,7 +20,6 @@ func DetermineFramework(absPath string) DenoFramework {
 }
 
 func DetermineEntry(absPath string) string {
-	//TODO: ts, js, index, main, app.
 	if utils.HasFile(absPath, "main.ts") {
 		return "main.ts"
 	}
@@ -29,32 +28,41 @@ func DetermineEntry(absPath string) string {
 		return "main.js"
 	}
 
+	if utils.HasFile(absPath, "index.ts") {
+		return "index.ts"
+	}
+
+	if utils.HasFile(absPath, "index.js") {
+		return "index.js"
+	}
+
+	if utils.HasFile(absPath, "app.ts") {
+		return "app.ts"
+	}
+
+	if utils.HasFile(absPath, "app.js") {
+		return "app.js"
+	}
+
 	return ""
 }
 
 func GetStartCommand(absPath string) string {
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
+	denoJsonMarshal, err := os.ReadFile(path.Join(absPath, "deno.json"))
 	if err != nil {
 		return ""
 	}
 
-	packageJson := struct {
-		Scripts         map[string]string `json:"scripts"`
-		DevDependencies map[string]string `json:"devDependencies"`
+	denoJson := struct {
+		Scripts         map[string]string `json:"tasks"`
 	}{}
 
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
+	if err := json.Unmarshal(denoJsonMarshal, &denoJson); err != nil {
 		return ""
 	}
 
-	if _, ok := packageJson.DevDependencies["@builder.io/qwik"]; ok {
-		if _, ok := packageJson.Scripts["deploy"]; ok {
-			return "deploy"
-		}
-	}
-
-	if _, ok := packageJson.Scripts["start"]; ok {
-		return "start"
+	if _, ok := denoJson.Scripts["start"]; ok {
+		return denoJson.Scripts["start"]
 	}
 
 	return ""
