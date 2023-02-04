@@ -1,6 +1,8 @@
 package nodejs
 
-import "github.com/zeabur/zbpack/pkg/types"
+import (
+	"github.com/zeabur/zbpack/pkg/types"
+)
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
@@ -38,6 +40,8 @@ RUN pnpm install
 	if meta["startCommand"] == "" {
 		if meta["mainFile"] != "" {
 			startCmd = "CMD node " + meta["mainFile"]
+		} else if meta["framework"] == "nuxt.js" {
+			startCmd = "CMD node .output/server/index.mjs"
 		} else {
 			startCmd = "CMD node index.js"
 		}
