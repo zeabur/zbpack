@@ -16,6 +16,7 @@ const (
 	PlanTypeDocker = "docker"
 	PlanTypePhp    = "php"
 	PlanTypeJava   = "java"
+	PlanTypeDeno   = "deno"
 	PlanTypeStatic = "static"
 )
 
@@ -71,4 +72,11 @@ type PhpFramework string
 const (
 	PhpFrameworkLaravel PhpFramework = "laravel"
 	PhpFrameworkNone    PhpFramework = "none"
+)
+
+type DenoFramework string
+
+const (
+	DenoFrameworkFresh DenoFramework = "fresh"
+	DenoFrameworkNone  DenoFramework = "none"
 )
