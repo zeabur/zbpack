@@ -6,7 +6,6 @@ import (
 
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	//TODO: deno task start: deno.json start task 
 	framework := meta["framework"]
 	entry := meta["entry"]
 	startCmd := meta["startCommand"]
@@ -22,8 +21,13 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 			dockerfile += `
 			CMD ["run", "--allow-net", "--allow-env", "--allow-read", "--allow-write", "--allow-run", "` + entry + `"]`
 		case string(types.DenoFrameworkNone):
-			dockerfile += `
-			CMD ["run", "--allow-net", "` + entry + `"]`
+			if startCmd == "" {
+				dockerfile += `
+				CMD ["run", "--allow-net", "--allow-env", "--allow-read", "--allow-write", "--allow-run", "` + entry + `"]`
+			} else {
+				dockerfile += `
+				CMD ["deno", "task", "start"]` 
+			}
 	}
 	return dockerfile, nil
-}	
+}
