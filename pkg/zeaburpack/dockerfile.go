@@ -8,6 +8,7 @@ import (
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
+	"github.com/zeabur/zbpack/internal/deno"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
 	"os"
@@ -78,6 +79,12 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 		dockerfile = df
 	case PlanTypeJava:
 		df, err := java.GenerateDockerfile(planMeta)
+		if err != nil {
+			return "", err
+		}
+		dockerfile = df
+	case PlanTypeDeno:
+		df, err := deno.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
