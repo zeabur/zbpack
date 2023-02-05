@@ -74,6 +74,13 @@ const (
 	PhpFrameworkNone    PhpFramework = "none"
 )
 
+type RubyFramework string
+
+const (
+	RubyFrameworkRails RubyFramework = "rails"
+	RubyFrameworkNone  RubyFramework = "none"
+)
+
 type DenoFramework string
 
 const (

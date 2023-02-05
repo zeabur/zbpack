@@ -1,11 +1,11 @@
 package zeaburpack
 
 import (
-	"fmt"
 	_go "github.com/zeabur/zbpack/internal/go"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
+	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/deno"
@@ -66,8 +66,11 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 		}
 		dockerfile = df
 	case PlanTypeRuby:
-		err := fmt.Errorf("ruby is not supported yet")
-		return "", err
+		df, err := ruby.GenerateDockerfile(planMeta)
+		if err != nil {
+			return "", err
+		}
+		dockerfile = df
 	case PlanTypePhp:
 		df, err := php.GenerateDockerfile(planMeta)
 		if err != nil {
