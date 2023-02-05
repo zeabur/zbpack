@@ -11,12 +11,14 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	getRubyImage := fmt.Sprintf("FROM ruby:%s\n", rubyVersion)
 
+	//ROR framework requires nodejs and postgresql-client
 	installCMD := `
 RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
 `
 	workDir := `
 WORKDIR /myapp
 `
+	//copy gemfile for install package
 	copyGemfile := `
 COPY Gemfile /myapp/Gemfile
 COPY Gemfile.lock /myapp/Gemfile.lock
@@ -24,6 +26,7 @@ COPY Gemfile.lock /myapp/Gemfile.lock
 	bundlerInstallCmd := `
 RUN bundle install
 `
+	//copy source to workdir
 	copySource := `
 COPY . /myapp
 `
