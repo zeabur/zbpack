@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GemfileParser(absPath string, keyword string) string {
+func GetGemfileValue(absPath string, key string) string {
 	filePath := path.Join(absPath, "Gemfile")
 	var ret string
 	file, err := os.Open(filePath)
@@ -17,12 +17,12 @@ func GemfileParser(absPath string, keyword string) string {
 		fmt.Errorf("failed to parse Gemfile: %w", err)
 	}
 	defer file.Close()
-	matchString := regexp.MustCompile(keyword)
+	matchString := regexp.MustCompile(key)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := []byte(scanner.Text())
 		if matchString.Match(line) {
-			ret = strings.Trim(scanner.Text(), keyword)
+			ret = strings.Trim(scanner.Text(), key)
 			return ret
 		}
 	}
