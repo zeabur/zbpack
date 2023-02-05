@@ -5,12 +5,12 @@ import (
 )
 
 func DetermineRubyVersion(absPath string) string {
-	RubyVersion := GemfileParser(absPath, `ruby "`)
+	RubyVersion := GetGemfileValue(absPath, `ruby "`)
 
 	return RubyVersion
 }
 func DetermineRubyFramework(absPath string) RubyFramework {
-	railsVersion := GemfileParser(absPath, `rails`)
+	railsVersion := GetGemfileValue(absPath, `rails`)
 	if railsVersion != "" {
 		return RubyFrameworkRails
 	}
