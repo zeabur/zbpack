@@ -5,6 +5,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/zeabur/zbpack/internal/deno"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
@@ -123,6 +124,20 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 			"type":      string(projectType),
 			"framework": string(framework),
 			"jdk":       jdkVersion,
+		}
+	}
+
+	// Deno project
+	if utils.HasFile(
+		b.absPath, "deno.json", "deno.lock", "fresh.gen.ts", 
+	) {
+		framework := deno.DetermineFramework(b.absPath)
+		entry := deno.DetermineEntry(b.absPath)
+		startCmd := deno.GetStartCommand(b.absPath)
+		return PlanTypeDeno, PlanMeta{
+			"framework":     string(framework),
+			"entry":         entry,
+			"startCommand":  startCmd,
 		}
 	}
 
