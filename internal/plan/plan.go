@@ -9,6 +9,7 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/python"
+	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
@@ -102,7 +103,12 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Ruby project
 	if utils.HasFile(b.absPath, "Gemfile") {
-		return PlanTypeRuby, PlanMeta{}
+		rubyVersion := ruby.DetermineRubyVersion(b.absPath)
+		framework := ruby.DetermineRubyFramework(b.absPath)
+		return PlanTypeRuby, PlanMeta{
+			"rubyVersion": rubyVersion,
+			"framework":   string(framework),
+		}
 	}
 
 	// Java project
