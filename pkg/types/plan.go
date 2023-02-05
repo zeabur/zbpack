@@ -74,18 +74,16 @@ const (
 	PhpFrameworkNone    PhpFramework = "none"
 )
 
-<<<<<<< HEAD
 type RubyFramework string
 
 const (
 	RubyFrameworkRails RubyFramework = "rails"
 	RubyFrameworkNone  RubyFramework = "none"
 )
-=======
+
 type DenoFramework string
 
 const (
 	DenoFrameworkFresh DenoFramework = "fresh"
 	DenoFrameworkNone  DenoFramework = "none"
 )
->>>>>>> 7de73e0f0051dfda295d947df03e8d7110cc92de
