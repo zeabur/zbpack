@@ -43,6 +43,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkSvelte
 	}
 
+	if _, isHexo := packageJson.Dependencies["hexo"]; isHexo {
+		return NodeProjectFrameworkHexo
+	}
+
 	if _, isQwik := packageJson.DevDependencies["@builder.io/qwik"]; isQwik {
 		return NodeProjectFrameworkQwik
 	}
