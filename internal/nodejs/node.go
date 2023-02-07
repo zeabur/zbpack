@@ -62,6 +62,7 @@ RUN pnpm install
 		types.NodeProjectFrameworkUmi,
 		types.NodeProjectFrameworkCreateReactApp,
 		types.NodeProjectFrameworkVueCli,
+		types.NodeProjectFrameworkHexo,
 	}
 
 	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
@@ -69,6 +70,7 @@ RUN pnpm install
 		types.NodeProjectFrameworkUmi:            "dist",
 		types.NodeProjectFrameworkVueCli:         "dist",
 		types.NodeProjectFrameworkCreateReactApp: "build",
+		types.NodeProjectFrameworkHexo:           "public",
 	}
 
 	for _, f := range staticFrameworks {
