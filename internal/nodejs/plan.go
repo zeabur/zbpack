@@ -20,7 +20,11 @@ func DeterminePackageManager(absPath string) NodePackageManager {
 		return NodePackageManagerPnpm
 	}
 
-	return NodePackageManagerNpm
+	if _, err := os.Stat(path.Join(absPath, "package-lock.json")); err == nil {
+		return NodePackageManagerNpm
+	}
+
+	return NodePackageManagerYarn
 }
 
 func DetermineProjectFramework(absPath string) NodeProjectFramework {
