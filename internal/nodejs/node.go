@@ -8,8 +8,10 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	pkgManager := meta["packageManager"]
 
-	installCmd := "RUN npm install"
+	installCmd := "RUN yarn"
 	switch pkgManager {
+	case string(types.NodePackageManagerNpm):
+		installCmd = "RUN npm install"
 	case string(types.NodePackageManagerYarn):
 		installCmd = "RUN yarn install"
 	case string(types.NodePackageManagerPnpm):
@@ -19,23 +21,27 @@ RUN pnpm install
 `
 	}
 
-	buildCmd := "RUN npm run " + meta["buildCommand"]
+	buildCmd := "RUN yarn " + meta["buildCommand"]
 	switch pkgManager {
 	case string(types.NodePackageManagerYarn):
 		buildCmd = "RUN yarn " + meta["buildCommand"]
 	case string(types.NodePackageManagerPnpm):
 		buildCmd = "RUN pnpm run " + meta["buildCommand"]
+	case string(types.NodePackageManagerNpm):
+		buildCmd = "RUN npm run " + meta["buildCommand"]
 	}
 	if meta["buildCommand"] == "" {
 		buildCmd = ""
 	}
 
-	startCmd := "CMD npm run " + meta["startCommand"]
+	startCmd := "CMD yarn " + meta["startCommand"]
 	switch pkgManager {
 	case string(types.NodePackageManagerYarn):
 		startCmd = "CMD yarn " + meta["startCommand"]
 	case string(types.NodePackageManagerPnpm):
 		startCmd = "CMD pnpm " + meta["startCommand"]
+	case string(types.NodePackageManagerNpm):
+		startCmd = "CMD npm run " + meta["startCommand"]
 	}
 	if meta["startCommand"] == "" {
 		if meta["mainFile"] != "" {
