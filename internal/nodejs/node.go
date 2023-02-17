@@ -63,6 +63,12 @@ RUN pnpm install
 	// TODO: get staticOutputDir from meta
 	staticOutputDir := ""
 
+	// TODO: get isSinglePageApp from meta
+	isSinglePageApp := true
+	if framework == string(types.NodeProjectFrameworkHexo) {
+		isSinglePageApp = false
+	}
+
 	staticFrameworks := []types.NodeProjectFramework{
 		types.NodeProjectFrameworkVite,
 		types.NodeProjectFrameworkUmi,
@@ -89,7 +95,8 @@ RUN pnpm install
 	}
 
 	if isStaticOutput {
-		return `FROM node:` + nodeVersion + ` as build
+		if isSinglePageApp {
+			return `FROM node:` + nodeVersion + ` as build
 WORKDIR /src
 COPY . .
 ` + installCmd + `
@@ -98,6 +105,18 @@ COPY . .
 FROM nginx:alpine
 COPY --from=build /src/` + staticOutputDir + ` /static
 RUN echo "server { listen 8080; root /static; location / {try_files \$uri /index.html; }}"> /etc/nginx/conf.d/default.conf
+EXPOSE 8080
+`, nil
+		}
+		return `FROM node:` + nodeVersion + ` as build
+WORKDIR /src
+COPY . .
+` + installCmd + `
+` + buildCmd + `
+
+FROM nginx:alpine
+COPY --from=build /src/` + staticOutputDir + ` /usr/share/nginx/html
+RUN echo "server { listen 8080; root /usr/share/nginx/html; }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 `, nil
 	}
