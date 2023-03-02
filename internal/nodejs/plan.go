@@ -55,6 +55,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkQwik
 	}
 
+	if _, isVitepress := packageJson.DevDependencies["vitepress"]; isVitepress {
+		return NodeProjectFrameworkVitepress
+	}
+
 	if _, isVite := packageJson.DevDependencies["vite"]; isVite {
 		return NodeProjectFrameworkVite
 	}
@@ -132,6 +136,12 @@ func GetBuildCommand(absPath string) string {
 
 	if _, ok := packageJson.Scripts["build"]; ok {
 		return "build"
+	}
+
+	for key := range packageJson.Scripts {
+		if strings.Contains(key, "build") {
+			return key
+		}
 	}
 
 	return ""
