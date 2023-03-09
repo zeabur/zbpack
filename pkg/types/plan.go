@@ -44,6 +44,7 @@ const (
 	NodeProjectFrameworkNestJs         NodeProjectFramework = "nest.js"
 	NodeProjectFrameworkHexo           NodeProjectFramework = "hexo"
 	NodeProjectFrameworkVitepress      NodeProjectFramework = "vitepress"
+	NodeProjectFrameworkAstro          NodeProjectFramework = "astro"
 )
 
 type PythonFramework string

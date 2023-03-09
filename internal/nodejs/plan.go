@@ -43,6 +43,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 		return NodeProjectFrameworkNone
 	}
 
+	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
+		return NodeProjectFrameworkAstro
+	}
+
 	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
 		return NodeProjectFrameworkSvelte
 	}
