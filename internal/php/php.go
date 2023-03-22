@@ -48,7 +48,7 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 
 	// install dependencies with composer
 	composerInstallCmd := `
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev --ignore-platform-reqs
 `
 
 	startCmd := `
