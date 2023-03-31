@@ -31,9 +31,7 @@ COPY --chown=www-data:www-data . /var/www/public
 WORKDIR /var/www/public
 `
 
-	switch meta["framework"] {
-	case "laravel":
-		// if laravel, copy source code to /var/www, because laravel has its own public directory
+	if meta["framework"] != "none" {
 		copyCommand = `
 COPY --chown=www-data:www-data . /var/www  
 WORKDIR /var/www

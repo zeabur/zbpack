@@ -73,8 +73,10 @@ const (
 type PhpFramework string
 
 const (
-	PhpFrameworkLaravel PhpFramework = "laravel"
-	PhpFrameworkNone    PhpFramework = "none"
+	PhpFrameworkLaravel     PhpFramework = "laravel"
+	PhpFrameworkNone        PhpFramework = "none"
+	PhpFrameworkThinkphp    PhpFramework = "thinkphp"
+	PhpFrameworkCodeigniter PhpFramework = "codeigniter"
 )
 
 type RubyFramework string
