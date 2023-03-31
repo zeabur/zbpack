@@ -15,11 +15,10 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	installCMD := `
 RUN apt-get update 
-RUN apt-get install -y nginx zip
+RUN apt-get install -y nginx zip libicu-dev jq
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-RUN install-php-extensions zip
 `
 
 	nginxConf = strings.ReplaceAll(nginxConf, "\n", "\\n")
@@ -46,7 +45,15 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 
 	// install dependencies with composer
 	composerInstallCmd := `
-RUN composer install --optimize-autoloader --no-dev --ignore-platform-reqs
+RUN  echo '#!/bin/sh\n\
+extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
+for ext in $extensions; do\n\
+    echo "Installing PHP extension: $ext"\n\
+    docker-php-ext-install $ext\n\
+done' > /usr/local/bin/install_php_extensions.sh \
+    && chmod +x /usr/local/bin/install_php_extensions.sh \
+    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
 `
 
 	startCmd := `
