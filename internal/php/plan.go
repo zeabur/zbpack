@@ -87,6 +87,14 @@ func DetermineProjectFramework(absPath string) PhpFramework {
 		return PhpFrameworkLaravel
 	}
 
+	if _, isThinkPHP := composerJson.Require["topthink/framework"]; isThinkPHP {
+		return PhpFrameworkThinkphp
+	}
+
+	if _, isCodeIgniter := composerJson.Require["codeigniter4/framework"]; isCodeIgniter {
+		return PhpFrameworkCodeigniter
+	}
+
 	return PhpFrameworkNone
 
 }
