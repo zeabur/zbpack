@@ -20,12 +20,26 @@ type Planner interface {
 }
 
 type planner struct {
-	absPath       string
-	submoduleName string
+	absPath            string
+	submoduleName      string
+	customBuildCommand *string
+	customStartCommand *string
 }
 
-func NewPlanner(absPath string, submoduleName string) Planner {
-	return &planner{absPath, submoduleName}
+type NewPlannerOptions struct {
+	AbsPath            string
+	SubmoduleName      string
+	CustomBuildCommand *string
+	CustomStartCommand *string
+}
+
+func NewPlanner(opt *NewPlannerOptions) Planner {
+	return &planner{
+		absPath:            opt.AbsPath,
+		submoduleName:      opt.SubmoduleName,
+		customBuildCommand: opt.CustomBuildCommand,
+		customStartCommand: opt.CustomStartCommand,
+	}
 }
 
 func (b planner) Plan() (PlanType, PlanMeta) {
@@ -47,7 +61,13 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Node.js project
 	if utils.HasFile(b.absPath, "package.json") {
-		return PlanTypeNodejs, nodejs.GetMeta(b.absPath)
+		return PlanTypeNodejs, nodejs.GetMeta(
+			nodejs.GetMetaOptions{
+				AbsPath:        b.absPath,
+				CustomBuildCmd: b.customBuildCommand,
+				CustomStartCmd: b.customStartCommand,
+			},
+		)
 	}
 
 	// Go project
