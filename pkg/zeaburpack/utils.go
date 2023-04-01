@@ -24,6 +24,9 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(l
 	)
 
 	for k, v := range meta {
+		if v == "" || v == "false" {
+			continue
+		}
 		table += blue + "║───────────────────────────────────────────────────────────────║\n" + reset
 		table += fmt.Sprintf(
 			"%s║%s %-16s %s│%s %-42s %s║\n%s",
