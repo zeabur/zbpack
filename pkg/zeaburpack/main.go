@@ -38,6 +38,12 @@ type BuildOptions struct {
 
 	// Interactive is a flag to indicate if the build should be interactive.
 	Interactive *bool
+
+	// CustomBuildCommand is a custom build command that will be used instead of the default one.
+	CustomBuildCommand *string
+
+	// CustomStartCommand is a custom start command that will be used instead of the default one.
+	CustomStartCommand *string
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -115,6 +121,8 @@ func Build(opt *BuildOptions) error {
 			SubmoduleName:        *opt.SubmoduleName,
 			HandleLog:            handleLog,
 			HandlePlanDetermined: handlePlanDetermined,
+			CustomBuildCommand:   opt.CustomBuildCommand,
+			CustomStartCommand:   opt.CustomStartCommand,
 		},
 	)
 	if err != nil {

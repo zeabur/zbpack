@@ -447,14 +447,28 @@ func GetStartCmd(ctx context.Context, absPath string) string {
 	return startCmd
 }
 
-func GetMeta(absPath string) PlanMeta {
-	ctx := context.TODO()
-	framework := DetermineProjectFramework(ctx, absPath)
-	nodeVersion := GetNodeVersion(absPath)
+type GetMetaOptions struct {
+	AbsPath        string
+	CustomBuildCmd *string
+	CustomStartCmd *string
+}
 
-	installCmd := GetInstallCmd(ctx, absPath)
-	buildCmd := GetBuildCmd(ctx, absPath)
-	startCmd := GetStartCmd(ctx, absPath)
+func GetMeta(opt GetMetaOptions) PlanMeta {
+	ctx := context.TODO()
+	framework := DetermineProjectFramework(ctx, opt.AbsPath)
+	nodeVersion := GetNodeVersion(opt.AbsPath)
+
+	installCmd := GetInstallCmd(ctx, opt.AbsPath)
+	buildCmd := GetBuildCmd(ctx, opt.AbsPath)
+	startCmd := GetStartCmd(ctx, opt.AbsPath)
+
+	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
+		buildCmd = *opt.CustomBuildCmd
+	}
+
+	if opt.CustomStartCmd != nil && *opt.CustomStartCmd != "" {
+		startCmd = *opt.CustomStartCmd
+	}
 
 	return PlanMeta{
 		"framework":   string(framework),
