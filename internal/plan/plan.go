@@ -47,22 +47,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Node.js project
 	if utils.HasFile(b.absPath, "package.json") {
-		pkgManager := nodejs.DeterminePackageManager(b.absPath)
-		framework := nodejs.DetermineProjectFramework(b.absPath)
-		buildCmd := nodejs.GetBuildCommand(b.absPath)
-		startCmd := nodejs.GetStartCommand(b.absPath)
-		mainFile := nodejs.GetMainFile(b.absPath)
-		nodeVersion := nodejs.GetNodeVersion(b.absPath)
-		needPuppeteer := nodejs.DetermineNeedPuppeteer(b.absPath)
-		return PlanTypeNodejs, PlanMeta{
-			"packageManager": string(pkgManager),
-			"framework":      string(framework),
-			"buildCommand":   buildCmd,
-			"startCommand":   startCmd,
-			"mainFile":       mainFile,
-			"nodeVersion":    nodeVersion,
-			"needPuppeteer":  needPuppeteer,
-		}
+		return PlanTypeNodejs, nodejs.GetMeta(b.absPath)
 	}
 
 	// Go project
@@ -129,15 +114,15 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Deno project
 	if utils.HasFile(
-		b.absPath, "deno.json", "deno.lock", "fresh.gen.ts", 
+		b.absPath, "deno.json", "deno.lock", "fresh.gen.ts",
 	) {
 		framework := deno.DetermineFramework(b.absPath)
 		entry := deno.DetermineEntry(b.absPath)
 		startCmd := deno.GetStartCommand(b.absPath)
 		return PlanTypeDeno, PlanMeta{
-			"framework":     string(framework),
-			"entry":         entry,
-			"startCommand":  startCmd,
+			"framework":    string(framework),
+			"entry":        entry,
+			"startCommand": startCmd,
 		}
 	}
 
