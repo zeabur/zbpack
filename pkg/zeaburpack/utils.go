@@ -14,7 +14,7 @@ const (
 
 func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(log string)) {
 	table := fmt.Sprintf(
-		"%s╔══════════════════════════ %s%s %s═════════════════════════╗\n",
+		"\n%s╔══════════════════════════ %s%s %s═════════════════════════╗\n",
 		blue, yellow, "Build Plan", blue,
 	)
 
