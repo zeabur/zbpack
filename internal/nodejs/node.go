@@ -6,56 +6,11 @@ import (
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
-	pkgManager := meta["packageManager"]
-
-	installCmd := "RUN yarn"
-	switch pkgManager {
-	case string(types.NodePackageManagerNpm):
-		installCmd = "RUN npm install"
-	case string(types.NodePackageManagerYarn):
-		installCmd = "RUN yarn install"
-	case string(types.NodePackageManagerPnpm):
-		installCmd = `
-RUN npm install -g pnpm
-RUN pnpm install
-`
-	}
-
-	buildCmd := "RUN yarn " + meta["buildCommand"]
-	switch pkgManager {
-	case string(types.NodePackageManagerYarn):
-		buildCmd = "RUN yarn " + meta["buildCommand"]
-	case string(types.NodePackageManagerPnpm):
-		buildCmd = "RUN pnpm run " + meta["buildCommand"]
-	case string(types.NodePackageManagerNpm):
-		buildCmd = "RUN npm run " + meta["buildCommand"]
-	}
-	if meta["buildCommand"] == "" {
-		buildCmd = ""
-	}
-
-	startCmd := "CMD yarn " + meta["startCommand"]
-	switch pkgManager {
-	case string(types.NodePackageManagerYarn):
-		startCmd = "CMD yarn " + meta["startCommand"]
-	case string(types.NodePackageManagerPnpm):
-		startCmd = "CMD pnpm " + meta["startCommand"]
-	case string(types.NodePackageManagerNpm):
-		startCmd = "CMD npm run " + meta["startCommand"]
-	}
-	if meta["startCommand"] == "" {
-		if meta["mainFile"] != "" {
-			startCmd = "CMD node " + meta["mainFile"]
-		} else if meta["framework"] == "nuxt.js" {
-			startCmd = "CMD node .output/server/index.mjs"
-		} else {
-			startCmd = "CMD node index.js"
-		}
-	}
-
 	framework := meta["framework"]
-
 	nodeVersion := meta["nodeVersion"]
+	installCmd := meta["installCmd"]
+	buildCmd := meta["buildCmd"]
+	startCmd := meta["startCmd"]
 
 	// TODO: get isStaticOutput from meta
 	isStaticOutput := false
@@ -103,8 +58,8 @@ RUN pnpm install
 			return `FROM node:` + nodeVersion + ` as build
 WORKDIR /src
 COPY . .
-` + installCmd + `
-` + buildCmd + `
+RUN ` + installCmd + `
+RUN ` + buildCmd + `
 
 FROM nginx:alpine
 COPY --from=build /src/` + staticOutputDir + ` /static
@@ -115,8 +70,8 @@ EXPOSE 8080
 		return `FROM node:` + nodeVersion + ` as build
 WORKDIR /src
 COPY . .
-` + installCmd + `
-` + buildCmd + `
+RUN ` + installCmd + `
+RUN ` + buildCmd + `
 
 FROM nginx:alpine
 COPY --from=build /src/` + staticOutputDir + ` /usr/share/nginx/html
@@ -125,28 +80,12 @@ EXPOSE 8080
 `, nil
 	}
 
-	puppeteerCmd := ""
-	needPuppeteer := meta["needPuppeteer"] == "true"
-	if needPuppeteer {
-		puppeteerCmd = `
-RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
-RUN groupadd -r puppeteer 
-RUN useradd -r -g puppeteer -G audio,video puppeteer
-RUN chown -R puppeteer:puppeteer /src
-RUN mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer
-USER puppeteer
-`
-
-		startCmd = "CMD " + "node node_modules/puppeteer/install.js && " + startCmd[4:]
-	}
-
 	return `FROM node:` + nodeVersion + ` 
 ENV PORT=8080
 WORKDIR /src
 COPY . .
-` + installCmd + `
-` + buildCmd + `
-` + puppeteerCmd + `
+RUN ` + installCmd + `
+RUN ` + buildCmd + `
 EXPOSE 8080
-` + startCmd, nil
+CMD ` + startCmd, nil
 }
