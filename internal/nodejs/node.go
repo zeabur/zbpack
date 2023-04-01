@@ -65,7 +65,7 @@ RUN pnpm install
 
 	// TODO: get isSinglePageApp from meta
 	isSinglePageApp := true
-	if framework == string(types.NodeProjectFrameworkHexo) || framework == string(types.NodeProjectFrameworkVitepress) || framework == string(types.NodeProjectFrameworkAstro) {
+	if framework == string(types.NodeProjectFrameworkHexo) || framework == string(types.NodeProjectFrameworkVitepress) || framework == string(types.NodeProjectFrameworkAstroStatic) {
 		isSinglePageApp = false
 	}
 
@@ -76,7 +76,7 @@ RUN pnpm install
 		types.NodeProjectFrameworkVueCli,
 		types.NodeProjectFrameworkHexo,
 		types.NodeProjectFrameworkVitepress,
-		types.NodeProjectFrameworkAstro,
+		types.NodeProjectFrameworkAstroStatic,
 	}
 
 	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
@@ -86,7 +86,7 @@ RUN pnpm install
 		types.NodeProjectFrameworkCreateReactApp: "build",
 		types.NodeProjectFrameworkHexo:           "public",
 		types.NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
-		types.NodeProjectFrameworkAstro:          "dist",
+		types.NodeProjectFrameworkAstroStatic:    "dist",
 	}
 
 	for _, f := range staticFrameworks {

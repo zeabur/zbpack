@@ -44,7 +44,10 @@ func DetermineProjectFramework(absPath string) NodeProjectFramework {
 	}
 
 	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
-		return NodeProjectFrameworkAstro
+		if _, isAstroSSR := packageJson.Dependencies["@astrojs/node"]; isAstroSSR {
+			return NodeProjectFrameworkAstroSSR
+		}
+		return NodeProjectFrameworkAstroStatic
 	}
 
 	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
