@@ -35,6 +35,7 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 			SubmoduleName:      opt.SubmoduleName,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
+			OutputDir:          opt.OutputDir,
 		},
 	)
 
