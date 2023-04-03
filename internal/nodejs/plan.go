@@ -508,6 +508,9 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	}
 	staticOutputDir := GetStaticOutputDir(ctx, opt.AbsPath)
 	if staticOutputDir != "" {
+		if strings.HasPrefix(staticOutputDir, "/") {
+			staticOutputDir = strings.TrimPrefix(staticOutputDir, "/")
+		}
 		meta["outputDir"] = staticOutputDir
 		return meta
 	}
