@@ -24,6 +24,7 @@ type planner struct {
 	submoduleName      string
 	customBuildCommand *string
 	customStartCommand *string
+	outputDir          *string
 }
 
 type NewPlannerOptions struct {
@@ -31,6 +32,7 @@ type NewPlannerOptions struct {
 	SubmoduleName      string
 	CustomBuildCommand *string
 	CustomStartCommand *string
+	OutputDir          *string
 }
 
 func NewPlanner(opt *NewPlannerOptions) Planner {
@@ -39,6 +41,7 @@ func NewPlanner(opt *NewPlannerOptions) Planner {
 		submoduleName:      opt.SubmoduleName,
 		customBuildCommand: opt.CustomBuildCommand,
 		customStartCommand: opt.CustomStartCommand,
+		outputDir:          opt.OutputDir,
 	}
 }
 
@@ -66,6 +69,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 				AbsPath:        b.absPath,
 				CustomBuildCmd: b.customBuildCommand,
 				CustomStartCmd: b.customStartCommand,
+				OutputDir:      b.outputDir,
 			},
 		)
 	}

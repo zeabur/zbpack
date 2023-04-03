@@ -447,34 +447,76 @@ func GetStartCmd(ctx context.Context, absPath string) string {
 	return startCmd
 }
 
+// GetStaticOutputDir returns the output directory for static projects.
+// If empty string is returned, the service is not deployed as static files.
+func GetStaticOutputDir(ctx context.Context, absPath string) string {
+	if staticOutputDir, ok := ctx.Value("outputDir").(string); ok {
+		return staticOutputDir
+	}
+
+	framework := DetermineProjectFramework(ctx, absPath)
+
+	defaultStaticOutputDirs := map[NodeProjectFramework]string{
+		NodeProjectFrameworkVite:           "dist",
+		NodeProjectFrameworkUmi:            "dist",
+		NodeProjectFrameworkVueCli:         "dist",
+		NodeProjectFrameworkCreateReactApp: "build",
+		NodeProjectFrameworkHexo:           "public",
+		NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
+		NodeProjectFrameworkAstroStatic:    "dist",
+	}
+
+	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
+		context.WithValue(ctx, "outputDir", outputDir)
+		return outputDir
+	}
+
+	context.WithValue(ctx, "outputDir", "")
+	return ""
+}
+
 type GetMetaOptions struct {
 	AbsPath        string
 	CustomBuildCmd *string
 	CustomStartCmd *string
+	OutputDir      *string
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
 	ctx := context.TODO()
+
+	meta := PlanMeta{}
+
 	framework := DetermineProjectFramework(ctx, opt.AbsPath)
+	meta["framework"] = string(framework)
+
 	nodeVersion := GetNodeVersion(opt.AbsPath)
+	meta["nodeVersion"] = nodeVersion
 
 	installCmd := GetInstallCmd(ctx, opt.AbsPath)
-	buildCmd := GetBuildCmd(ctx, opt.AbsPath)
-	startCmd := GetStartCmd(ctx, opt.AbsPath)
+	meta["installCmd"] = installCmd
 
+	buildCmd := GetBuildCmd(ctx, opt.AbsPath)
 	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
 		buildCmd = *opt.CustomBuildCmd
 	}
+	meta["buildCmd"] = buildCmd
 
+	if opt.OutputDir != nil && *opt.OutputDir != "" {
+		meta["outputDir"] = *opt.OutputDir
+		return meta
+	}
+	staticOutputDir := GetStaticOutputDir(ctx, opt.AbsPath)
+	if staticOutputDir != "" {
+		meta["outputDir"] = staticOutputDir
+		return meta
+	}
+
+	startCmd := GetStartCmd(ctx, opt.AbsPath)
 	if opt.CustomStartCmd != nil && *opt.CustomStartCmd != "" {
 		startCmd = *opt.CustomStartCmd
 	}
+	meta["startCmd"] = startCmd
 
-	return PlanMeta{
-		"framework":   string(framework),
-		"nodeVersion": nodeVersion,
-		"installCmd":  installCmd,
-		"buildCmd":    buildCmd,
-		"startCmd":    startCmd,
-	}
+	return meta
 }

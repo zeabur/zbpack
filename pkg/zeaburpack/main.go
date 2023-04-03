@@ -44,6 +44,10 @@ type BuildOptions struct {
 
 	// CustomStartCommand is a custom start command that will be used instead of the default one.
 	CustomStartCommand *string
+
+	// OutputDir is the directory where the build artifacts will be stored.
+	// Once provided, the service will deploy as static files with nginx.
+	OutputDir *string
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -123,6 +127,7 @@ func Build(opt *BuildOptions) error {
 			HandlePlanDetermined: handlePlanDetermined,
 			CustomBuildCommand:   opt.CustomBuildCommand,
 			CustomStartCommand:   opt.CustomStartCommand,
+			OutputDir:            opt.OutputDir,
 		},
 	)
 	if err != nil {
