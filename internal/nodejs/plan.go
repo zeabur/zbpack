@@ -502,7 +502,6 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	}
 	meta["buildCmd"] = buildCmd
 
-	println("outputDir", opt.OutputDir)
 	if opt.OutputDir != nil && *opt.OutputDir != "" {
 		meta["outputDir"] = *opt.OutputDir
 		return meta
