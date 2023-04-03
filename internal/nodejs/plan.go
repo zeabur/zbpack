@@ -503,14 +503,15 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	meta["buildCmd"] = buildCmd
 
 	if opt.OutputDir != nil && *opt.OutputDir != "" {
-		meta["outputDir"] = *opt.OutputDir
+		if strings.HasPrefix(*opt.OutputDir, "/") {
+			meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
+		} else {
+			meta["outputDir"] = *opt.OutputDir
+		}
 		return meta
 	}
 	staticOutputDir := GetStaticOutputDir(ctx, opt.AbsPath)
 	if staticOutputDir != "" {
-		if strings.HasPrefix(staticOutputDir, "/") {
-			staticOutputDir = strings.TrimPrefix(staticOutputDir, "/")
-		}
 		meta["outputDir"] = staticOutputDir
 		return meta
 	}
