@@ -19,6 +19,7 @@ type generateDockerfileOptions struct {
 	SubmoduleName        string
 	CustomBuildCommand   *string
 	CustomStartCommand   *string
+	OutputDir            *string
 	AbsPath              string
 	HandleLog            func(log string)
 	HandlePlanDetermined func(planType PlanType, planMeta PlanMeta)
