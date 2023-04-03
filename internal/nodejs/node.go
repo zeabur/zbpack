@@ -22,9 +22,8 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		if isSinglePageApp {
 			return `FROM node:` + nodeVersion + ` as build
 WORKDIR /src
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN ` + installCmd + `
 COPY . .
+RUN ` + installCmd + `
 RUN ` + buildCmd + `
 
 FROM nginx:alpine
@@ -35,9 +34,8 @@ EXPOSE 8080
 		}
 		return `FROM node:` + nodeVersion + ` as build
 WORKDIR /src
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN ` + installCmd + `
 COPY . .
+RUN ` + installCmd + `
 RUN ` + buildCmd + `
 
 FROM nginx:alpine
@@ -50,9 +48,8 @@ EXPOSE 8080
 	return `FROM node:` + nodeVersion + ` 
 ENV PORT=8080
 WORKDIR /src
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN ` + installCmd + `
 COPY . .
+RUN ` + installCmd + `
 RUN ` + buildCmd + `
 EXPOSE 8080
 CMD ` + startCmd, nil
