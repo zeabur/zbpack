@@ -11,7 +11,10 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	entry := meta["entry"]
 	dependencyPolicy := meta["dependencyPolicy"]
 
-	dockerfile := "FROM python:3.8.2-slim-buster\n"
+	dockerfile := `FROM python:3.8.2-slim-buster
+RUN apt update \
+	&& apt install -y libmariadb-dev build-essential \
+	&& rm -rf /var/lib/apt/lists/*`
 
 	installCmds := ""
 
@@ -63,7 +66,6 @@ COPY . .
 ` + installCmds + `
 EXPOSE 8080
 CMD python ` + entry
-
 	}
 
 	return dockerfile, nil
