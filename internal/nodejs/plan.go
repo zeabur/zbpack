@@ -20,27 +20,30 @@ type nodePlanContext struct {
 	// ...
 }
 
-	if packageManager, ok := ctx.Value("packageManager").(NodePackageManager); ok {
+func DeterminePackageManager(ctx *nodePlanContext, absPath string) NodePackageManager {
+	pm := &ctx.PackageManager
+
+	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "yarn.lock")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerYarn)
-		return NodePackageManagerYarn
+		*pm = optional.Some(NodePackageManagerYarn)
+		return pm.Unwrap()
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "pnpm-lock.yaml")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerPnpm)
-		return NodePackageManagerPnpm
+		*pm = optional.Some(NodePackageManagerPnpm)
+		return pm.Unwrap()
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "package-lock.json")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerNpm)
-		return NodePackageManagerNpm
+		*pm = optional.Some(NodePackageManagerNpm)
+		return pm.Unwrap()
 	}
 
-	context.WithValue(ctx, "packageManager", NodePackageManagerYarn)
-	return NodePackageManagerYarn
+	*pm = optional.Some(NodePackageManagerYarn)
+	return pm.Unwrap()
 }
 
 func DetermineProjectFramework(ctx context.Context, absPath string) NodeProjectFramework {
