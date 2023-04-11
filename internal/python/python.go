@@ -50,7 +50,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	entry := meta["entry"]
 	dependencyPolicy := meta["dependencyPolicy"]
 
-	dockerfile := `FROM python:3.8.2-slim-buster`
+	dockerfile := "FROM python:3.8.2-slim-buster\n"
 
 	if IsMysqlNeeded(fs) {
 		dockerfile += `RUN apt update \
