@@ -1,17 +1,62 @@
 package python
 
 import (
+	"bufio"
 	"os"
+	"strings"
 
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// IsMysqlNeeded checks if the project has a dependency on `mysqlclient`,
+// and it will return true if it does.
+func IsMysqlNeeded(fs afero.Fs) bool {
+	possiblePath := []string{
+		"requirements.txt",
+		"pyproject.toml",
+		"poetry.lock",
+		"Pipfile",
+		"Pipfile.lock",
+	}
+
+	for _, p := range possiblePath {
+		file, err := fs.Open("/src/" + p)
+		if err != nil {
+			// the file may not exist, and we can safely ignore this error
+			continue
+		}
+		defer file.Close()
+
+		// read file line by line – usually the string `mysqlclient`
+		// will be present completely on one line.
+		scanner := bufio.NewScanner(file)
+
+		for scanner.Scan() {
+			if strings.Contains(scanner.Text(), "mysqlclient") {
+				return true
+			}
+		}
+	}
+
+	// it probably doesn't have a dependency on `mysqlclient`
+	return false
+}
+
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	fs := afero.NewOsFs()
+
 	framework := meta["framework"]
 	entry := meta["entry"]
 	dependencyPolicy := meta["dependencyPolicy"]
 
 	dockerfile := "FROM python:3.8.2-slim-buster\n"
+
+	if IsMysqlNeeded(fs) {
+		dockerfile += `RUN apt update \
+	&& apt install -y libmariadb-dev build-essential \
+	&& rm -rf /var/lib/apt/lists/*`
+	}
 
 	installCmds := ""
 
@@ -63,7 +108,6 @@ COPY . .
 ` + installCmds + `
 EXPOSE 8080
 CMD python ` + entry
-
 	}
 
 	return dockerfile, nil
