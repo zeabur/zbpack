@@ -9,10 +9,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/moznion/go-optional"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DeterminePackageManager(ctx context.Context, absPath string) NodePackageManager {
+type nodePlanContext struct {
+	PackageManager optional.Option[NodePackageManager]
+	Framework      optional.Option[NodeProjectFramework]
+	NeedPuppeteer  optional.Option[bool]
+	// ...
+}
 
 	if packageManager, ok := ctx.Value("packageManager").(NodePackageManager); ok {
 		return packageManager
