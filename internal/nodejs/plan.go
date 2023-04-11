@@ -46,15 +46,16 @@ func DeterminePackageManager(ctx *nodePlanContext, absPath string) NodePackageMa
 	return pm.Unwrap()
 }
 
-func DetermineProjectFramework(ctx context.Context, absPath string) NodeProjectFramework {
+func DetermineProjectFramework(ctx *nodePlanContext, absPath string) NodeProjectFramework {
+	fw := &ctx.Framework
 
-	if framework, ok := ctx.Value("framework").(NodeProjectFramework); ok {
+	if framework, err := fw.Take(); err == nil {
 		return framework
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
+		*fw = optional.Some(NodeProjectFrameworkNone)
 		return NodeProjectFrameworkNone
 	}
 
@@ -64,86 +65,87 @@ func DetermineProjectFramework(ctx context.Context, absPath string) NodeProjectF
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
-		return NodeProjectFrameworkNone
+		*fw = optional.Some(NodeProjectFrameworkNone)
+		return fw.Unwrap()
 	}
 
 	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
 		if _, isAstroSSR := packageJson.Dependencies["@astrojs/node"]; isAstroSSR {
-			context.WithValue(ctx, "framework", NodeProjectFrameworkAstroSSR)
-			return NodeProjectFrameworkAstroSSR
+			*fw = optional.Some(NodeProjectFrameworkAstroSSR)
+			return fw.Unwrap()
 		}
-		context.WithValue(ctx, "framework", NodeProjectFrameworkAstroStatic)
-		return NodeProjectFrameworkAstroStatic
+
+		*fw = optional.Some(NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
 	}
 
 	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkSvelte)
-		return NodeProjectFrameworkSvelte
+		*fw = optional.Some(NodeProjectFrameworkSvelte)
+		return fw.Unwrap()
 	}
 
 	if _, isHexo := packageJson.Dependencies["hexo"]; isHexo {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkHexo)
-		return NodeProjectFrameworkHexo
+		*fw = optional.Some(NodeProjectFrameworkHexo)
+		return fw.Unwrap()
 	}
 
 	if _, isQwik := packageJson.DevDependencies["@builder.io/qwik"]; isQwik {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkQwik)
-		return NodeProjectFrameworkQwik
+		*fw = optional.Some(NodeProjectFrameworkQwik)
+		return fw.Unwrap()
 	}
 
 	if _, isVitepress := packageJson.DevDependencies["vitepress"]; isVitepress {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVitepress)
-		return NodeProjectFrameworkVitepress
+		*fw = optional.Some(NodeProjectFrameworkVitepress)
+		return fw.Unwrap()
 	}
 
 	if _, isVite := packageJson.DevDependencies["vite"]; isVite {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVite)
-		return NodeProjectFrameworkVite
+		*fw = optional.Some(NodeProjectFrameworkVite)
+		return fw.Unwrap()
 	}
 
 	if _, isUmi := packageJson.Dependencies["umi"]; isUmi {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkUmi)
-		return NodeProjectFrameworkUmi
+		*fw = optional.Some(NodeProjectFrameworkUmi)
+		return fw.Unwrap()
 	}
 
 	if _, isNextJs := packageJson.Dependencies["next"]; isNextJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNextJs)
-		return NodeProjectFrameworkNextJs
+		*fw = optional.Some(NodeProjectFrameworkNextJs)
+		return fw.Unwrap()
 	}
 
 	if _, isNestJs := packageJson.Dependencies["@nestjs/core"]; isNestJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNestJs)
-		return NodeProjectFrameworkNestJs
+		*fw = optional.Some(NodeProjectFrameworkNestJs)
+		return fw.Unwrap()
 	}
 
 	if _, isRemix := packageJson.Dependencies["@remix-run/react"]; isRemix {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkRemix)
-		return NodeProjectFrameworkRemix
+		*fw = optional.Some(NodeProjectFrameworkRemix)
+		return fw.Unwrap()
 	}
 
 	if _, isCreateReactApp := packageJson.Dependencies["react-scripts"]; isCreateReactApp {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkCreateReactApp)
-		return NodeProjectFrameworkCreateReactApp
+		*fw = optional.Some(NodeProjectFrameworkCreateReactApp)
+		return fw.Unwrap()
 	}
 
 	if _, isNuxtJs := packageJson.Dependencies["nuxt"]; isNuxtJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNuxtJs)
-		return NodeProjectFrameworkNuxtJs
+		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+		return fw.Unwrap()
 	}
 
 	if _, isNuxtJs := packageJson.DevDependencies["nuxt"]; isNuxtJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNuxtJs)
-		return NodeProjectFrameworkNuxtJs
+		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+		return fw.Unwrap()
 	}
 
 	if _, isVueCliApp := packageJson.DevDependencies["@vue/cli-service"]; isVueCliApp {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVueCli)
-		return NodeProjectFrameworkVueCli
+		*fw = optional.Some(NodeProjectFrameworkVueCli)
+		return fw.Unwrap()
 	}
 
-	context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
-	return NodeProjectFrameworkNone
+	*fw = optional.Some(NodeProjectFrameworkNone)
+	return fw.Unwrap()
 }
 
 func DetermineNeedPuppeteer(ctx context.Context, absPath string) bool {
