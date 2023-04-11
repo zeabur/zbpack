@@ -17,6 +17,7 @@ type nodePlanContext struct {
 	PackageManager optional.Option[NodePackageManager]
 	Framework      optional.Option[NodeProjectFramework]
 	NeedPuppeteer  optional.Option[bool]
+	BuildScript    optional.Option[string]
 	// ...
 }
 
@@ -179,16 +180,17 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext, absPath string) bool {
 	return pup.Unwrap()
 }
 
-func GetBuildScript(ctx context.Context, absPath string) string {
+func GetBuildScript(ctx *nodePlanContext, absPath string) string {
+	bs := &ctx.BuildScript
 
-	if buildScript, ok := ctx.Value("buildScript").(string); ok {
+	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "buildScript", "")
-		return ""
+		*bs = optional.Some("")
+		return bs.Unwrap()
 	}
 
 	packageJson := struct {
@@ -196,24 +198,24 @@ func GetBuildScript(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "buildScript", "")
-		return ""
+		*bs = optional.Some("")
+		return bs.Unwrap()
 	}
 
 	if _, ok := packageJson.Scripts["build"]; ok {
-		context.WithValue(ctx, "buildScript", "build")
-		return "build"
+		*bs = optional.Some("build")
+		return bs.Unwrap()
 	}
 
 	for key := range packageJson.Scripts {
 		if strings.Contains(key, "build") {
-			context.WithValue(ctx, "buildScript", key)
-			return key
+			*bs = optional.Some(key)
+			return bs.Unwrap()
 		}
 	}
 
-	context.WithValue(ctx, "buildScript", "")
-	return ""
+	*bs = optional.Some("")
+	return bs.Unwrap()
 }
 
 func GetStartScript(ctx context.Context, absPath string) string {
