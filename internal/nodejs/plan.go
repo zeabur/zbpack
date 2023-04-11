@@ -18,6 +18,7 @@ type nodePlanContext struct {
 	Framework      optional.Option[NodeProjectFramework]
 	NeedPuppeteer  optional.Option[bool]
 	BuildScript    optional.Option[string]
+	StartScript    optional.Option[string]
 	// ...
 }
 
@@ -218,16 +219,17 @@ func GetBuildScript(ctx *nodePlanContext, absPath string) string {
 	return bs.Unwrap()
 }
 
-func GetStartScript(ctx context.Context, absPath string) string {
+func GetStartScript(ctx *nodePlanContext, absPath string) string {
+	ss := &ctx.StartScript
 
-	if startScript, ok := ctx.Value("startScript").(string); ok {
+	if startScript, err := ss.Take(); err == nil {
 		return startScript
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "startScript", "")
-		return ""
+		*ss = optional.Some("")
+		return ss.Unwrap()
 	}
 
 	packageJson := struct {
@@ -236,24 +238,24 @@ func GetStartScript(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "startScript", "")
-		return ""
+		*ss = optional.Some("")
+		return ss.Unwrap()
 	}
 
 	if _, ok := packageJson.DevDependencies["@builder.io/qwik"]; ok {
 		if _, ok := packageJson.Scripts["deploy"]; ok {
-			context.WithValue(ctx, "startScript", "deploy")
-			return "deploy"
+			*ss = optional.Some("deploy")
+			return ss.Unwrap()
 		}
 	}
 
 	if _, ok := packageJson.Scripts["start"]; ok {
-		context.WithValue(ctx, "startScript", "start")
-		return "start"
+		*ss = optional.Some("start")
+		return ss.Unwrap()
 	}
 
-	context.WithValue(ctx, "startScript", "")
-	return ""
+	*ss = optional.Some("")
+	return ss.Unwrap()
 }
 
 func GetNodeVersion(absPath string) string {
