@@ -148,16 +148,17 @@ func DetermineProjectFramework(ctx *nodePlanContext, absPath string) NodeProject
 	return fw.Unwrap()
 }
 
-func DetermineNeedPuppeteer(ctx context.Context, absPath string) bool {
+func DetermineNeedPuppeteer(ctx *nodePlanContext, absPath string) bool {
+	pup := &ctx.NeedPuppeteer
 
-	if needPuppeteer, ok := ctx.Value("needPuppeteer").(bool); ok {
+	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "needPuppeteer", false)
-		return false
+		*pup = optional.Some(false)
+		return pup.Unwrap()
 	}
 
 	packageJson := struct {
@@ -165,17 +166,17 @@ func DetermineNeedPuppeteer(ctx context.Context, absPath string) bool {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "needPuppeteer", false)
-		return false
+		*pup = optional.Some(false)
+		return pup.Unwrap()
 	}
 
 	if _, hasPuppeteer := packageJson.Dependencies["puppeteer"]; hasPuppeteer {
-		context.WithValue(ctx, "needPuppeteer", true)
-		return true
+		*pup = optional.Some(true)
+		return pup.Unwrap()
 	}
 
-	context.WithValue(ctx, "needPuppeteer", false)
-	return false
+	*pup = optional.Some(false)
+	return pup.Unwrap()
 }
 
 func GetBuildScript(ctx context.Context, absPath string) string {
