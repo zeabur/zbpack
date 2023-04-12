@@ -19,6 +19,7 @@ type nodePlanContext struct {
 	NeedPuppeteer  optional.Option[bool]
 	BuildScript    optional.Option[string]
 	StartScript    optional.Option[string]
+	Entry          optional.Option[string]
 	// ...
 }
 
@@ -346,15 +347,17 @@ func GetNodeVersion(absPath string) string {
 	return "16"
 }
 
-func GetEntry(ctx context.Context, absPath string) string {
-	if entry, ok := ctx.Value("entry").(string); ok {
+func GetEntry(ctx *nodePlanContext, absPath string) string {
+	ent := &ctx.Entry
+
+	if entry, err := ent.Take(); err == nil {
 		return entry
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "entry", "")
-		return ""
+		*ent = optional.Some("")
+		return ent.Unwrap()
 	}
 
 	packageJson := struct {
@@ -362,16 +365,15 @@ func GetEntry(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "entry", "")
-		return ""
+		*ent = optional.Some("")
+		return ent.Unwrap()
 	}
 
-	context.WithValue(ctx, "entry", packageJson.Main)
-	return packageJson.Main
+	*ent = optional.Some(packageJson.Main)
+	return ent.Unwrap()
 }
 
 func GetInstallCmd(ctx context.Context, absPath string) string {
-
 	if installCmd, ok := ctx.Value("installCmd").(string); ok {
 		return installCmd
 	}
@@ -392,7 +394,6 @@ func GetInstallCmd(ctx context.Context, absPath string) string {
 }
 
 func GetBuildCmd(ctx context.Context, absPath string) string {
-
 	if buildCmd, ok := ctx.Value("buildCmd").(string); ok {
 		return buildCmd
 	}
@@ -424,7 +425,6 @@ func GetBuildCmd(ctx context.Context, absPath string) string {
 }
 
 func GetStartCmd(ctx context.Context, absPath string) string {
-
 	if startCmd, ok := ctx.Value("startCmd").(string); ok {
 		return startCmd
 	}
