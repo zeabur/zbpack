@@ -1,7 +1,6 @@
 package nodejs
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"path"
@@ -9,43 +8,60 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/moznion/go-optional"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DeterminePackageManager(ctx context.Context, absPath string) NodePackageManager {
+type nodePlanContext struct {
+	PackageManager  optional.Option[NodePackageManager]
+	Framework       optional.Option[NodeProjectFramework]
+	NeedPuppeteer   optional.Option[bool]
+	BuildScript     optional.Option[string]
+	StartScript     optional.Option[string]
+	Entry           optional.Option[string]
+	InstallCmd      optional.Option[string]
+	BuildCmd        optional.Option[string]
+	StartCmd        optional.Option[string]
+	StaticOutputDir optional.Option[string]
+	// ...
+}
 
-	if packageManager, ok := ctx.Value("packageManager").(NodePackageManager); ok {
+func DeterminePackageManager(ctx *nodePlanContext, absPath string) NodePackageManager {
+	pm := &ctx.PackageManager
+
+	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "yarn.lock")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerYarn)
-		return NodePackageManagerYarn
+		*pm = optional.Some(NodePackageManagerYarn)
+		return pm.Unwrap()
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "pnpm-lock.yaml")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerPnpm)
-		return NodePackageManagerPnpm
+		*pm = optional.Some(NodePackageManagerPnpm)
+		return pm.Unwrap()
 	}
 
 	if _, err := os.Stat(path.Join(absPath, "package-lock.json")); err == nil {
-		context.WithValue(ctx, "packageManager", NodePackageManagerNpm)
-		return NodePackageManagerNpm
+		*pm = optional.Some(NodePackageManagerNpm)
+		return pm.Unwrap()
 	}
 
-	context.WithValue(ctx, "packageManager", NodePackageManagerYarn)
-	return NodePackageManagerYarn
+	*pm = optional.Some(NodePackageManagerYarn)
+	return pm.Unwrap()
 }
 
-func DetermineProjectFramework(ctx context.Context, absPath string) NodeProjectFramework {
+func DetermineProjectFramework(ctx *nodePlanContext, absPath string) NodeProjectFramework {
+	fw := &ctx.Framework
 
-	if framework, ok := ctx.Value("framework").(NodeProjectFramework); ok {
+	if framework, err := fw.Take(); err == nil {
 		return framework
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
+		*fw = optional.Some(NodeProjectFrameworkNone)
 		return NodeProjectFrameworkNone
 	}
 
@@ -55,98 +71,100 @@ func DetermineProjectFramework(ctx context.Context, absPath string) NodeProjectF
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
-		return NodeProjectFrameworkNone
+		*fw = optional.Some(NodeProjectFrameworkNone)
+		return fw.Unwrap()
 	}
 
 	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
 		if _, isAstroSSR := packageJson.Dependencies["@astrojs/node"]; isAstroSSR {
-			context.WithValue(ctx, "framework", NodeProjectFrameworkAstroSSR)
-			return NodeProjectFrameworkAstroSSR
+			*fw = optional.Some(NodeProjectFrameworkAstroSSR)
+			return fw.Unwrap()
 		}
-		context.WithValue(ctx, "framework", NodeProjectFrameworkAstroStatic)
-		return NodeProjectFrameworkAstroStatic
+
+		*fw = optional.Some(NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
 	}
 
 	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkSvelte)
-		return NodeProjectFrameworkSvelte
+		*fw = optional.Some(NodeProjectFrameworkSvelte)
+		return fw.Unwrap()
 	}
 
 	if _, isHexo := packageJson.Dependencies["hexo"]; isHexo {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkHexo)
-		return NodeProjectFrameworkHexo
+		*fw = optional.Some(NodeProjectFrameworkHexo)
+		return fw.Unwrap()
 	}
 
 	if _, isQwik := packageJson.DevDependencies["@builder.io/qwik"]; isQwik {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkQwik)
-		return NodeProjectFrameworkQwik
+		*fw = optional.Some(NodeProjectFrameworkQwik)
+		return fw.Unwrap()
 	}
 
 	if _, isVitepress := packageJson.DevDependencies["vitepress"]; isVitepress {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVitepress)
-		return NodeProjectFrameworkVitepress
+		*fw = optional.Some(NodeProjectFrameworkVitepress)
+		return fw.Unwrap()
 	}
 
 	if _, isVite := packageJson.DevDependencies["vite"]; isVite {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVite)
-		return NodeProjectFrameworkVite
+		*fw = optional.Some(NodeProjectFrameworkVite)
+		return fw.Unwrap()
 	}
 
 	if _, isUmi := packageJson.Dependencies["umi"]; isUmi {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkUmi)
-		return NodeProjectFrameworkUmi
+		*fw = optional.Some(NodeProjectFrameworkUmi)
+		return fw.Unwrap()
 	}
 
 	if _, isNextJs := packageJson.Dependencies["next"]; isNextJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNextJs)
-		return NodeProjectFrameworkNextJs
+		*fw = optional.Some(NodeProjectFrameworkNextJs)
+		return fw.Unwrap()
 	}
 
 	if _, isNestJs := packageJson.Dependencies["@nestjs/core"]; isNestJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNestJs)
-		return NodeProjectFrameworkNestJs
+		*fw = optional.Some(NodeProjectFrameworkNestJs)
+		return fw.Unwrap()
 	}
 
 	if _, isRemix := packageJson.Dependencies["@remix-run/react"]; isRemix {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkRemix)
-		return NodeProjectFrameworkRemix
+		*fw = optional.Some(NodeProjectFrameworkRemix)
+		return fw.Unwrap()
 	}
 
 	if _, isCreateReactApp := packageJson.Dependencies["react-scripts"]; isCreateReactApp {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkCreateReactApp)
-		return NodeProjectFrameworkCreateReactApp
+		*fw = optional.Some(NodeProjectFrameworkCreateReactApp)
+		return fw.Unwrap()
 	}
 
 	if _, isNuxtJs := packageJson.Dependencies["nuxt"]; isNuxtJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNuxtJs)
-		return NodeProjectFrameworkNuxtJs
+		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+		return fw.Unwrap()
 	}
 
 	if _, isNuxtJs := packageJson.DevDependencies["nuxt"]; isNuxtJs {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkNuxtJs)
-		return NodeProjectFrameworkNuxtJs
+		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+		return fw.Unwrap()
 	}
 
 	if _, isVueCliApp := packageJson.DevDependencies["@vue/cli-service"]; isVueCliApp {
-		context.WithValue(ctx, "framework", NodeProjectFrameworkVueCli)
-		return NodeProjectFrameworkVueCli
+		*fw = optional.Some(NodeProjectFrameworkVueCli)
+		return fw.Unwrap()
 	}
 
-	context.WithValue(ctx, "framework", NodeProjectFrameworkNone)
-	return NodeProjectFrameworkNone
+	*fw = optional.Some(NodeProjectFrameworkNone)
+	return fw.Unwrap()
 }
 
-func DetermineNeedPuppeteer(ctx context.Context, absPath string) bool {
+func DetermineNeedPuppeteer(ctx *nodePlanContext, absPath string) bool {
+	pup := &ctx.NeedPuppeteer
 
-	if needPuppeteer, ok := ctx.Value("needPuppeteer").(bool); ok {
+	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "needPuppeteer", false)
-		return false
+		*pup = optional.Some(false)
+		return pup.Unwrap()
 	}
 
 	packageJson := struct {
@@ -154,29 +172,30 @@ func DetermineNeedPuppeteer(ctx context.Context, absPath string) bool {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "needPuppeteer", false)
-		return false
+		*pup = optional.Some(false)
+		return pup.Unwrap()
 	}
 
 	if _, hasPuppeteer := packageJson.Dependencies["puppeteer"]; hasPuppeteer {
-		context.WithValue(ctx, "needPuppeteer", true)
-		return true
+		*pup = optional.Some(true)
+		return pup.Unwrap()
 	}
 
-	context.WithValue(ctx, "needPuppeteer", false)
-	return false
+	*pup = optional.Some(false)
+	return pup.Unwrap()
 }
 
-func GetBuildScript(ctx context.Context, absPath string) string {
+func GetBuildScript(ctx *nodePlanContext, absPath string) string {
+	bs := &ctx.BuildScript
 
-	if buildScript, ok := ctx.Value("buildScript").(string); ok {
+	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "buildScript", "")
-		return ""
+		*bs = optional.Some("")
+		return bs.Unwrap()
 	}
 
 	packageJson := struct {
@@ -184,36 +203,37 @@ func GetBuildScript(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "buildScript", "")
-		return ""
+		*bs = optional.Some("")
+		return bs.Unwrap()
 	}
 
 	if _, ok := packageJson.Scripts["build"]; ok {
-		context.WithValue(ctx, "buildScript", "build")
-		return "build"
+		*bs = optional.Some("build")
+		return bs.Unwrap()
 	}
 
 	for key := range packageJson.Scripts {
 		if strings.Contains(key, "build") {
-			context.WithValue(ctx, "buildScript", key)
-			return key
+			*bs = optional.Some(key)
+			return bs.Unwrap()
 		}
 	}
 
-	context.WithValue(ctx, "buildScript", "")
-	return ""
+	*bs = optional.Some("")
+	return bs.Unwrap()
 }
 
-func GetStartScript(ctx context.Context, absPath string) string {
+func GetStartScript(ctx *nodePlanContext, absPath string) string {
+	ss := &ctx.StartScript
 
-	if startScript, ok := ctx.Value("startScript").(string); ok {
+	if startScript, err := ss.Take(); err == nil {
 		return startScript
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "startScript", "")
-		return ""
+		*ss = optional.Some("")
+		return ss.Unwrap()
 	}
 
 	packageJson := struct {
@@ -222,24 +242,24 @@ func GetStartScript(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "startScript", "")
-		return ""
+		*ss = optional.Some("")
+		return ss.Unwrap()
 	}
 
 	if _, ok := packageJson.DevDependencies["@builder.io/qwik"]; ok {
 		if _, ok := packageJson.Scripts["deploy"]; ok {
-			context.WithValue(ctx, "startScript", "deploy")
-			return "deploy"
+			*ss = optional.Some("deploy")
+			return ss.Unwrap()
 		}
 	}
 
 	if _, ok := packageJson.Scripts["start"]; ok {
-		context.WithValue(ctx, "startScript", "start")
-		return "start"
+		*ss = optional.Some("start")
+		return ss.Unwrap()
 	}
 
-	context.WithValue(ctx, "startScript", "")
-	return ""
+	*ss = optional.Some("")
+	return ss.Unwrap()
 }
 
 func GetNodeVersion(absPath string) string {
@@ -330,15 +350,17 @@ func GetNodeVersion(absPath string) string {
 	return "16"
 }
 
-func GetEntry(ctx context.Context, absPath string) string {
-	if entry, ok := ctx.Value("entry").(string); ok {
+func GetEntry(ctx *nodePlanContext, absPath string) string {
+	ent := &ctx.Entry
+
+	if entry, err := ent.Take(); err == nil {
 		return entry
 	}
 
 	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
 	if err != nil {
-		context.WithValue(ctx, "entry", "")
-		return ""
+		*ent = optional.Some("")
+		return ent.Unwrap()
 	}
 
 	packageJson := struct {
@@ -346,17 +368,18 @@ func GetEntry(ctx context.Context, absPath string) string {
 	}{}
 
 	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		context.WithValue(ctx, "entry", "")
-		return ""
+		*ent = optional.Some("")
+		return ent.Unwrap()
 	}
 
-	context.WithValue(ctx, "entry", packageJson.Main)
-	return packageJson.Main
+	*ent = optional.Some(packageJson.Main)
+	return ent.Unwrap()
 }
 
-func GetInstallCmd(ctx context.Context, absPath string) string {
+func GetInstallCmd(ctx *nodePlanContext, absPath string) string {
+	cmd := &ctx.InstallCmd
 
-	if installCmd, ok := ctx.Value("installCmd").(string); ok {
+	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
 	}
 
@@ -371,13 +394,14 @@ func GetInstallCmd(ctx context.Context, absPath string) string {
 		installCmd = "npm install -g pnpm && pnpm install"
 	}
 
-	context.WithValue(ctx, "installCmd", installCmd)
-	return installCmd
+	*cmd = optional.Some(installCmd)
+	return cmd.Unwrap()
 }
 
-func GetBuildCmd(ctx context.Context, absPath string) string {
+func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
+	cmd := &ctx.BuildCmd
 
-	if buildCmd, ok := ctx.Value("buildCmd").(string); ok {
+	if buildCmd, err := cmd.Take(); err == nil {
 		return buildCmd
 	}
 
@@ -403,13 +427,14 @@ func GetBuildCmd(ctx context.Context, absPath string) string {
 		buildCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer && USER puppeteer && ` + buildCmd
 	}
 
-	context.WithValue(ctx, "buildCmd", buildCmd)
-	return buildCmd
+	*cmd = optional.Some(buildCmd)
+	return cmd.Unwrap()
 }
 
-func GetStartCmd(ctx context.Context, absPath string) string {
+func GetStartCmd(ctx *nodePlanContext, absPath string) string {
+	cmd := &ctx.StartCmd
 
-	if startCmd, ok := ctx.Value("startCmd").(string); ok {
+	if startCmd, err := cmd.Take(); err == nil {
 		return startCmd
 	}
 
@@ -443,15 +468,17 @@ func GetStartCmd(ctx context.Context, absPath string) string {
 		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
 	}
 
-	context.WithValue(ctx, "startCmd", startCmd)
-	return startCmd
+	*cmd = optional.Some(startCmd)
+	return cmd.Unwrap()
 }
 
 // GetStaticOutputDir returns the output directory for static projects.
 // If empty string is returned, the service is not deployed as static files.
-func GetStaticOutputDir(ctx context.Context, absPath string) string {
-	if staticOutputDir, ok := ctx.Value("outputDir").(string); ok {
-		return staticOutputDir
+func GetStaticOutputDir(ctx *nodePlanContext, absPath string) string {
+	dir := &ctx.StaticOutputDir
+
+	if outputDir, err := dir.Take(); err == nil {
+		return outputDir
 	}
 
 	framework := DetermineProjectFramework(ctx, absPath)
@@ -467,12 +494,12 @@ func GetStaticOutputDir(ctx context.Context, absPath string) string {
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
-		context.WithValue(ctx, "outputDir", outputDir)
-		return outputDir
+		*dir = optional.Some(outputDir)
+		return dir.Unwrap()
 	}
 
-	context.WithValue(ctx, "outputDir", "")
-	return ""
+	*dir = optional.Some("")
+	return dir.Unwrap()
 }
 
 type GetMetaOptions struct {
@@ -483,7 +510,7 @@ type GetMetaOptions struct {
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-	ctx := context.TODO()
+	ctx := new(nodePlanContext)
 
 	meta := PlanMeta{}
 
