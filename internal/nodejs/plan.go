@@ -1,7 +1,6 @@
 package nodejs
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"path"
@@ -511,7 +510,7 @@ type GetMetaOptions struct {
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-	ctx := context.TODO()
+	ctx := new(nodePlanContext)
 
 	meta := PlanMeta{}
 
