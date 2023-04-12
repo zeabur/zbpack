@@ -22,6 +22,7 @@ type nodePlanContext struct {
 	Entry          optional.Option[string]
 	InstallCmd     optional.Option[string]
 	BuildCmd       optional.Option[string]
+	StartCmd       optional.Option[string]
 	// ...
 }
 
@@ -430,8 +431,10 @@ func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
 	return cmd.Unwrap()
 }
 
-func GetStartCmd(ctx context.Context, absPath string) string {
-	if startCmd, ok := ctx.Value("startCmd").(string); ok {
+func GetStartCmd(ctx *nodePlanContext, absPath string) string {
+	cmd := &ctx.StartCmd
+
+	if startCmd, err := cmd.Take(); err == nil {
 		return startCmd
 	}
 
@@ -465,8 +468,8 @@ func GetStartCmd(ctx context.Context, absPath string) string {
 		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
 	}
 
-	context.WithValue(ctx, "startCmd", startCmd)
-	return startCmd
+	*cmd = optional.Some(startCmd)
+	return cmd.Unwrap()
 }
 
 // GetStaticOutputDir returns the output directory for static projects.
