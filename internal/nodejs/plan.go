@@ -14,15 +14,16 @@ import (
 )
 
 type nodePlanContext struct {
-	PackageManager optional.Option[NodePackageManager]
-	Framework      optional.Option[NodeProjectFramework]
-	NeedPuppeteer  optional.Option[bool]
-	BuildScript    optional.Option[string]
-	StartScript    optional.Option[string]
-	Entry          optional.Option[string]
-	InstallCmd     optional.Option[string]
-	BuildCmd       optional.Option[string]
-	StartCmd       optional.Option[string]
+	PackageManager  optional.Option[NodePackageManager]
+	Framework       optional.Option[NodeProjectFramework]
+	NeedPuppeteer   optional.Option[bool]
+	BuildScript     optional.Option[string]
+	StartScript     optional.Option[string]
+	Entry           optional.Option[string]
+	InstallCmd      optional.Option[string]
+	BuildCmd        optional.Option[string]
+	StartCmd        optional.Option[string]
+	StaticOutputDir optional.Option[string]
 	// ...
 }
 
@@ -474,9 +475,11 @@ func GetStartCmd(ctx *nodePlanContext, absPath string) string {
 
 // GetStaticOutputDir returns the output directory for static projects.
 // If empty string is returned, the service is not deployed as static files.
-func GetStaticOutputDir(ctx context.Context, absPath string) string {
-	if staticOutputDir, ok := ctx.Value("outputDir").(string); ok {
-		return staticOutputDir
+func GetStaticOutputDir(ctx *nodePlanContext, absPath string) string {
+	dir := &ctx.StaticOutputDir
+
+	if outputDir, err := dir.Take(); err == nil {
+		return outputDir
 	}
 
 	framework := DetermineProjectFramework(ctx, absPath)
@@ -492,12 +495,12 @@ func GetStaticOutputDir(ctx context.Context, absPath string) string {
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
-		context.WithValue(ctx, "outputDir", outputDir)
-		return outputDir
+		*dir = optional.Some(outputDir)
+		return dir.Unwrap()
 	}
 
-	context.WithValue(ctx, "outputDir", "")
-	return ""
+	*dir = optional.Some("")
+	return dir.Unwrap()
 }
 
 type GetMetaOptions struct {
