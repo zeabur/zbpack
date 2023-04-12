@@ -20,6 +20,7 @@ type nodePlanContext struct {
 	BuildScript    optional.Option[string]
 	StartScript    optional.Option[string]
 	Entry          optional.Option[string]
+	InstallCmd     optional.Option[string]
 	// ...
 }
 
@@ -373,8 +374,10 @@ func GetEntry(ctx *nodePlanContext, absPath string) string {
 	return ent.Unwrap()
 }
 
-func GetInstallCmd(ctx context.Context, absPath string) string {
-	if installCmd, ok := ctx.Value("installCmd").(string); ok {
+func GetInstallCmd(ctx *nodePlanContext, absPath string) string {
+	cmd := &ctx.InstallCmd
+
+	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
 	}
 
@@ -389,8 +392,8 @@ func GetInstallCmd(ctx context.Context, absPath string) string {
 		installCmd = "npm install -g pnpm && pnpm install"
 	}
 
-	context.WithValue(ctx, "installCmd", installCmd)
-	return installCmd
+	*cmd = optional.Some(installCmd)
+	return cmd.Unwrap()
 }
 
 func GetBuildCmd(ctx context.Context, absPath string) string {
