@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"github.com/zeabur/zbpack/internal/dockerfile"
 	"os"
 	"path"
 	"strings"
@@ -49,7 +50,11 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// custom Dockerfile
 	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
-		return PlanTypeDocker, PlanMeta{}
+		return PlanTypeDocker, dockerfile.GetMeta(
+			dockerfile.GetMetaOptions{
+				AbsPath: b.absPath,
+			},
+		)
 	}
 
 	// PHP project
