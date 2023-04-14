@@ -82,7 +82,29 @@ func DetermineJDKVersion(pj JavaProjectType, absPath string) string {
 		return defaultVersion
 	}
 
-	// TODO: Gradle
+	if pj == JavaProjectTypeGradle {
+		if utils.HasFile(absPath, "build.gradle") {
+			gradle, err := os.ReadFile(path.Join(absPath, "build.gradle"))
+			if err != nil {
+				return defaultVersion
+			}
+			r := []string{
+				`sourceCompatibility = (.*)`,
+				`targetCompatibility = (.*)`,
+			}
+			for _, v := range r {
+				re := regexp.MustCompile(v)
+				matches := re.FindStringSubmatch(string(gradle))
+				if len(matches) > 1 {
+					if matches[1] == "1.8" {
+						return "8"
+					}
+					return strings.ReplaceAll(matches[1], "'", "")
+				}
+			}
+		}
+		return defaultVersion
+	}
 
 	return defaultVersion
 }

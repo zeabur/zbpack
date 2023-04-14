@@ -24,8 +24,8 @@ COPY . .
 RUN mvn clean dependency:list install
 `
 	case string(types.JavaProjectTypeGradle):
+		baseImage = "gradle:8.1.0-jdk" + jdkVersion + "-alpine"
 		dockerfile += `FROM ` + baseImage + `
-RUN apt-get update && apt-get install -y gradle
 WORKDIR /src
 COPY . .
 RUN gradle build
