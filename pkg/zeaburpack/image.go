@@ -22,11 +22,10 @@ type BuildImageOptions struct {
 func buildImage(opt *BuildImageOptions) error {
 
 	lines := strings.Split(opt.Dockerfile, "\n")
-	firstLine := 0
+	stageLines := []int{}
 	for i, line := range lines {
 		if strings.HasPrefix(line, "FROM") {
-			firstLine = i
-			break
+			stageLines = append(stageLines, i)
 		}
 	}
 
@@ -35,7 +34,9 @@ func buildImage(opt *BuildImageOptions) error {
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
 
-	lines[firstLine] = lines[firstLine] + "\n" + dockerfileEnv + "\n"
+	for _, stageLine := range stageLines {
+		lines[stageLine] = lines[stageLine] + "\n" + dockerfileEnv + "\n"
+	}
 	newDockerfile := strings.Join(lines, "\n")
 
 	tempDir := os.TempDir()
