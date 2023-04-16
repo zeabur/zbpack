@@ -2,8 +2,6 @@ package nodejs
 
 import (
 	"log"
-	"os"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,6 +13,9 @@ import (
 
 type nodePlanContext struct {
 	PackageJson PackageJson
+	// The abstracted filesystem whose root is pointed
+	// to the source code.
+	SrcFs afero.Fs
 
 	PackageManager  optional.Option[NodePackageManager]
 	Framework       optional.Option[NodeProjectFramework]
@@ -29,24 +30,25 @@ type nodePlanContext struct {
 	// ...
 }
 
-func DeterminePackageManager(ctx *nodePlanContext, absPath string) NodePackageManager {
+func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
+	fs := ctx.SrcFs
 	pm := &ctx.PackageManager
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
 	}
 
-	if _, err := os.Stat(path.Join(absPath, "yarn.lock")); err == nil {
+	if _, err := fs.Stat("yarn.lock"); err == nil {
 		*pm = optional.Some(NodePackageManagerYarn)
 		return pm.Unwrap()
 	}
 
-	if _, err := os.Stat(path.Join(absPath, "pnpm-lock.yaml")); err == nil {
+	if _, err := fs.Stat("pnpm-lock.yaml"); err == nil {
 		*pm = optional.Some(NodePackageManagerPnpm)
 		return pm.Unwrap()
 	}
 
-	if _, err := os.Stat(path.Join(absPath, "package-lock.json")); err == nil {
+	if _, err := fs.Stat("package-lock.json"); err == nil {
 		*pm = optional.Some(NodePackageManagerNpm)
 		return pm.Unwrap()
 	}
@@ -294,14 +296,14 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
-func GetInstallCmd(ctx *nodePlanContext, absPath string) string {
+func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
 	}
 
-	pkgManager := DeterminePackageManager(ctx, absPath)
+	pkgManager := DeterminePackageManager(ctx)
 	installCmd := "yarn"
 	switch pkgManager {
 	case NodePackageManagerNpm:
@@ -316,7 +318,7 @@ func GetInstallCmd(ctx *nodePlanContext, absPath string) string {
 	return cmd.Unwrap()
 }
 
-func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
+func GetBuildCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.BuildCmd
 
 	if buildCmd, err := cmd.Take(); err == nil {
@@ -324,7 +326,7 @@ func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
 	}
 
 	buildScript := GetBuildScript(ctx)
-	pkgManager := DeterminePackageManager(ctx, absPath)
+	pkgManager := DeterminePackageManager(ctx)
 
 	buildCmd := "yarn " + buildScript
 	switch pkgManager {
@@ -349,7 +351,7 @@ func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
 	return cmd.Unwrap()
 }
 
-func GetStartCmd(ctx *nodePlanContext, absPath string) string {
+func GetStartCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.StartCmd
 
 	if startCmd, err := cmd.Take(); err == nil {
@@ -357,7 +359,7 @@ func GetStartCmd(ctx *nodePlanContext, absPath string) string {
 	}
 
 	startScript := GetStartScript(ctx)
-	pkgManager := DeterminePackageManager(ctx, absPath)
+	pkgManager := DeterminePackageManager(ctx)
 	entry := GetEntry(ctx)
 	framework := DetermineProjectFramework(ctx)
 
@@ -438,6 +440,7 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 
 	ctx := &nodePlanContext{
 		PackageJson: packageJson,
+		SrcFs:       fs,
 	}
 
 	meta := PlanMeta{}
@@ -448,10 +451,10 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	nodeVersion := GetNodeVersion(ctx)
 	meta["nodeVersion"] = nodeVersion
 
-	installCmd := GetInstallCmd(ctx, opt.AbsPath)
+	installCmd := GetInstallCmd(ctx)
 	meta["installCmd"] = installCmd
 
-	buildCmd := GetBuildCmd(ctx, opt.AbsPath)
+	buildCmd := GetBuildCmd(ctx)
 	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
 		buildCmd = *opt.CustomBuildCmd
 	}
@@ -471,7 +474,7 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 		return meta
 	}
 
-	startCmd := GetStartCmd(ctx, opt.AbsPath)
+	startCmd := GetStartCmd(ctx)
 	if opt.CustomStartCmd != nil && *opt.CustomStartCmd != "" {
 		startCmd = *opt.CustomStartCmd
 	}
