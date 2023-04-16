@@ -1,7 +1,7 @@
 package nodejs
 
 import (
-	"encoding/json"
+	"log"
 	"os"
 	"path"
 	"regexp"
@@ -9,10 +9,13 @@ import (
 	"strings"
 
 	"github.com/moznion/go-optional"
+	"github.com/spf13/afero"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type nodePlanContext struct {
+	PackageJson PackageJson
+
 	PackageManager  optional.Option[NodePackageManager]
 	Framework       optional.Option[NodeProjectFramework]
 	NeedPuppeteer   optional.Option[bool]
@@ -52,27 +55,12 @@ func DeterminePackageManager(ctx *nodePlanContext, absPath string) NodePackageMa
 	return pm.Unwrap()
 }
 
-func DetermineProjectFramework(ctx *nodePlanContext, absPath string) NodeProjectFramework {
+func DetermineProjectFramework(ctx *nodePlanContext) NodeProjectFramework {
 	fw := &ctx.Framework
+	packageJson := ctx.PackageJson
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
-	}
-
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		*fw = optional.Some(NodeProjectFrameworkNone)
-		return NodeProjectFrameworkNone
-	}
-
-	packageJson := struct {
-		Dependencies    map[string]string `json:"dependencies"`
-		DevDependencies map[string]string `json:"devDependencies"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		*fw = optional.Some(NodeProjectFrameworkNone)
-		return fw.Unwrap()
 	}
 
 	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
@@ -154,26 +142,12 @@ func DetermineProjectFramework(ctx *nodePlanContext, absPath string) NodeProject
 	return fw.Unwrap()
 }
 
-func DetermineNeedPuppeteer(ctx *nodePlanContext, absPath string) bool {
+func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	pup := &ctx.NeedPuppeteer
+	packageJson := ctx.PackageJson
 
 	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
-	}
-
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		*pup = optional.Some(false)
-		return pup.Unwrap()
-	}
-
-	packageJson := struct {
-		Dependencies map[string]string `json:"dependencies"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		*pup = optional.Some(false)
-		return pup.Unwrap()
 	}
 
 	if _, hasPuppeteer := packageJson.Dependencies["puppeteer"]; hasPuppeteer {
@@ -185,26 +159,12 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext, absPath string) bool {
 	return pup.Unwrap()
 }
 
-func GetBuildScript(ctx *nodePlanContext, absPath string) string {
+func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
+	packageJson := ctx.PackageJson
 
 	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
-	}
-
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		*bs = optional.Some("")
-		return bs.Unwrap()
-	}
-
-	packageJson := struct {
-		Scripts map[string]string `json:"scripts"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		*bs = optional.Some("")
-		return bs.Unwrap()
 	}
 
 	if _, ok := packageJson.Scripts["build"]; ok {
@@ -223,27 +183,12 @@ func GetBuildScript(ctx *nodePlanContext, absPath string) string {
 	return bs.Unwrap()
 }
 
-func GetStartScript(ctx *nodePlanContext, absPath string) string {
+func GetStartScript(ctx *nodePlanContext) string {
 	ss := &ctx.StartScript
+	packageJson := ctx.PackageJson
 
 	if startScript, err := ss.Take(); err == nil {
 		return startScript
-	}
-
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		*ss = optional.Some("")
-		return ss.Unwrap()
-	}
-
-	packageJson := struct {
-		Scripts         map[string]string `json:"scripts"`
-		DevDependencies map[string]string `json:"devDependencies"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		*ss = optional.Some("")
-		return ss.Unwrap()
 	}
 
 	if _, ok := packageJson.DevDependencies["@builder.io/qwik"]; ok {
@@ -262,21 +207,8 @@ func GetStartScript(ctx *nodePlanContext, absPath string) string {
 	return ss.Unwrap()
 }
 
-func GetNodeVersion(absPath string) string {
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		return ""
-	}
-
-	packageJson := struct {
-		Engines struct {
-			Node string `json:"node"`
-		} `json:"engines"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		return "16"
-	}
+func GetNodeVersion(ctx *nodePlanContext) string {
+	packageJson := ctx.PackageJson
 
 	if packageJson.Engines.Node == "" {
 		return "16"
@@ -350,26 +282,12 @@ func GetNodeVersion(absPath string) string {
 	return "16"
 }
 
-func GetEntry(ctx *nodePlanContext, absPath string) string {
+func GetEntry(ctx *nodePlanContext) string {
+	packageJson := ctx.PackageJson
 	ent := &ctx.Entry
 
 	if entry, err := ent.Take(); err == nil {
 		return entry
-	}
-
-	packageJsonMarshal, err := os.ReadFile(path.Join(absPath, "package.json"))
-	if err != nil {
-		*ent = optional.Some("")
-		return ent.Unwrap()
-	}
-
-	packageJson := struct {
-		Main string `json:"main"`
-	}{}
-
-	if err := json.Unmarshal(packageJsonMarshal, &packageJson); err != nil {
-		*ent = optional.Some("")
-		return ent.Unwrap()
 	}
 
 	*ent = optional.Some(packageJson.Main)
@@ -405,7 +323,7 @@ func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
 		return buildCmd
 	}
 
-	buildScript := GetBuildScript(ctx, absPath)
+	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx, absPath)
 
 	buildCmd := "yarn " + buildScript
@@ -422,7 +340,7 @@ func GetBuildCmd(ctx *nodePlanContext, absPath string) string {
 		buildCmd = ""
 	}
 
-	needPuppeteer := DetermineNeedPuppeteer(ctx, absPath)
+	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		buildCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer && USER puppeteer && ` + buildCmd
 	}
@@ -438,10 +356,10 @@ func GetStartCmd(ctx *nodePlanContext, absPath string) string {
 		return startCmd
 	}
 
-	startScript := GetStartScript(ctx, absPath)
+	startScript := GetStartScript(ctx)
 	pkgManager := DeterminePackageManager(ctx, absPath)
-	entry := GetEntry(ctx, absPath)
-	framework := DetermineProjectFramework(ctx, absPath)
+	entry := GetEntry(ctx)
+	framework := DetermineProjectFramework(ctx)
 
 	startCmd := "yarn " + startScript
 	switch pkgManager {
@@ -463,7 +381,7 @@ func GetStartCmd(ctx *nodePlanContext, absPath string) string {
 		}
 	}
 
-	needPuppeteer := DetermineNeedPuppeteer(ctx, absPath)
+	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
 	}
@@ -474,14 +392,14 @@ func GetStartCmd(ctx *nodePlanContext, absPath string) string {
 
 // GetStaticOutputDir returns the output directory for static projects.
 // If empty string is returned, the service is not deployed as static files.
-func GetStaticOutputDir(ctx *nodePlanContext, absPath string) string {
+func GetStaticOutputDir(ctx *nodePlanContext) string {
 	dir := &ctx.StaticOutputDir
 
 	if outputDir, err := dir.Take(); err == nil {
 		return outputDir
 	}
 
-	framework := DetermineProjectFramework(ctx, absPath)
+	framework := DetermineProjectFramework(ctx)
 
 	defaultStaticOutputDirs := map[NodeProjectFramework]string{
 		NodeProjectFrameworkVite:           "dist",
@@ -510,14 +428,24 @@ type GetMetaOptions struct {
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-	ctx := new(nodePlanContext)
+	fs := afero.NewBasePathFs(afero.NewOsFs(), opt.AbsPath)
+
+	packageJson, err := DeserializePackageJson(fs)
+	if err != nil {
+		log.Printf("Failed to read package.json: %v", err)
+		// not fatal
+	}
+
+	ctx := &nodePlanContext{
+		PackageJson: packageJson,
+	}
 
 	meta := PlanMeta{}
 
-	framework := DetermineProjectFramework(ctx, opt.AbsPath)
+	framework := DetermineProjectFramework(ctx)
 	meta["framework"] = string(framework)
 
-	nodeVersion := GetNodeVersion(opt.AbsPath)
+	nodeVersion := GetNodeVersion(ctx)
 	meta["nodeVersion"] = nodeVersion
 
 	installCmd := GetInstallCmd(ctx, opt.AbsPath)
@@ -537,7 +465,7 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 		}
 		return meta
 	}
-	staticOutputDir := GetStaticOutputDir(ctx, opt.AbsPath)
+	staticOutputDir := GetStaticOutputDir(ctx)
 	if staticOutputDir != "" {
 		meta["outputDir"] = staticOutputDir
 		return meta
