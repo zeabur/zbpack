@@ -30,6 +30,11 @@ func TestNewPackageJson(t *testing.T) {
 		assert.False(t, ok)
 	})
 
+	// panic!
+	assert.Panics(t, func() {
+		p.Scripts["build"] = "hi"
+	})
+
 	// engines
 	assert.Empty(t, p.Engines.Node)
 
