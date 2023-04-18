@@ -31,6 +31,9 @@ func buildImage(opt *BuildImageOptions) error {
 
 	dockerfileEnv := ""
 	for key, value := range opt.UserVars {
+		if len(value) == 0 {
+			continue
+		}
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
 
