@@ -61,6 +61,7 @@ func buildImage(opt *BuildImageOptions) error {
 		"build",
 		"-t", opt.ResultImage,
 		"-f", dockerfilePath,
+		"--network=host",
 	}
 
 	if opt.PlainDockerProgress {
