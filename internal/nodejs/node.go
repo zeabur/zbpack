@@ -32,8 +32,8 @@ RUN ` + installCmd + `
 RUN ` + buildCmd + `
 
 FROM nginx:alpine as runtime 
-COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html
-RUN echo "server { listen 8080; root /usr/share/nginx/html; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
+COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html/static
+RUN echo "server { listen 8080; root /usr/share/nginx/html/static; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 `, nil
 	}
