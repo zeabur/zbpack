@@ -223,6 +223,7 @@ CMD ["cp", "-r", "/usr/share/nginx/html/static", "/out/"]`
 	containerPath := "/out"
 	v := hostPath + ":" + containerPath
 
+	println("docker", "run", "--rm", "-v", v, "copy")
 	err = exec.Command("docker", "run", "--rm", "-v", v, "copy").Run()
 	if err != nil {
 		println("\033[31m" + "Failed to copy files to .zeabur/output/static" + "\033[0m")
