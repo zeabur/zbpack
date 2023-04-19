@@ -31,8 +31,13 @@ COPY . .
 RUN ` + installCmd + `
 RUN ` + buildCmd + `
 
-FROM nginx:alpine
-COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html
+FROM ken20001207/copy-to-host as deploy-static
+COPY --from=build /src/` + outputDir + ` /output
+WORKDIR /output
+RUN copy-to-host
+
+FROM nginx:alpine as runtime 
+COPY --from=deploy-static /output /usr/share/nginx/html
 RUN echo "server { listen 8080; root /usr/share/nginx/html; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 `, nil

@@ -142,6 +142,13 @@ func Build(opt *BuildOptions) error {
 		buildImageHandleLog = nil
 	}
 
+	if strings.Contains(dockerfile, "ken20001207/copy-to-host") {
+		go func() {
+			receiveFiles(":5566")
+			println("Received files")
+		}()
+	}
+
 	err = buildImage(
 		&BuildImageOptions{
 			Dockerfile:          dockerfile,
