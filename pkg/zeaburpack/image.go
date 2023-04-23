@@ -81,6 +81,7 @@ func buildImage(opt *BuildImageOptions) error {
 
 	dockerCmd = append(dockerCmd, opt.AbsPath)
 
+	println("DOCKER_BUILDKIT=1 docker " + strings.Join(dockerCmd, " "))
 	cmd := exec.Command("docker", dockerCmd...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
