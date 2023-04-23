@@ -1,6 +1,9 @@
 package zeaburpack
 
 import (
+	"os"
+	"path"
+
 	"github.com/zeabur/zbpack/internal/deno"
 	_go "github.com/zeabur/zbpack/internal/go"
 	"github.com/zeabur/zbpack/internal/java"
@@ -9,10 +12,9 @@ import (
 	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/ruby"
+	"github.com/zeabur/zbpack/internal/rust"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
-	"os"
-	"path"
 )
 
 type generateDockerfileOptions struct {
@@ -26,7 +28,6 @@ type generateDockerfileOptions struct {
 }
 
 func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
-
 	dockerfile := ""
 
 	planner := plan.NewPlanner(
@@ -97,6 +98,12 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 		dockerfile = df
 	case PlanTypeDeno:
 		df, err := deno.GenerateDockerfile(planMeta)
+		if err != nil {
+			return "", err
+		}
+		dockerfile = df
+	case PlanTypeRust:
+		df, err := rust.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}

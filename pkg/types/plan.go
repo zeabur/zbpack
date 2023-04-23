@@ -17,6 +17,7 @@ const (
 	PlanTypePhp    = "php"
 	PlanTypeJava   = "java"
 	PlanTypeDeno   = "deno"
+	PlanTypeRust   = "rust"
 	PlanTypeStatic = "static"
 )
 

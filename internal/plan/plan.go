@@ -1,10 +1,12 @@
 package plan
 
 import (
-	"github.com/zeabur/zbpack/internal/dockerfile"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/zeabur/zbpack/internal/dockerfile"
+	"github.com/zeabur/zbpack/internal/rust"
 
 	"github.com/zeabur/zbpack/internal/deno"
 	"github.com/zeabur/zbpack/internal/java"
@@ -47,7 +49,6 @@ func NewPlanner(opt *NewPlannerOptions) Planner {
 }
 
 func (b planner) Plan() (PlanType, PlanMeta) {
-
 	// custom Dockerfile
 	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
 		return PlanTypeDocker, dockerfile.GetMeta(
@@ -153,6 +154,14 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 			"entry":        entry,
 			"startCommand": startCmd,
 		}
+	}
+
+	// Rust project
+	if utils.HasFile(b.absPath, "Cargo.toml") {
+		return PlanTypeRust, rust.GetMeta(rust.GetMetaOptions{
+			AbsPath:       b.absPath,
+			SubmoduleName: b.submoduleName,
+		})
 	}
 
 	// static site generator (hugo, gatsby, etc) detection
