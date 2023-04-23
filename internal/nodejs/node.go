@@ -19,6 +19,14 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		isSinglePageApp = false
 	}
 
+	lockfile := "package-lock.json"
+	if strings.Contains(installCmd, "yarn") {
+		lockfile = "yarn.lock"
+	}
+	if strings.Contains(installCmd, "pnpm") {
+		lockfile = "pnpm-lock.yaml"
+	}
+
 	if outputDir, ok := meta["outputDir"]; ok {
 
 		tryFiles := `try_files \$uri \$uri.html \$uri/index.html /404.html =404;`
@@ -28,8 +36,10 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 		return `FROM docker.io/library/node:` + nodeVersion + ` as build
 WORKDIR /src
-COPY . .
+COPY package.json .
+COPY ` + lockfile + ` .
 RUN ` + installCmd + `
+COPY . .
 RUN ` + buildCmd + `
 
 FROM docker.io/library/nginx:alpine as runtime 
@@ -37,14 +47,6 @@ COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html/static
 RUN echo "server { listen 8080; root /usr/share/nginx/html/static; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 `, nil
-	}
-
-	lockfile := "package-lock.json"
-	if strings.Contains(installCmd, "yarn") {
-		lockfile = "yarn.lock"
-	}
-	if strings.Contains(installCmd, "pnpm") {
-		lockfile = "pnpm-lock.yaml"
 	}
 
 	return `FROM docker.io/library/node:` + nodeVersion + ` 
