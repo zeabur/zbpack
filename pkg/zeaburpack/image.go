@@ -17,6 +17,7 @@ type BuildImageOptions struct {
 	ResultImage         string
 	HandleLog           *func(log string)
 	PlainDockerProgress bool
+	CacheFrom           *string
 }
 
 func buildImage(opt *BuildImageOptions) error {
@@ -69,9 +70,15 @@ func buildImage(opt *BuildImageOptions) error {
 		dockerCmd = append(dockerCmd, "--progress", "tty")
 	}
 
+	if opt.CacheFrom != nil {
+		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
+		dockerCmd = append(dockerCmd, "--build-arg", "BUILDKIT_INLINE_CACHE=1")
+	}
+
 	dockerCmd = append(dockerCmd, opt.AbsPath)
 
 	cmd := exec.Command("docker", dockerCmd...)
+	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
 	if opt.HandleLog == nil {
 		cmd.Stdout = os.Stdout

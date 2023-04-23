@@ -51,6 +51,8 @@ type BuildOptions struct {
 	// OutputDir is the directory where the build artifacts will be stored.
 	// Once provided, the service will deploy as static files with nginx.
 	OutputDir *string
+
+	CacheFrom *string
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -153,6 +155,7 @@ func Build(opt *BuildOptions) error {
 			ResultImage:         *opt.ResultImage,
 			HandleLog:           buildImageHandleLog,
 			PlainDockerProgress: opt.Interactive == nil || !*opt.Interactive,
+			CacheFrom:           opt.CacheFrom,
 		},
 	)
 	if err != nil {
