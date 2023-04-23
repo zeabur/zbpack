@@ -30,8 +30,13 @@ func buildImage(opt *BuildImageOptions) error {
 		}
 	}
 
+	var userVarsKeys []string
+	for key := range opt.UserVars {
+		userVarsKeys = append(userVarsKeys, key)
+	}
 	dockerfileEnv := ""
-	for key, value := range opt.UserVars {
+	for _, key := range userVarsKeys {
+		value := opt.UserVars[key]
 		if len(value) == 0 {
 			continue
 		}
