@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -34,6 +35,7 @@ func buildImage(opt *BuildImageOptions) error {
 	for key := range opt.UserVars {
 		userVarsKeys = append(userVarsKeys, key)
 	}
+	sort.Strings(userVarsKeys)
 	dockerfileEnv := ""
 	for _, key := range userVarsKeys {
 		value := opt.UserVars[key]
