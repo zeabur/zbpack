@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/zeabur/zbpack/pkg/zeaburpack"
 	"os"
+	"path/filepath"
+
+	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
 
 func main() {
@@ -13,13 +15,21 @@ func main() {
 
 	trueValue := true
 
-	err := zeaburpack.Build(
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		panic(err)
+	}
+
+	submoduleName := filepath.Base(absPath)
+
+	err = zeaburpack.Build(
 		&zeaburpack.BuildOptions{
 			Path:        &path,
 			Interactive: &trueValue,
+
+			SubmoduleName: &submoduleName,
 		},
 	)
-
 	if err != nil {
 		panic(err)
 	}
