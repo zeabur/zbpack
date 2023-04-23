@@ -9,7 +9,7 @@ import (
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	rubyVersion := meta["rubyVersion"]
 
-	getRubyImage := fmt.Sprintf("FROM ruby:%s\n", rubyVersion)
+	getRubyImage := fmt.Sprintf("FROM docker.io/library/ruby:%s\n", rubyVersion)
 
 	//ROR framework requires nodejs and postgresql-client
 	installCMD := `

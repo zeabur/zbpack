@@ -26,13 +26,13 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 			tryFiles = `try_files \$uri /index.html;`
 		}
 
-		return `FROM node:` + nodeVersion + ` as build
+		return `FROM docker.io/library/node:` + nodeVersion + ` as build
 WORKDIR /src
 COPY . .
 RUN ` + installCmd + `
 RUN ` + buildCmd + `
 
-FROM nginx:alpine as runtime 
+FROM docker.io/library/nginx:alpine as runtime 
 COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html/static
 RUN echo "server { listen 8080; root /usr/share/nginx/html/static; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
@@ -47,7 +47,7 @@ EXPOSE 8080
 		lockfile = "pnpm-lock.yaml"
 	}
 
-	return `FROM node:` + nodeVersion + ` 
+	return `FROM docker.io/library/node:` + nodeVersion + ` 
 ENV PORT=8080
 WORKDIR /src
 COPY package.json .

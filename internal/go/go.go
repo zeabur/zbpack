@@ -3,7 +3,7 @@ package _go
 import "github.com/zeabur/zbpack/pkg/types"
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	return `FROM golang:1.18 as builder
+	return `FROM docker.io/library/golang:1.18 as builder
 RUN mkdir /src
 WORKDIR /src
 COPY go.mod ./

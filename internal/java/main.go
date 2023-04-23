@@ -11,7 +11,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	isGradle := projectType == string(types.JavaProjectTypeGradle)
 	isSpringBoot := framework == string(types.JavaFrameworkSpringBoot)
 
-	baseImage := "openjdk:" + jdkVersion + "-jdk-slim"
+	baseImage := "docker.io/library/openjdk:" + jdkVersion + "-jdk-slim"
 
 	dockerfile := ""
 
@@ -24,7 +24,7 @@ COPY . .
 RUN mvn clean dependency:list install
 `
 	case string(types.JavaProjectTypeGradle):
-		baseImage = "gradle:8.1.0-jdk" + jdkVersion + "-alpine"
+		baseImage = "docker.io/library/gradle:8.1.0-jdk" + jdkVersion + "-alpine"
 		dockerfile += `FROM ` + baseImage + `
 WORKDIR /src
 COPY . .
