@@ -76,12 +76,11 @@ func buildImage(opt *BuildImageOptions) error {
 			*opt.CacheFrom = strings.Split(*opt.CacheFrom, ":")[0]
 		}
 		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
-		dockerCmd = append(dockerCmd, "--build-arg", "BUILDKIT_INLINE_CACHE=1")
+		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheFrom)
 	}
 
 	dockerCmd = append(dockerCmd, opt.AbsPath)
 
-	println("DOCKER_BUILDKIT=1 docker " + strings.Join(dockerCmd, " "))
 	cmd := exec.Command("docker", dockerCmd...)
 	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 
