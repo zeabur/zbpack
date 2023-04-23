@@ -2,6 +2,7 @@ package nodejs
 
 import (
 	"github.com/zeabur/zbpack/pkg/types"
+	"strings"
 )
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
@@ -38,11 +39,21 @@ EXPOSE 8080
 `, nil
 	}
 
+	lockfile := "package-lock.json"
+	if strings.Contains(installCmd, "yarn") {
+		lockfile = "yarn.lock"
+	}
+	if strings.Contains(installCmd, "pnpm") {
+		lockfile = "pnpm-lock.yaml"
+	}
+
 	return `FROM node:` + nodeVersion + ` 
 ENV PORT=8080
 WORKDIR /src
-COPY . .
+COPY package.json .
+COPY ` + lockfile + ` .
 RUN ` + installCmd + `
+COPY . .
 RUN ` + buildCmd + `
 EXPOSE 8080
 CMD ` + startCmd, nil
