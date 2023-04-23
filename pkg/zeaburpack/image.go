@@ -70,6 +70,15 @@ func buildImage(opt *BuildImageOptions) error {
 		dockerCmd = append(dockerCmd, "--progress", "tty")
 	}
 
+	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
+		// if cacheFrom contains tag, we need to remove it
+		if strings.Contains(*opt.CacheFrom, ":") {
+			*opt.CacheFrom = strings.Split(*opt.CacheFrom, ":")[0]
+		}
+		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
+		dockerCmd = append(dockerCmd, "--build-arg", "BUILDKIT_INLINE_CACHE=1")
+	}
+
 	dockerCmd = append(dockerCmd, opt.AbsPath)
 
 	cmd := exec.Command("docker", dockerCmd...)
