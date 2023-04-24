@@ -27,7 +27,6 @@ type nodePlanContext struct {
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
-	// ...
 }
 
 func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
@@ -53,7 +52,7 @@ func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
 		return pm.Unwrap()
 	}
 
-	*pm = optional.Some(NodePackageManagerYarn)
+	*pm = optional.Some(NodePackageManagerUnknown)
 	return pm.Unwrap()
 }
 
@@ -312,6 +311,8 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		installCmd = "yarn install"
 	case NodePackageManagerPnpm:
 		installCmd = "npm install -g pnpm && pnpm install"
+	case NodePackageManagerUnknown:
+		installCmd = "yarn install"
 	}
 
 	*cmd = optional.Some(installCmd)
@@ -444,6 +445,9 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	}
 
 	meta := PlanMeta{}
+
+	pkgManager := DeterminePackageManager(ctx)
+	meta["packageManager"] = string(pkgManager)
 
 	framework := DetermineProjectFramework(ctx)
 	meta["framework"] = string(framework)

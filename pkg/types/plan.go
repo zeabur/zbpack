@@ -24,9 +24,10 @@ const (
 type NodePackageManager string
 
 const (
-	NodePackageManagerYarn NodePackageManager = "yarn"
-	NodePackageManagerPnpm NodePackageManager = "pnpm"
-	NodePackageManagerNpm  NodePackageManager = "npm"
+	NodePackageManagerYarn    NodePackageManager = "yarn"
+	NodePackageManagerPnpm    NodePackageManager = "pnpm"
+	NodePackageManagerNpm     NodePackageManager = "npm"
+	NodePackageManagerUnknown NodePackageManager = "unknown"
 )
 
 type NodeProjectFramework string

@@ -2,7 +2,6 @@ package nodejs
 
 import (
 	"github.com/zeabur/zbpack/pkg/types"
-	"strings"
 )
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
@@ -19,12 +18,14 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		isSinglePageApp = false
 	}
 
-	lockfile := "package-lock.json"
-	if strings.Contains(installCmd, "yarn") {
-		lockfile = "yarn.lock"
-	}
-	if strings.Contains(installCmd, "pnpm") {
-		lockfile = "pnpm-lock.yaml"
+	copyLockFile := ""
+	switch meta["packageManager"] {
+	case string(types.NodePackageManagerNpm):
+		copyLockFile = "COPY package-lock.json ."
+	case string(types.NodePackageManagerYarn):
+		copyLockFile = "COPY yarn.lock ."
+	case string(types.NodePackageManagerPnpm):
+		copyLockFile = "COPY pnpm-lock.yaml ."
 	}
 
 	if outputDir, ok := meta["outputDir"]; ok {
@@ -37,7 +38,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		return `FROM docker.io/library/node:` + nodeVersion + ` as build
 WORKDIR /src
 COPY package.json .
-COPY ` + lockfile + ` .
+` + copyLockFile + `
 RUN ` + installCmd + `
 COPY . .
 RUN ` + buildCmd + `
@@ -53,7 +54,7 @@ EXPOSE 8080
 ENV PORT=8080
 WORKDIR /src
 COPY package.json .
-COPY ` + lockfile + ` .
+` + copyLockFile + `
 RUN ` + installCmd + `
 COPY . .
 RUN ` + buildCmd + `
