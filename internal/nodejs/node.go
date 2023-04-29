@@ -1,63 +1,73 @@
 package nodejs
 
 import (
+	"bytes"
+	"embed"
+	"text/template"
+
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+type TemplateContext struct {
+	NodeVersion string
+
+	InstallCmd string
+	BuildCmd   string
+	StartCmd   string
+
+	OutputDir string
+	SPA       bool
+}
+
+//go:embed templates
+var tmplFs embed.FS
+
+var tmpl = template.Must(
+	template.New("template.Dockerfile").
+		ParseFS(tmplFs, "templates/*"),
+)
+
+func (c TemplateContext) Execute() (string, error) {
+	writer := new(bytes.Buffer)
+	err := tmpl.Execute(writer, c)
+
+	return writer.String(), err
+}
+
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-
-	framework := meta["framework"]
-	nodeVersion := meta["nodeVersion"]
-	installCmd := meta["installCmd"]
-	buildCmd := meta["buildCmd"]
-	startCmd := meta["startCmd"]
-
-	// TODO: get isSinglePageApp from meta
-	isSinglePageApp := true
-	if framework == string(types.NodeProjectFrameworkHexo) || framework == string(types.NodeProjectFrameworkVitepress) || framework == string(types.NodeProjectFrameworkAstroStatic) {
-		isSinglePageApp = false
+	context := TemplateContext{
+		NodeVersion: meta["nodeVersion"],
+		InstallCmd:  meta["installCmd"],
+		BuildCmd:    meta["buildCmd"],
+		StartCmd:    meta["startCmd"],
+		OutputDir:   "",
+		SPA:         false,
 	}
 
-	copyLockFile := ""
-	switch meta["packageManager"] {
-	case string(types.NodePackageManagerNpm):
-		copyLockFile = "COPY package-lock.json ."
-	case string(types.NodePackageManagerYarn):
-		copyLockFile = "COPY yarn.lock ."
-	case string(types.NodePackageManagerPnpm):
-		copyLockFile = "COPY pnpm-lock.yaml ."
+	framework := meta["framework"]
+	spaFrameworks := []types.NodeProjectFramework{
+		types.NodeProjectFrameworkHexo,
+		types.NodeProjectFrameworkVitepress,
+		types.NodeProjectFrameworkAstroStatic,
+	}
+
+	for _, f := range spaFrameworks {
+		if framework == string(f) {
+			context.SPA = true
+			break
+		}
 	}
 
 	if outputDir, ok := meta["outputDir"]; ok {
+		context.OutputDir = outputDir
 
-		tryFiles := `try_files \$uri \$uri.html \$uri/index.html /404.html =404;`
-		if isSinglePageApp {
-			tryFiles = `try_files \$uri /index.html;`
+		for _, f := range spaFrameworks {
+			if framework == string(f) {
+				context.SPA = true
+				break
+			}
 		}
-
-		return `FROM docker.io/library/node:` + nodeVersion + ` as build
-WORKDIR /src
-COPY package.json .
-` + copyLockFile + `
-RUN ` + installCmd + `
-COPY . .
-RUN ` + buildCmd + `
-
-FROM docker.io/library/nginx:alpine as runtime 
-COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html/static
-RUN echo "server { listen 8080; root /usr/share/nginx/html/static; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
-EXPOSE 8080
-`, nil
 	}
 
-	return `FROM docker.io/library/node:` + nodeVersion + ` 
-ENV PORT=8080
-WORKDIR /src
-COPY package.json .
-` + copyLockFile + `
-RUN ` + installCmd + `
-COPY . .
-RUN ` + buildCmd + `
-EXPOSE 8080
-CMD ` + startCmd, nil
+	return context.Execute()
 }
