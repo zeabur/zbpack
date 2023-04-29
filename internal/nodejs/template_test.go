@@ -17,7 +17,7 @@ func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
 		StartCmd:   "yarn start",
 
 		OutputDir: "",
-		SSR:       false,
+		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -34,7 +34,7 @@ func TestTemplate_NBuildCmd_OutputDir_NSSR(t *testing.T) {
 		StartCmd:   "yarn start",
 
 		OutputDir: "dist",
-		SSR:       false,
+		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -51,7 +51,7 @@ func TestTemplate_NBuildCmd_OutputDir_SSR(t *testing.T) {
 		StartCmd:   "yarn start",
 
 		OutputDir: "dist",
-		SSR:       true,
+		SPA:       true,
 	}
 
 	result, err := ctx.Execute()
@@ -68,7 +68,7 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 		StartCmd:   "yarn start",
 
 		OutputDir: "",
-		SSR:       false,
+		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -85,7 +85,7 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 		StartCmd:   "yarn start",
 
 		OutputDir: "dist",
-		SSR:       true,
+		SPA:       true,
 	}
 
 	result, err := ctx.Execute()

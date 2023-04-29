@@ -7,7 +7,7 @@ RUN echo "\
         listen 8080; \
         root /usr/share/nginx/html/static; \
         location / { \
-{{ if .SSR }}            try_files \$uri /index.html; \
+{{ if .SPA }}            try_files \$uri /index.html; \
 {{ else }}            try_files \$uri \$uri.html \$uri/index.html /404.html =404; \
 {{ end }}        } \
     }"> /etc/nginx/conf.d/default.conf
