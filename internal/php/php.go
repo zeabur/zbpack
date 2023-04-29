@@ -2,8 +2,9 @@ package php
 
 import (
 	_ "embed"
-	"github.com/zeabur/zbpack/pkg/types"
 	"strings"
+
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 //go:embed nginx.conf
@@ -11,10 +12,10 @@ var nginxConf string
 
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
-	getPhpImage := "FROM php:" + phpVersion + "-fpm\n"
+	getPhpImage := "FROM docker.io/library/php:" + phpVersion + "-fpm\n"
 
 	installCMD := `
-RUN apt-get update 
+RUN apt-get update
 RUN apt-get install -y nginx zip libicu-dev jq
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
@@ -32,7 +33,7 @@ WORKDIR /var/www/public
 
 	if meta["framework"] != "none" {
 		copyCommand = `
-COPY --chown=www-data:www-data . /var/www  
+COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 `
 	}
