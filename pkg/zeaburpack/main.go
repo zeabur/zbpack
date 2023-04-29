@@ -12,7 +12,6 @@ import (
 )
 
 type BuildOptions struct {
-
 	// SubmoduleName is the of the submodule to build.
 	// For example, if directory is considered as a Go project,
 	// submoduleName would be used to try file in `cmd` directory.
@@ -57,7 +56,6 @@ type BuildOptions struct {
 
 // Build will analyze the project, determine the plan and build the image.
 func Build(opt *BuildOptions) error {
-
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -165,7 +163,7 @@ func Build(opt *BuildOptions) error {
 	}
 
 	// If the dockerfile is using Nginx as a runtime, we will copy the static files to the output directory.
-	if strings.Contains(dockerfile, "FROM nginx:alpine as runtime") {
+	if strings.Contains(dockerfile, "nginx:alpine as runtime") {
 		err = extractStaticOutput(*opt.ResultImage, opt)
 		if err != nil {
 			println("Failed to copy static files: " + err.Error())
@@ -182,14 +180,13 @@ func Build(opt *BuildOptions) error {
 }
 
 func extractStaticOutput(resultImage string, opt *BuildOptions) error {
-
 	copyFiles := `FROM ` + resultImage + `
 CMD ["cp", "-r", "/usr/share/nginx/html/static", "/out/"]`
 
 	tempDir := os.TempDir()
 	buildID := strconv.Itoa(rand.Int())
 
-	err := os.MkdirAll(path.Join(tempDir, buildID), 0755)
+	err := os.MkdirAll(path.Join(tempDir, buildID), 0o755)
 	if err != nil {
 		return err
 	}
@@ -203,7 +200,7 @@ CMD ["cp", "-r", "/usr/share/nginx/html/static", "/out/"]`
 	}()
 
 	dfPath := path.Join(tempDir, buildID, "Dockerfile")
-	if err := os.WriteFile(dfPath, []byte(copyFiles), 0644); err != nil {
+	if err := os.WriteFile(dfPath, []byte(copyFiles), 0o644); err != nil {
 		return err
 	}
 
