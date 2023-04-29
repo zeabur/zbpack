@@ -1,4 +1,4 @@
-FROM node:{{.NodeVersion}}
+FROM node:{{.NodeVersion}} as build
 
 ENV PORT=8080
 WORKDIR /src
