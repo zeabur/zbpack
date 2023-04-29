@@ -5,13 +5,17 @@ WORKDIR /src
 # use sparse to speed up the dependencies download process
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
+# use lld as the linker
 RUN apt update \
-  && apt install mold
+  && apt install -y lld
+
+RUN mkdir /.cargo && \
+  printf '[build]\nrustflags = ["-C", "link-arg=-fuse-ld=lld"]\n' > /.cargo/config.toml
 
 COPY . .
 
 # Build the project to get the executable file
-RUN mold -run cargo build --release
+RUN cargo build --release
 
 RUN mkdir -p /app/bin \
   # move the files to preserve to /app
