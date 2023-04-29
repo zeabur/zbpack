@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/gkampitakis/go-snaps v0.4.2
 	github.com/moznion/go-optional v0.10.0
 )
