@@ -1,5 +1,4 @@
-FROM docker.io/library/rust:bookworm AS builder
-
+FROM docker.io/lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /src
 
 # use sparse to speed up the dependencies download process
@@ -12,18 +11,28 @@ RUN apt update \
 RUN mkdir /.cargo && \
   printf '[build]\nrustflags = ["-C", "link-arg=-fuse-ld=lld"]\n' > /.cargo/config.toml
 
+FROM chef AS planner
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+COPY --from=planner /src/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
 
 # Build the project to get the executable file
+COPY . .
 RUN cargo build --release
 
+# Copy the exe and files listed in .zeabur-preserve to /app/bin
 RUN mkdir -p /app/bin \
   # move the files to preserve to /app
   && (cat .zeabur-preserve | xargs -I {} cp -r {} /app/{}) \
   # move the binary to the root of the container
   && (cp target/release/* /app/bin || true)
 
-FROM docker.io/library/debian:bookworm-slim
+FROM docker.io/library/debian:bookworm-slim AS runtime
 
 # {{if eq .NeedOpenssl "yes"}}
 RUN apt-get update \
@@ -46,6 +55,5 @@ RUN if [ ! -x "${EXEFILE}" ]; then \
   else \
     echo "${EXEFILE}" > EXEFILE; \
   fi
-
 
 CMD "$(cat EXEFILE)"
