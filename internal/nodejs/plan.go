@@ -1,11 +1,14 @@
 package nodejs
 
 import (
+	"encoding/json"
 	"log"
-	"regexp"
+	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	. "github.com/zeabur/zbpack/pkg/types"
@@ -208,79 +211,96 @@ func GetStartScript(ctx *nodePlanContext) string {
 	return ss.Unwrap()
 }
 
+// getNodeVersionsList fetches the major version of node from
+// GitHub (https://github.com/nodejs/Release).
+func getNodeVersionsList() ([]*semver.Version, error) {
+	const releaseUrl = "https://raw.githubusercontent.com/nodejs/Release/master/schedule.json"
+
+	request, err := http.NewRequest("GET", releaseUrl, nil)
+	if err != nil || request == nil {
+		return nil, err
+	}
+	request.Header.Set("Accept", "application/json")
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil || response == nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	/*  "v20": {
+		"start": "2023-04-18",
+		"lts": "2023-10-24",
+		"maintenance": "2024-10-22",
+		"end": "2026-04-30",
+		"codename": ""
+	}
+	*/
+	var versionsMap map[string]struct{}
+	if err := json.NewDecoder(response.Body).Decode(&versionsMap); err != nil {
+		return nil, err
+	}
+
+	// convert the unordered map to a slice of string
+	versionsList := make([]*semver.Version, 0, len(versionsMap))
+	for version := range versionsMap {
+		// we ignore all the versions which is unstable (v0.x)
+		if strings.HasPrefix(version, "v0.") {
+			continue
+		}
+
+		// parse the version
+		semverVersion, err := semver.NewVersion(version)
+		if err != nil {
+			return nil, err
+		}
+
+		versionsList = append(versionsList, semverVersion)
+	}
+
+	// sort the versions
+	sort.Slice(versionsList, func(i, j int) bool {
+		return versionsList[i].GreaterThan(versionsList[j])
+	})
+
+	return versionsList, nil
+}
+
+const defaultNodeVersion = "16"
+
+func getNodeVersion(versionRange string, versionsList []*semver.Version) string {
+	if versionRange == "" {
+		return defaultNodeVersion
+	}
+
+	// create a version constraint from versionRange
+	constraint, err := semver.NewConstraint(versionRange)
+	if err != nil {
+		log.Println("invalid node version constraint", err)
+		return defaultNodeVersion
+	}
+
+	// find the latest version which satisfies the constraint
+	for _, version := range versionsList {
+		if constraint.Check(version) {
+			return strconv.FormatUint(version.Major(), 10)
+		}
+	}
+
+	// when no version satisfies the constraint, return the default version
+	return defaultNodeVersion
+}
+
 func GetNodeVersion(ctx *nodePlanContext) string {
 	packageJson := ctx.PackageJson
 
-	if packageJson.Engines.Node == "" {
-		return "16"
+	versionsList, err := getNodeVersionsList()
+	if err != nil {
+		log.Println("failed to fetch node versions list", err)
+		return defaultNodeVersion
 	}
 
-	// for example, ">=16.0.0 <17.0.0"
-	versionRange := packageJson.Engines.Node
-
-	isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
-	if isVersion {
-		return versionRange
-	}
-
-	// from given version range, we want to extract the minimum version
-	// for example, "16"
-	ranges := strings.Split(versionRange, " ")
-	minVer := -1
-	equalMin := false
-	maxVer := -1
-	equalMax := false
-	for _, r := range ranges {
-		if strings.HasPrefix(r, ">=") {
-			minVerString := strings.TrimPrefix(r, ">=")
-			minVerMajor := strings.Split(minVerString, ".")[0]
-			minVer, _ = strconv.Atoi(minVerMajor)
-			equalMin = true
-		} else if strings.HasPrefix(r, ">") {
-			minVerString := strings.TrimPrefix(r, ">")
-			minVerMajor := strings.Split(minVerString, ".")[0]
-			minVer, _ = strconv.Atoi(minVerMajor)
-			equalMin = false
-		} else if strings.HasPrefix(r, "<=") {
-			maxVerString := strings.TrimPrefix(r, "<=")
-			maxVerMajor := strings.Split(maxVerString, ".")[0]
-			maxVer, _ = strconv.Atoi(maxVerMajor)
-			equalMax = true
-		} else if strings.HasPrefix(r, "<") {
-			maxVerString := strings.TrimPrefix(r, "<")
-			maxVerMajor := strings.Split(maxVerString, ".")[0]
-			maxVer, _ = strconv.Atoi(maxVerMajor)
-			equalMax = false
-		}
-	}
-
-	if minVer == -1 && maxVer == -1 {
-		return "16"
-	}
-
-	if minVer == -1 {
-		if equalMax {
-			if maxVer != 14 && maxVer != 16 && maxVer != 18 {
-				return "16"
-			}
-			return strconv.Itoa(maxVer)
-		} else {
-			return strconv.Itoa(maxVer - 1)
-		}
-	}
-
-	if maxVer == -1 {
-		if equalMin {
-			if minVer != 14 && minVer != 16 && minVer != 18 {
-				return "16"
-			}
-			return strconv.Itoa(minVer)
-		} else {
-			return strconv.Itoa(minVer + 1)
-		}
-	}
-
-	return "16"
+	return getNodeVersion(packageJson.Engines.Node, versionsList)
 }
 
 func GetEntry(ctx *nodePlanContext) string {
