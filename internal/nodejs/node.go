@@ -1,11 +1,36 @@
 package nodejs
 
 import (
+	"bytes"
+	"html/template"
+
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+type TemplateContext struct {
+	NodeVersion string
 
+	InstallCmd string
+	BuildCmd   string
+	StartCmd   string
+
+	OutputDir string
+	SSR       bool
+}
+
+var tmpl = template.Must(
+	template.New("template.Dockerfile").
+		ParseFiles("./template.Dockerfile", "./templates/nginx-runtime.Dockerfile"),
+)
+
+func (c TemplateContext) Execute() (string, error) {
+	writer := new(bytes.Buffer)
+	err := tmpl.Execute(writer, c)
+
+	return writer.String(), err
+}
+
+func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	framework := meta["framework"]
 	nodeVersion := meta["nodeVersion"]
 	installCmd := meta["installCmd"]
@@ -43,14 +68,14 @@ RUN ` + installCmd + `
 COPY . .
 RUN ` + buildCmd + `
 
-FROM docker.io/library/nginx:alpine as runtime 
+FROM docker.io/library/nginx:alpine as runtime
 COPY --from=build /src/` + outputDir + ` /usr/share/nginx/html/static
 RUN echo "server { listen 8080; root /usr/share/nginx/html/static; location / {` + tryFiles + `}}"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 `, nil
 	}
 
-	return `FROM docker.io/library/node:` + nodeVersion + ` 
+	return `FROM docker.io/library/node:` + nodeVersion + `
 ENV PORT=8080
 WORKDIR /src
 COPY package.json .

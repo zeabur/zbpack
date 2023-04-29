@@ -1,39 +1,15 @@
 package nodejs_test
 
 import (
-	"bytes"
 	"testing"
-	"text/template"
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeabur/zbpack/internal/nodejs"
 )
-
-var tmpl = template.Must(
-	template.New("template.Dockerfile").
-		ParseFiles("./template.Dockerfile", "./templates/nginx-runtime.Dockerfile"),
-)
-
-type TemplateContext struct {
-	NodeVersion string
-
-	InstallCmd string
-	BuildCmd   string
-	StartCmd   string
-
-	OutputDir string
-	SSR       bool
-}
-
-func (c TemplateContext) Execute() (string, error) {
-	writer := new(bytes.Buffer)
-	err := tmpl.Execute(writer, c)
-
-	return writer.String(), err
-}
 
 func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
-	ctx := TemplateContext{
+	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
 		InstallCmd: "yarn install",
@@ -50,7 +26,7 @@ func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
 }
 
 func TestTemplate_NBuildCmd_OutputDir_NSSR(t *testing.T) {
-	ctx := TemplateContext{
+	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
 		InstallCmd: "yarn install",
@@ -67,7 +43,7 @@ func TestTemplate_NBuildCmd_OutputDir_NSSR(t *testing.T) {
 }
 
 func TestTemplate_NBuildCmd_OutputDir_SSR(t *testing.T) {
-	ctx := TemplateContext{
+	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
 		InstallCmd: "yarn install",
@@ -84,7 +60,7 @@ func TestTemplate_NBuildCmd_OutputDir_SSR(t *testing.T) {
 }
 
 func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
-	ctx := TemplateContext{
+	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
 		InstallCmd: "yarn install",
@@ -101,7 +77,7 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 }
 
 func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
-	ctx := TemplateContext{
+	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
 		InstallCmd: "yarn install",
