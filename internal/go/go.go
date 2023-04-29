@@ -13,7 +13,7 @@ COPY . /src/
 ENV CGO_ENABLED=0
 RUN go build -o ./bin/server ` + meta["entry"] + `
 
-FROM alpine as runtime
+FROM docker.io/library/alpine as runtime
 COPY --from=builder /src/bin/server /bin/server
 ENV PORT=8080
 EXPOSE 8080

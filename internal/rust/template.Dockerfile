@@ -19,7 +19,7 @@ RUN mkdir -p /app/bin \
   # move the binary to the root of the container
   && (cp target/release/* /app/bin || true)
 
-FROM debian:bookworm-slim
+FROM docker.io/library/debian:bookworm-slim
 
 # {{if eq .NeedOpenssl "yes"}}
 RUN apt-get update \
