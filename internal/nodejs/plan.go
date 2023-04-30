@@ -260,15 +260,15 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	installCmd := "yarn"
+	var installCmd string
 	switch pkgManager {
 	case NodePackageManagerNpm:
 		installCmd = "npm install"
-	case NodePackageManagerYarn:
-		installCmd = "yarn install"
 	case NodePackageManagerPnpm:
 		installCmd = "npm install -g pnpm && pnpm install"
-	case NodePackageManagerUnknown:
+	case NodePackageManagerYarn:
+		fallthrough
+	default:
 		installCmd = "yarn install"
 	}
 
@@ -286,14 +286,16 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 
-	buildCmd := "yarn " + buildScript
+	var buildCmd string
 	switch pkgManager {
-	case NodePackageManagerYarn:
-		buildCmd = "yarn " + buildScript
 	case NodePackageManagerPnpm:
 		buildCmd = "pnpm run " + buildScript
 	case NodePackageManagerNpm:
 		buildCmd = "npm run " + buildScript
+	case NodePackageManagerYarn:
+		fallthrough
+	default:
+		buildCmd = "yarn " + buildScript
 	}
 
 	if buildScript == "" {
@@ -321,14 +323,16 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	entry := GetEntry(ctx)
 	framework := DetermineProjectFramework(ctx)
 
-	startCmd := "yarn " + startScript
+	var startCmd string
 	switch pkgManager {
-	case NodePackageManagerYarn:
-		startCmd = "yarn " + startScript
 	case NodePackageManagerPnpm:
 		startCmd = "pnpm " + startScript
 	case NodePackageManagerNpm:
 		startCmd = "npm run " + startScript
+	case NodePackageManagerYarn:
+		fallthrough
+	default:
+		startCmd = "yarn " + startScript
 	}
 
 	if startScript == "" {

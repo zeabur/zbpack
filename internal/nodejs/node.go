@@ -34,7 +34,28 @@ func (c TemplateContext) Execute() (string, error) {
 	return writer.String(), err
 }
 
-func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+func isMpaFramework(framework string) bool {
+	mpaFrameworks := []types.NodeProjectFramework{
+		types.NodeProjectFrameworkHexo,
+		types.NodeProjectFrameworkVitepress,
+		types.NodeProjectFrameworkAstroStatic,
+	}
+
+	for _, f := range mpaFrameworks {
+		if framework == string(f) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isNotMpaFramework is `!isMpaFramework()`, but it's easier to read
+func isNotMpaFramework(framework string) bool {
+	return !isMpaFramework(framework)
+}
+
+func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	context := TemplateContext{
 		NodeVersion: meta["nodeVersion"],
 		InstallCmd:  meta["installCmd"],
@@ -44,23 +65,14 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		SPA:         true,
 	}
 
-	framework := meta["framework"]
-	mpaFrameworks := []types.NodeProjectFramework{
-		types.NodeProjectFrameworkHexo,
-		types.NodeProjectFrameworkVitepress,
-		types.NodeProjectFrameworkAstroStatic,
-	}
-
 	if outputDir, ok := meta["outputDir"]; ok {
 		context.OutputDir = outputDir
-
-		for _, f := range mpaFrameworks {
-			if framework == string(f) {
-				context.SPA = false
-				break
-			}
-		}
+		context.SPA = isNotMpaFramework(meta["framework"])
 	}
 
-	return context.Execute()
+	return context
+}
+
+func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return getContextBasedOnMeta(meta).Execute()
 }
