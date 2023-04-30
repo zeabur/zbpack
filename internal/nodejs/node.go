@@ -45,25 +45,18 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	}
 
 	framework := meta["framework"]
-	spaFrameworks := []types.NodeProjectFramework{
+	mpaFrameworks := []types.NodeProjectFramework{
 		types.NodeProjectFrameworkHexo,
 		types.NodeProjectFrameworkVitepress,
 		types.NodeProjectFrameworkAstroStatic,
 	}
 
-	for _, f := range spaFrameworks {
-		if framework == string(f) {
-			context.SPA = false
-			break
-		}
-	}
-
 	if outputDir, ok := meta["outputDir"]; ok {
 		context.OutputDir = outputDir
 
-		for _, f := range spaFrameworks {
+		for _, f := range mpaFrameworks {
 			if framework == string(f) {
-				context.SPA = true
+				context.SPA = false
 				break
 			}
 		}
