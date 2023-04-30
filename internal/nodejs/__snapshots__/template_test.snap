@@ -1,6 +1,6 @@
 
 [TestTemplate_NBuildCmd_NOutputDir - 1]
-FROM node:18
+FROM node:18 as build
 
 ENV PORT=8080
 WORKDIR /src
@@ -21,8 +21,8 @@ CMD yarn start
 
 ---
 
-[TestTemplate_NBuildCmd_OutputDir_NSSR - 1]
-FROM node:18
+[TestTemplate_NBuildCmd_OutputDir_NSPA - 1]
+FROM node:18 as build
 
 ENV PORT=8080
 WORKDIR /src
@@ -53,8 +53,8 @@ EXPOSE 8080
 
 ---
 
-[TestTemplate_NBuildCmd_OutputDir_SSR - 1]
-FROM node:18
+[TestTemplate_NBuildCmd_OutputDir_SPA - 1]
+FROM node:18 as build
 
 ENV PORT=8080
 WORKDIR /src
@@ -86,7 +86,7 @@ EXPOSE 8080
 ---
 
 [TestTemplate_BuildCmd_NOutputDir - 1]
-FROM node:18
+FROM node:18 as build
 
 ENV PORT=8080
 WORKDIR /src
@@ -108,7 +108,7 @@ CMD yarn start
 ---
 
 [TestTemplate_BuildCmd_OutputDir - 1]
-FROM node:18
+FROM node:18 as build
 
 ENV PORT=8080
 WORKDIR /src
