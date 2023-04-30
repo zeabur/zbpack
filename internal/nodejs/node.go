@@ -41,7 +41,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		BuildCmd:    meta["buildCmd"],
 		StartCmd:    meta["startCmd"],
 		OutputDir:   "",
-		SPA:         false,
+		SPA:         true,
 	}
 
 	framework := meta["framework"]
@@ -53,7 +53,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	for _, f := range spaFrameworks {
 		if framework == string(f) {
-			context.SPA = true
+			context.SPA = false
 			break
 		}
 	}
