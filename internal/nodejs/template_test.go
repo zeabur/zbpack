@@ -25,7 +25,7 @@ func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
 	snaps.MatchSnapshot(t, result)
 }
 
-func TestTemplate_NBuildCmd_OutputDir_NSSR(t *testing.T) {
+func TestTemplate_NBuildCmd_OutputDir_NSPA(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
@@ -42,7 +42,7 @@ func TestTemplate_NBuildCmd_OutputDir_NSSR(t *testing.T) {
 	snaps.MatchSnapshot(t, result)
 }
 
-func TestTemplate_NBuildCmd_OutputDir_SSR(t *testing.T) {
+func TestTemplate_NBuildCmd_OutputDir_SPA(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
 
