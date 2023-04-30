@@ -1,10 +1,7 @@
 package nodejs
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -211,61 +208,6 @@ func GetStartScript(ctx *nodePlanContext) string {
 	return ss.Unwrap()
 }
 
-// getNodeVersionsList fetches the major version of node from
-// GitHub (https://github.com/nodejs/Release).
-func getNodeVersionsList() ([]*semver.Version, error) {
-	const releaseUrl = "https://raw.githubusercontent.com/nodejs/Release/master/schedule.json"
-
-	request, err := http.NewRequest("GET", releaseUrl, nil)
-	if err != nil || request == nil {
-		return nil, err
-	}
-	request.Header.Set("Accept", "application/json")
-
-	response, err := http.DefaultClient.Do(request)
-	if err != nil || response == nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	/*  "v20": {
-		"start": "2023-04-18",
-		"lts": "2023-10-24",
-		"maintenance": "2024-10-22",
-		"end": "2026-04-30",
-		"codename": ""
-	}
-	*/
-	var versionsMap map[string]struct{}
-	if err := json.NewDecoder(response.Body).Decode(&versionsMap); err != nil {
-		return nil, err
-	}
-
-	// convert the unordered map to a slice of string
-	versionsList := make([]*semver.Version, 0, len(versionsMap))
-	for version := range versionsMap {
-		// we ignore all the versions which is unstable (v0.x)
-		if strings.HasPrefix(version, "v0.") {
-			continue
-		}
-
-		// parse the version
-		semverVersion, err := semver.NewVersion(version)
-		if err != nil {
-			return nil, err
-		}
-
-		versionsList = append(versionsList, semverVersion)
-	}
-
-	// sort the versions
-	sort.Slice(versionsList, func(i, j int) bool {
-		return versionsList[i].GreaterThan(versionsList[j])
-	})
-
-	return versionsList, nil
-}
-
 const defaultNodeVersion = "16"
 
 func getNodeVersion(versionRange string, versionsList []*semver.Version) string {
@@ -294,13 +236,8 @@ func getNodeVersion(versionRange string, versionsList []*semver.Version) string 
 func GetNodeVersion(ctx *nodePlanContext) string {
 	packageJson := ctx.PackageJson
 
-	versionsList, err := getNodeVersionsList()
-	if err != nil {
-		log.Println("failed to fetch node versions list", err)
-		return defaultNodeVersion
-	}
-
-	return getNodeVersion(packageJson.Engines.Node, versionsList)
+	// nodeVersions is generated on compile time
+	return getNodeVersion(packageJson.Engines.Node, nodeVersions)
 }
 
 func GetEntry(ctx *nodePlanContext) string {
