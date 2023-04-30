@@ -107,14 +107,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		b.absPath,
 		"app.py", "main.py", "app.py", "manage.py", "requirements.txt",
 	) {
-		framework := python.DetermineFramework(b.absPath)
-		entry := python.DetermineEntry(b.absPath)
-		dependencyPolicy := python.DetermineDependencyPolicy(b.absPath)
-		return PlanTypePython, PlanMeta{
-			"framework":        string(framework),
-			"entry":            entry,
-			"dependencyPolicy": dependencyPolicy,
-		}
+		return PlanTypePython, python.GetMeta(python.GetMetaOptions{AbsPath: b.absPath})
 	}
 
 	// Ruby project
@@ -158,10 +151,12 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Rust project
 	if utils.HasFile(b.absPath, "Cargo.toml") {
-		return PlanTypeRust, rust.GetMeta(rust.GetMetaOptions{
-			AbsPath:       b.absPath,
-			SubmoduleName: b.submoduleName,
-		})
+		return PlanTypeRust, rust.GetMeta(
+			rust.GetMetaOptions{
+				AbsPath:       b.absPath,
+				SubmoduleName: b.submoduleName,
+			},
+		)
 	}
 
 	// static site generator (hugo, gatsby, etc) detection
