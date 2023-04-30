@@ -33,7 +33,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 	}
 
 	req := string(requirementsTxt)
-	if utils.Contains(req, "django") {
+	if utils.WeakContains(req, "django") {
 		*fw = optional.Some(PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -43,7 +43,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if utils.Contains(req, "flask") {
+	if utils.WeakContains(req, "flask") {
 		*fw = optional.Some(PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
