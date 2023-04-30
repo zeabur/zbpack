@@ -33,6 +33,7 @@ func getMockVersionsList() []*semver.Version {
 		"v14",
 		"v13",
 		"v12",
+		"v10",
 	}
 
 	versions := make([]*semver.Version, len(rawVer))
