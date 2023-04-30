@@ -117,6 +117,8 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 
 	if framework == PythonFrameworkFlask {
 		entryFile := DetermineEntry(ctx)
+		// if there is something like `app = Flask(__name__)` in the entry file
+		// we use this variable (app) as the wsgi application
 		re := regexp.MustCompile(`(\w+)\s*=\s*Flask\([^)]*\)`)
 		content, err := afero.ReadFile(fs, entryFile)
 		if err != nil {
