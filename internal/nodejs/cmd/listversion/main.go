@@ -82,6 +82,8 @@ func getNodeVersionsList() ([]*semver.Version, error) {
 
 	// sort the versions
 	sort.Slice(versionsList, func(i, j int) bool {
+		// we expect descending sort here, so we pass the
+		// greater-than result to `less` function
 		return versionsList[i].GreaterThan(versionsList[j])
 	})
 
