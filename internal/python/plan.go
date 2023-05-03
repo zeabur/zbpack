@@ -180,35 +180,60 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 func determineNeedMySQL(ctx *pythonPlanContext) bool {
 	fs := ctx.SrcFs
 
-	possiblePath := []string{
-		"requirements.txt",
-		"pyproject.toml",
-		"poetry.lock",
-		"Pipfile",
-		"Pipfile.lock",
+	p := DetermineDependencyPolicy(ctx)
+	file, err := fs.Open(p)
+	if err != nil {
+		return false
 	}
+	defer file.Close()
 
-	for _, p := range possiblePath {
-		file, err := fs.Open(p)
-		if err != nil {
-			// the file may not exist, and we can safely ignore this error
-			continue
-		}
-		defer file.Close()
+	// read file line by line – usually the string `mysqlclient`
+	// will be present completely on one line.
+	scanner := bufio.NewScanner(file)
 
-		// read file line by line – usually the string `mysqlclient`
-		// will be present completely on one line.
-		scanner := bufio.NewScanner(file)
-
-		for scanner.Scan() {
-			if strings.Contains(scanner.Text(), "mysqlclient") {
-				return true
-			}
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "mysqlclient") {
+			return true
 		}
 	}
 
 	// it probably doesn't have a dependency on `mysqlclient`
 	return false
+}
+
+func determineNeedPostgreSQL(ctx *pythonPlanContext) bool {
+	fs := ctx.SrcFs
+
+	p := DetermineDependencyPolicy(ctx)
+	file, err := fs.Open(p)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "psycopg2") {
+			return true
+		}
+	}
+
+	return false
+}
+
+func determineAptDependencies(ctx *pythonPlanContext) []string {
+	needMySQL := determineNeedMySQL(ctx)
+	needPostgreSQL := determineNeedPostgreSQL(ctx)
+
+	if needMySQL {
+		return []string{"libmariadb-dev", "build-essential"}
+	}
+
+	if needPostgreSQL {
+		return []string{"libpq-dev"}
+	}
+
+	return []string{}
 }
 
 func determineStartCmd(ctx *pythonPlanContext) string {
@@ -233,7 +258,9 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	meta := PlanMeta{}
 
 	framework := DetermineFramework(ctx)
-	meta["framework"] = string(framework)
+	if framework != PythonFrameworkNone {
+		meta["framework"] = string(framework)
+	}
 
 	installCmd := determineInstallCmd(ctx)
 	meta["install"] = installCmd
@@ -241,8 +268,9 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 	startCmd := determineStartCmd(ctx)
 	meta["start"] = startCmd
 
-	if determineNeedMySQL(ctx) {
-		meta["needMySQL"] = "true"
+	aptDeps := determineAptDependencies(ctx)
+	if len(aptDeps) > 0 {
+		meta["apt-deps"] = strings.Join(aptDeps, " ")
 	}
 
 	return meta

@@ -10,18 +10,14 @@ import (
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	installCmd := meta["install"]
 	startCmd := meta["start"]
-	needMySQL := meta["needMySQL"]
+	aptDeps := meta["apt-deps"]
 
 	dockerfile := "FROM docker.io/library/python:3.8.2-slim-buster\n"
 
-	if needMySQL == "true" {
-		dockerfile += `RUN apt update \
-	&& apt install -y libmariadb-dev build-essential \
-	&& rm -rf /var/lib/apt/lists/*`
-	}
-
 	dockerfile += `WORKDIR /app
-RUN apt-get update && apt-get install gcc -y
+RUN apt-get update
+RUN apt-get install ` + aptDeps + ` gcc -y
+RUN rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN ` + installCmd + `
 EXPOSE 8080
