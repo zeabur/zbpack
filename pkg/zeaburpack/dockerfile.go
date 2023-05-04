@@ -1,57 +1,42 @@
 package zeaburpack
 
 import (
-	"os"
-	"path"
-
 	"github.com/zeabur/zbpack/internal/deno"
 	_go "github.com/zeabur/zbpack/internal/go"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
-	"github.com/zeabur/zbpack/internal/plan"
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/rust"
+	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
+	"os"
 )
 
 type generateDockerfileOptions struct {
-	SubmoduleName        string
-	CustomBuildCommand   *string
-	CustomStartCommand   *string
-	OutputDir            *string
-	AbsPath              string
-	HandleLog            func(log string)
-	HandlePlanDetermined func(planType PlanType, planMeta PlanMeta)
+	src       *source.Source
+	HandleLog func(log string)
+	planType  PlanType
+	planMeta  PlanMeta
 }
 
 func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	dockerfile := ""
-
-	planner := plan.NewPlanner(
-		&plan.NewPlannerOptions{
-			AbsPath:            opt.AbsPath,
-			SubmoduleName:      opt.SubmoduleName,
-			CustomBuildCommand: opt.CustomBuildCommand,
-			CustomStartCommand: opt.CustomStartCommand,
-			OutputDir:          opt.OutputDir,
-		},
-	)
-
-	planType, planMeta := planner.Plan()
-
-	opt.HandlePlanDetermined(planType, planMeta)
+	planType := opt.planType
+	planMeta := opt.planMeta
+	src := *opt.src
 
 	switch planType {
 	case PlanTypeDocker:
 
 		dockerfileName := ""
-		if _, err := os.Stat(path.Join(opt.AbsPath, "dockerfile")); err == nil {
-			dockerfileName = path.Join(opt.AbsPath, "dockerfile")
-		} else {
-			dockerfileName = path.Join(opt.AbsPath, "Dockerfile")
+		for _, filename := range []string{"dockerfile", "Dockerfile"} {
+			if src.HasFile(filename) {
+				dockerfileName = filename
+				break
+			}
 		}
 
 		fileContent, err := os.ReadFile(dockerfileName)

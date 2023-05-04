@@ -1,21 +1,19 @@
 package nodejs
 
 import (
+	"github.com/zeabur/zbpack/internal/source"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/moznion/go-optional"
-	"github.com/spf13/afero"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type nodePlanContext struct {
 	PackageJson PackageJson
-	// The abstracted filesystem whose root is pointed
-	// to the source code.
-	SrcFs afero.Fs
+	Src         *source.Source
 
 	PackageManager  optional.Option[NodePackageManager]
 	Framework       optional.Option[NodeProjectFramework]
@@ -30,24 +28,24 @@ type nodePlanContext struct {
 }
 
 func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 	pm := &ctx.PackageManager
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
 	}
 
-	if _, err := fs.Stat("yarn.lock"); err == nil {
+	if src.HasFile("yarn.lock") {
 		*pm = optional.Some(NodePackageManagerYarn)
 		return pm.Unwrap()
 	}
 
-	if _, err := fs.Stat("pnpm-lock.yaml"); err == nil {
+	if src.HasFile("pnpm-lock.yaml") {
 		*pm = optional.Some(NodePackageManagerPnpm)
 		return pm.Unwrap()
 	}
 
-	if _, err := fs.Stat("package-lock.json"); err == nil {
+	if src.HasFile("package-lock.json") {
 		*pm = optional.Some(NodePackageManagerNpm)
 		return pm.Unwrap()
 	}
@@ -385,16 +383,15 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 type GetMetaOptions struct {
-	AbsPath        string
+	Src            *source.Source
 	CustomBuildCmd *string
 	CustomStartCmd *string
 	OutputDir      *string
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), opt.AbsPath)
 
-	packageJson, err := DeserializePackageJson(fs)
+	packageJson, err := DeserializePackageJson(opt.Src)
 	if err != nil {
 		log.Printf("Failed to read package.json: %v", err)
 		// not fatal
@@ -402,7 +399,7 @@ func GetMeta(opt GetMetaOptions) PlanMeta {
 
 	ctx := &nodePlanContext{
 		PackageJson: packageJson,
-		SrcFs:       fs,
+		Src:         opt.Src,
 	}
 
 	meta := PlanMeta{}

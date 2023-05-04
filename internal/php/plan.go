@@ -3,8 +3,7 @@ package php
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"path"
+	"github.com/zeabur/zbpack/internal/source"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,8 +11,9 @@ import (
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func GetPhpVersion(absPath string) string {
-	composerJsonMarshal, err := os.ReadFile(path.Join(absPath, "composer.json"))
+func GetPhpVersion(source *source.Source) string {
+	src := *source
+	composerJsonMarshal, err := src.ReadFile("composer.json")
 	if err != nil {
 		return ""
 	}
@@ -68,8 +68,9 @@ func GetPhpVersion(absPath string) string {
 	return "8.1"
 }
 
-func DetermineProjectFramework(absPath string) PhpFramework {
-	composerJsonMarshal, err := os.ReadFile(path.Join(absPath, "composer.json"))
+func DetermineProjectFramework(source *source.Source) PhpFramework {
+	src := *source
+	composerJsonMarshal, err := src.ReadFile("composer.json")
 	if err != nil {
 		return PhpFrameworkNone
 	}
@@ -96,5 +97,4 @@ func DetermineProjectFramework(absPath string) PhpFramework {
 	}
 
 	return PhpFrameworkNone
-
 }

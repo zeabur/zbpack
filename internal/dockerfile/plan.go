@@ -2,31 +2,31 @@ package dockerfile
 
 import (
 	"github.com/moznion/go-optional"
+	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/pkg/types"
-	"os"
-	"path"
 	"strings"
 )
 
 type dockerfilePlanContext struct {
+	src        *source.Source
 	ExposePort optional.Option[string]
 }
 
 type GetMetaOptions struct {
-	AbsPath string
+	Src *source.Source
 }
 
-func GetExposePort(ctx *dockerfilePlanContext, absPath string) string {
+func GetExposePort(ctx *dockerfilePlanContext) string {
 	pm := &ctx.ExposePort
+	src := *ctx.src
 	if port, err := pm.Take(); err == nil {
 		return port
 	}
 
 	filenames := []string{"Dockerfile", "dockerfile"}
 	for _, filename := range filenames {
-		if _, err := os.Stat(path.Join(absPath, filename)); err == nil {
-
-			content, err := os.ReadFile(path.Join(absPath, filename))
+		if src.HasFile(filename) {
+			content, err := src.ReadFile(filename)
 			if err != nil {
 				continue
 			}
@@ -49,7 +49,8 @@ func GetExposePort(ctx *dockerfilePlanContext, absPath string) string {
 
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := new(dockerfilePlanContext)
-	exposePort := GetExposePort(ctx, opt.AbsPath)
+	ctx.src = opt.Src
+	exposePort := GetExposePort(ctx)
 	meta := types.PlanMeta{
 		"expose": exposePort,
 	}
