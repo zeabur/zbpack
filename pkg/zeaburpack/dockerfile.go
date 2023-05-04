@@ -12,7 +12,6 @@ import (
 	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/internal/static"
 	. "github.com/zeabur/zbpack/pkg/types"
-	"os"
 )
 
 type generateDockerfileOptions struct {
@@ -39,7 +38,7 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 			}
 		}
 
-		fileContent, err := os.ReadFile(dockerfileName)
+		fileContent, err := src.ReadFile(dockerfileName)
 		if err != nil {
 			return "", err
 		}
