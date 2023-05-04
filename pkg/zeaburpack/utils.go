@@ -2,6 +2,8 @@ package zeaburpack
 
 import (
 	"fmt"
+	"github.com/zeabur/zbpack/internal/source"
+	"strings"
 
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -12,7 +14,8 @@ const (
 	blue   = "\033[0;34m"
 )
 
-func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(log string)) {
+// PrintPlanAndMeta prints the build plan and meta in a table format.
+func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(log string)) {
 	table := fmt.Sprintf(
 		"\n%s╔══════════════════════════ %s%s %s═════════════════════════╗\n",
 		blue, yellow, "Build Plan", blue,
@@ -39,5 +42,17 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, handleLog func(l
 		blue, reset,
 	)
 
-	handleLog(table)
+	printFunc(table)
+}
+
+// getGitHubSourceFromUrl returns a GitHub source from a GitHub URL.
+func getGitHubSourceFromUrl(url, token string) (*source.Source, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 5 {
+		panic("Invalid GitHub URL")
+	}
+	repoOwner := parts[3]
+	repoName := parts[4]
+	src := source.NewGitHubSource(repoOwner, repoName, token)
+	return &src, nil
 }

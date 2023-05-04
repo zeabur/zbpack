@@ -1,7 +1,7 @@
 package plan
 
 import (
-	"os"
+	"github.com/zeabur/zbpack/internal/source"
 	"path"
 	"strings"
 
@@ -23,7 +23,7 @@ type Planner interface {
 }
 
 type planner struct {
-	absPath            string
+	source             *source.Source
 	submoduleName      string
 	customBuildCommand *string
 	customStartCommand *string
@@ -31,7 +31,7 @@ type planner struct {
 }
 
 type NewPlannerOptions struct {
-	AbsPath            string
+	Source             *source.Source
 	SubmoduleName      string
 	CustomBuildCommand *string
 	CustomStartCommand *string
@@ -40,7 +40,7 @@ type NewPlannerOptions struct {
 
 func NewPlanner(opt *NewPlannerOptions) Planner {
 	return &planner{
-		absPath:            opt.AbsPath,
+		source:             opt.Source,
 		submoduleName:      opt.SubmoduleName,
 		customBuildCommand: opt.CustomBuildCommand,
 		customStartCommand: opt.CustomStartCommand,
@@ -50,18 +50,18 @@ func NewPlanner(opt *NewPlannerOptions) Planner {
 
 func (b planner) Plan() (PlanType, PlanMeta) {
 	// custom Dockerfile
-	if utils.HasFile(b.absPath, "Dockerfile", "dockerfile") {
+	if utils.HasFile(b.source, "Dockerfile", "dockerfile") {
 		return PlanTypeDocker, dockerfile.GetMeta(
 			dockerfile.GetMetaOptions{
-				AbsPath: b.absPath,
+				Src: b.source,
 			},
 		)
 	}
 
 	// PHP project
-	if utils.HasFile(b.absPath, "index.php", "composer.json") {
-		framework := php.DetermineProjectFramework(b.absPath)
-		phpVersion := php.GetPhpVersion(b.absPath)
+	if utils.HasFile(b.source, "index.php", "composer.json") {
+		framework := php.DetermineProjectFramework(b.source)
+		phpVersion := php.GetPhpVersion(b.source)
 		return PlanTypePhp, PlanMeta{
 			"framework":  string(framework),
 			"phpVersion": phpVersion,
@@ -69,10 +69,10 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	}
 
 	// Node.js project
-	if utils.HasFile(b.absPath, "package.json") {
+	if utils.HasFile(b.source, "package.json") {
 		return PlanTypeNodejs, nodejs.GetMeta(
 			nodejs.GetMetaOptions{
-				AbsPath:        b.absPath,
+				Src:            b.source,
 				CustomBuildCmd: b.customBuildCommand,
 				CustomStartCmd: b.customStartCommand,
 				OutputDir:      b.outputDir,
@@ -81,17 +81,17 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	}
 
 	// Go project
-	if utils.HasFile(b.absPath, "go.mod") {
+	if utils.HasFile(b.source, "go.mod") {
 
 		// in a basic go project, we assume the entrypoint is main.go in root directory
-		if utils.HasFile(b.absPath, "main.go") {
+		if utils.HasFile(b.source, "main.go") {
 			return PlanTypeGo, PlanMeta{"entry": "main.go"}
 		}
 
 		// if there is no main.go in root directory, we assume it's a monorepo project.
 		// in a general monorepo Go repo of service "user-service", the entry point might be `./cmd/user-service/main.go`
 		if utils.HasFile(
-			path.Join(b.absPath, "cmd", b.submoduleName), "main.go",
+			b.source, path.Join("cmd", b.submoduleName, "main.go"),
 		) {
 			entry := path.Join("cmd", b.submoduleName, "main.go")
 			return PlanTypeGo, PlanMeta{"entry": entry}
@@ -104,16 +104,16 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Python project
 	if utils.HasFile(
-		b.absPath,
+		b.source,
 		"app.py", "main.py", "app.py", "manage.py", "requirements.txt",
 	) {
-		return PlanTypePython, python.GetMeta(python.GetMetaOptions{AbsPath: b.absPath})
+		return PlanTypePython, python.GetMeta(python.GetMetaOptions{Src: b.source})
 	}
 
 	// Ruby project
-	if utils.HasFile(b.absPath, "Gemfile") {
-		rubyVersion := ruby.DetermineRubyVersion(b.absPath)
-		framework := ruby.DetermineRubyFramework(b.absPath)
+	if utils.HasFile(b.source, "Gemfile") {
+		rubyVersion := ruby.DetermineRubyVersion(b.source)
+		framework := ruby.DetermineRubyFramework(b.source)
 		return PlanTypeRuby, PlanMeta{
 			"rubyVersion": rubyVersion,
 			"framework":   string(framework),
@@ -122,12 +122,12 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Java project
 	if utils.HasFile(
-		b.absPath, "pom.xml", "pom.yml", "pom.yaml", "build.gradle",
+		b.source, "pom.xml", "pom.yml", "pom.yaml", "build.gradle",
 		"build.gradle.kts",
 	) {
-		projectType := java.DetermineProjectType(b.absPath)
-		framework := java.DetermineFramework(projectType, b.absPath)
-		jdkVersion := java.DetermineJDKVersion(projectType, b.absPath)
+		projectType := java.DetermineProjectType(b.source)
+		framework := java.DetermineFramework(projectType, b.source)
+		jdkVersion := java.DetermineJDKVersion(projectType, b.source)
 		return PlanTypeJava, PlanMeta{
 			"type":      string(projectType),
 			"framework": string(framework),
@@ -137,11 +137,11 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Deno project
 	if utils.HasFile(
-		b.absPath, "deno.json", "deno.lock", "fresh.gen.ts",
+		b.source, "deno.json", "deno.lock", "fresh.gen.ts",
 	) {
-		framework := deno.DetermineFramework(b.absPath)
-		entry := deno.DetermineEntry(b.absPath)
-		startCmd := deno.GetStartCommand(b.absPath)
+		framework := deno.DetermineFramework(b.source)
+		entry := deno.DetermineEntry(b.source)
+		startCmd := deno.GetStartCommand(b.source)
 		return PlanTypeDeno, PlanMeta{
 			"framework":    string(framework),
 			"entry":        entry,
@@ -150,19 +150,18 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	}
 
 	// Rust project
-	if utils.HasFile(b.absPath, "Cargo.toml") {
+	if utils.HasFile(b.source, "Cargo.toml") {
 		return PlanTypeRust, rust.GetMeta(
 			rust.GetMetaOptions{
-				AbsPath:       b.absPath,
+				Src:           b.source,
 				SubmoduleName: b.submoduleName,
 			},
 		)
 	}
 
 	// static site generator (hugo, gatsby, etc) detection
-	if utils.HasFile(b.absPath, "index.html") {
-		htmlPath := path.Join(b.absPath, "index.html")
-		html, err := os.ReadFile(htmlPath)
+	if utils.HasFile(b.source, "index.html") {
+		html, err := (*b.source).ReadFile("index.html")
 
 		if err == nil && strings.Contains(string(html), "Hugo") {
 			return PlanTypeStatic, PlanMeta{"framework": "hugo"}

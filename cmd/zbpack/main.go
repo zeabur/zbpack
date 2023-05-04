@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/zeabur/zbpack/pkg/types"
 	"os"
 	"path/filepath"
 
@@ -22,14 +23,23 @@ func main() {
 
 	submoduleName := filepath.Base(absPath)
 
+	handlePlanDetermined := func(planType types.PlanType, planMeta types.PlanMeta) {
+		zeaburpack.PrintPlanAndMeta(
+			planType, planMeta, func(log string) {
+				println(log)
+			},
+		)
+	}
+
 	err = zeaburpack.Build(
 		&zeaburpack.BuildOptions{
-			Path:        &path,
-			Interactive: &trueValue,
-
-			SubmoduleName: &submoduleName,
+			Path:                 &path,
+			Interactive:          &trueValue,
+			HandlePlanDetermined: &handlePlanDetermined,
+			SubmoduleName:        &submoduleName,
 		},
 	)
+
 	if err != nil {
 		panic(err)
 	}
