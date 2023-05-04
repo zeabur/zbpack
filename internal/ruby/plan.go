@@ -1,16 +1,17 @@
 package ruby
 
 import (
+	"github.com/zeabur/zbpack/internal/source"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineRubyVersion(absPath string) string {
-	RubyVersion := GetGemfileValue(absPath, `ruby "`)
+func DetermineRubyVersion(source *source.Source) string {
+	RubyVersion := GetGemfileValue(source, `ruby "`)
 
 	return RubyVersion
 }
-func DetermineRubyFramework(absPath string) RubyFramework {
-	railsVersion := GetGemfileValue(absPath, `rails`)
+func DetermineRubyFramework(source *source.Source) RubyFramework {
+	railsVersion := GetGemfileValue(source, `rails`)
 	if railsVersion != "" {
 		return RubyFrameworkRails
 	}

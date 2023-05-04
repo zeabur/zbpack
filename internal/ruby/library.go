@@ -1,28 +1,25 @@
 package ruby
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"path"
+	"github.com/zeabur/zbpack/internal/source"
 	"regexp"
 	"strings"
 )
 
-func GetGemfileValue(absPath string, key string) string {
-	filePath := path.Join(absPath, "Gemfile")
+func GetGemfileValue(source *source.Source, key string) string {
+	src := *source
 	var ret string
-	file, err := os.Open(filePath)
+	file, err := src.ReadFile("Gemfile")
 	if err != nil {
 		fmt.Errorf("failed to parse Gemfile: %w", err)
+		return ""
 	}
-	defer file.Close()
 	matchString := regexp.MustCompile(key)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := []byte(scanner.Text())
-		if matchString.Match(line) {
-			ret = strings.Trim(scanner.Text(), key)
+	lines := strings.Split(string(file), "\n")
+	for _, line := range lines {
+		if matchString.Match([]byte(line)) {
+			ret = strings.TrimPrefix(line, key)
 			return ret
 		}
 	}

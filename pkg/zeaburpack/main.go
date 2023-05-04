@@ -1,6 +1,9 @@
 package zeaburpack
 
 import (
+	"fmt"
+	"github.com/zeabur/zbpack/internal/plan"
+	"github.com/zeabur/zbpack/internal/source"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -98,18 +101,6 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	var handlePlanDetermined func(planType PlanType, planMeta PlanMeta)
-	if opt.HandlePlanDetermined == nil {
-		handlePlanDetermined = func(planType PlanType, planMeta PlanMeta) {
-			PrintPlanAndMeta(planType, planMeta, handleLog)
-		}
-	} else {
-		handlePlanDetermined = func(planType PlanType, planMeta PlanMeta) {
-			PrintPlanAndMeta(planType, planMeta, handleLog)
-			(*opt.HandlePlanDetermined)(planType, planMeta)
-		}
-	}
-
 	var handleBuildFailed func(error)
 	if opt.HandleBuildFailed == nil {
 		handleBuildFailed = func(err error) {
@@ -122,15 +113,36 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
+	if strings.HasPrefix(*opt.Path, "https://") {
+		println("Build from git repository is not supported yet")
+		handleBuildFailed(nil)
+		return fmt.Errorf("build from git repository is not supported yet")
+	}
+
+	src := source.NewLocalSource(*opt.Path)
+
+	planner := plan.NewPlanner(
+		&plan.NewPlannerOptions{
+			Source:             &src,
+			SubmoduleName:      *opt.SubmoduleName,
+			CustomBuildCommand: opt.CustomBuildCommand,
+			CustomStartCommand: opt.CustomStartCommand,
+			OutputDir:          opt.OutputDir,
+		},
+	)
+
+	t, m := planner.Plan()
+
+	if opt.HandlePlanDetermined != nil {
+		(*opt.HandlePlanDetermined)(t, m)
+	}
+
 	dockerfile, err := generateDockerfile(
 		&generateDockerfileOptions{
-			AbsPath:              *opt.Path,
-			SubmoduleName:        *opt.SubmoduleName,
-			HandleLog:            handleLog,
-			HandlePlanDetermined: handlePlanDetermined,
-			CustomBuildCommand:   opt.CustomBuildCommand,
-			CustomStartCommand:   opt.CustomStartCommand,
-			OutputDir:            opt.OutputDir,
+			src:       &src,
+			HandleLog: handleLog,
+			planType:  t,
+			planMeta:  m,
 		},
 	)
 	if err != nil {
