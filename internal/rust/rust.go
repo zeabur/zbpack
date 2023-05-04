@@ -1,8 +1,8 @@
 package rust
 
 import (
-	"bufio"
 	"bytes"
+	"github.com/zeabur/zbpack/internal/source"
 	"log"
 	"os"
 	"strings"
@@ -10,7 +10,6 @@ import (
 
 	_ "embed"
 
-	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -18,38 +17,33 @@ import (
 var templateDockerfile string
 
 type GetMetaOptions struct {
-	AbsPath string
+	Src *source.Source
 
 	// In Rust, the submodule name is the binary name.
 	SubmoduleName string
 }
 
-func needOpenssl(fs afero.Fs) bool {
+func needOpenssl(source *source.Source) bool {
+	src := *source
 	for _, file := range []string{"Cargo.toml", "Cargo.lock"} {
-		file, err := fs.Open(file)
+		file, err := src.ReadFile(file)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				log.Println(err)
 			}
 			continue
 		}
-		defer file.Close()
 
-		buf := bufio.NewScanner(file)
-		for buf.Scan() {
-			if strings.Contains(buf.Text(), "openssl") {
-				return true
-			}
+		if strings.Contains(string(file), "openssl") {
+			return true
 		}
 	}
 	return false
 }
 
 func GetMeta(options GetMetaOptions) types.PlanMeta {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), options.AbsPath)
-
 	var opensslFlag string
-	if needOpenssl(fs) {
+	if needOpenssl(options.Src) {
 		opensslFlag = "yes"
 	} else {
 		opensslFlag = "no"

@@ -1,9 +1,8 @@
 package python
 
 import (
-	"bufio"
 	"github.com/moznion/go-optional"
-	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
 	"regexp"
@@ -11,7 +10,7 @@ import (
 )
 
 type pythonPlanContext struct {
-	SrcFs          afero.Fs
+	Src            *source.Source
 	DependencyFile optional.Option[string]
 	Framework      optional.Option[PythonFramework]
 	Entry          optional.Option[string]
@@ -19,14 +18,14 @@ type pythonPlanContext struct {
 }
 
 func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 	fw := &ctx.Framework
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
 	}
 
-	requirementsTxt, err := afero.ReadFile(fs, "requirements.txt")
+	requirementsTxt, err := src.ReadFile("requirements.txt")
 	if err != nil {
 		*fw = optional.Some(PythonFrameworkNone)
 		return fw.Unwrap()
@@ -38,7 +37,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if _, err := fs.Stat("manage.py"); err == nil {
+	if src.HasFile("manage.py") {
 		*fw = optional.Some(PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -53,7 +52,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 }
 
 func DetermineEntry(ctx *pythonPlanContext) string {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 	et := &ctx.Entry
 
 	if entry, err := et.Take(); err == nil {
@@ -61,7 +60,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 	}
 
 	for _, file := range []string{"main.py", "app.py", "manage.py"} {
-		if _, err := fs.Stat(file); err == nil {
+		if src.HasFile(file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
 		}
@@ -72,7 +71,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 }
 
 func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 	df := &ctx.DependencyFile
 
 	if depFile, err := df.Take(); err == nil {
@@ -80,7 +79,7 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 	}
 
 	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "poetry.lock"} {
-		if _, err := fs.Stat(file); err == nil {
+		if src.HasFile(file) {
 			*df = optional.Some(file)
 			return df.Unwrap()
 		}
@@ -91,22 +90,22 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 }
 
 func DetermineWsgi(ctx *pythonPlanContext) string {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 	wa := &ctx.Wsgi
 
 	framework := DetermineFramework(ctx)
 
 	if framework == PythonFrameworkDjango {
 
-		dir, err := afero.ReadDir(fs, "/")
+		dir, err := src.ReadDir("/")
 		if err != nil {
 			return ""
 		}
 
 		for _, d := range dir {
-			if d.IsDir() {
-				if _, err := fs.Stat("/" + d.Name() + "/wsgi.py"); err == nil {
-					*wa = optional.Some(d.Name() + ".wsgi")
+			if d.IsDir {
+				if src.HasFile(d.Name + "/wsgi.py") {
+					*wa = optional.Some(d.Name + ".wsgi")
 					return wa.Unwrap()
 				}
 			}
@@ -120,7 +119,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		// if there is something like `app = Flask(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
 		re := regexp.MustCompile(`(\w+)\s*=\s*Flask\([^)]*\)`)
-		content, err := afero.ReadFile(fs, entryFile)
+		content, err := src.ReadFile(entryFile)
 		if err != nil {
 			return ""
 		}
@@ -178,23 +177,16 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineNeedMySQL(ctx *pythonPlanContext) bool {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 
 	p := DetermineDependencyPolicy(ctx)
-	file, err := fs.Open(p)
+	file, err := src.ReadFile(p)
 	if err != nil {
 		return false
 	}
-	defer file.Close()
 
-	// read file line by line – usually the string `mysqlclient`
-	// will be present completely on one line.
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "mysqlclient") {
-			return true
-		}
+	if strings.Contains(string(file), "mysqlclient") {
+		return true
 	}
 
 	// it probably doesn't have a dependency on `mysqlclient`
@@ -202,20 +194,16 @@ func determineNeedMySQL(ctx *pythonPlanContext) bool {
 }
 
 func determineNeedPostgreSQL(ctx *pythonPlanContext) bool {
-	fs := ctx.SrcFs
+	src := *ctx.Src
 
 	p := DetermineDependencyPolicy(ctx)
-	file, err := fs.Open(p)
+	file, err := src.ReadFile(p)
 	if err != nil {
 		return false
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "psycopg2") {
-			return true
-		}
+	if strings.Contains(string(file), "psycopg2") {
+		return true
 	}
 
 	return false
@@ -247,13 +235,11 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 }
 
 type GetMetaOptions struct {
-	AbsPath string
+	Src *source.Source
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-	fs := afero.NewBasePathFs(afero.NewOsFs(), opt.AbsPath)
-
-	ctx := &pythonPlanContext{SrcFs: fs}
+	ctx := &pythonPlanContext{Src: opt.Src}
 
 	meta := PlanMeta{}
 

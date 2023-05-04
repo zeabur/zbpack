@@ -1,10 +1,12 @@
 package utils
 
-import "os"
+import (
+	"github.com/zeabur/zbpack/internal/source"
+)
 
-func HasFile(dirPath string, fileNames ...string) bool {
+func HasFile(src *source.Source, fileNames ...string) bool {
 	for _, fileName := range fileNames {
-		if _, err := os.Stat(dirPath + "/" + fileName); err == nil {
+		if (*src).HasFile(fileName) {
 			return true
 		}
 	}

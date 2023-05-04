@@ -1,8 +1,7 @@
 package java
 
 import (
-	"os"
-	"path"
+	"github.com/zeabur/zbpack/internal/source"
 	"regexp"
 	"strings"
 
@@ -11,22 +10,22 @@ import (
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineProjectType(absPath string) JavaProjectType {
-	if utils.HasFile(absPath, "pom.xml", "pom.yml", "pom.yaml") {
+func DetermineProjectType(src *source.Source) JavaProjectType {
+	if utils.HasFile(src, "pom.xml", "pom.yml", "pom.yaml") {
 		return JavaProjectTypeMaven
 	}
 
-	if utils.HasFile(absPath, "build.gradle", "build.gradle.kts") {
+	if utils.HasFile(src, "build.gradle", "build.gradle.kts") {
 		return JavaProjectTypeGradle
 	}
 
 	return JavaProjectTypeNone
 }
 
-func DetermineFramework(pj JavaProjectType, absPath string) JavaFramework {
+func DetermineFramework(pj JavaProjectType, src *source.Source) JavaFramework {
 	if pj == JavaProjectTypeMaven {
-		if utils.HasFile(absPath, "pom.xml") {
-			pom, err := os.ReadFile(path.Join(absPath, "pom.xml"))
+		if utils.HasFile(src, "pom.xml") {
+			pom, err := (*src).ReadFile("pom.xml")
 			if err != nil {
 				return JavaFrameworkNone
 			}
@@ -38,8 +37,8 @@ func DetermineFramework(pj JavaProjectType, absPath string) JavaFramework {
 	}
 
 	if pj == JavaProjectTypeGradle {
-		if utils.HasFile(absPath, "build.gradle") {
-			gradle, err := os.ReadFile(path.Join(absPath, "build.gradle"))
+		if utils.HasFile(src, "build.gradle") {
+			gradle, err := (*src).ReadFile("build.gradle")
 			if err != nil {
 				return JavaFrameworkNone
 			}
@@ -53,13 +52,13 @@ func DetermineFramework(pj JavaProjectType, absPath string) JavaFramework {
 	return JavaFrameworkNone
 }
 
-func DetermineJDKVersion(pj JavaProjectType, absPath string) string {
+func DetermineJDKVersion(pj JavaProjectType, src *source.Source) string {
 
 	defaultVersion := "17"
 
 	if pj == JavaProjectTypeMaven {
-		if utils.HasFile(absPath, "pom.xml") {
-			pom, err := os.ReadFile(path.Join(absPath, "pom.xml"))
+		if utils.HasFile(src, "pom.xml") {
+			pom, err := (*src).ReadFile("pom.xml")
 			if err != nil {
 				return defaultVersion
 			}
@@ -83,8 +82,8 @@ func DetermineJDKVersion(pj JavaProjectType, absPath string) string {
 	}
 
 	if pj == JavaProjectTypeGradle {
-		if utils.HasFile(absPath, "build.gradle") {
-			gradle, err := os.ReadFile(path.Join(absPath, "build.gradle"))
+		if utils.HasFile(src, "build.gradle") {
+			gradle, err := (*src).ReadFile("build.gradle")
 			if err != nil {
 				return defaultVersion
 			}
