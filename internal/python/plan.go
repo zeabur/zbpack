@@ -1,12 +1,13 @@
 package python
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/moznion/go-optional"
 	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
-	"regexp"
-	"strings"
 )
 
 type pythonPlanContext struct {
@@ -44,6 +45,11 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 
 	if utils.WeakContains(req, "flask") {
 		*fw = optional.Some(PythonFrameworkFlask)
+		return fw.Unwrap()
+	}
+
+	if utils.WeakContains(req, "fastapi") {
+		*fw = optional.Some(PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
 
@@ -140,11 +146,14 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 func determineInstallCmd(ctx *pythonPlanContext) string {
 	depPolicy := DetermineDependencyPolicy(ctx)
 	wsgi := DetermineWsgi(ctx)
+	framwork := DetermineFramework(ctx)
 
 	switch depPolicy {
 	case "requirements.txt":
 		if wsgi != "" {
 			return "pip install -r requirements.txt && pip install gunicorn"
+		} else if framwork == PythonFrameworkFastapi {
+			return "pip install -r requirements.txt && pip install uvicorn"
 		} else {
 			return "pip install -r requirements.txt"
 		}
@@ -228,6 +237,10 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	if wsgi != "" {
 		return "gunicorn --bind :8080 " + wsgi
+	}
+
+	if DetermineFramework(ctx) == PythonFrameworkFastapi {
+		return "uvicorn main:app --host 0.0.0.0 --port 8080"
 	}
 
 	entry := DetermineEntry(ctx)
