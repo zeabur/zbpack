@@ -3,9 +3,10 @@ package source
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/google/go-github/v45/github"
 	"golang.org/x/oauth2"
-	"os"
 )
 
 type Source interface {
@@ -57,7 +58,6 @@ func (s source) HasFile(path string) bool {
 }
 
 func (s source) ReadFile(path string) ([]byte, error) {
-
 	if s.LocalPath != nil {
 		return os.ReadFile(*s.LocalPath + "/" + path)
 	}

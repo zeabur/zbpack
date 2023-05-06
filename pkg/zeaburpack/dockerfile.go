@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/deno"
 	_go "github.com/zeabur/zbpack/internal/go"
 	"github.com/zeabur/zbpack/internal/java"
@@ -9,13 +10,13 @@ import (
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/rust"
-	"github.com/zeabur/zbpack/internal/source"
 	"github.com/zeabur/zbpack/internal/static"
+	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type generateDockerfileOptions struct {
-	src       *source.Source
+	src       afero.Fs
 	HandleLog func(log string)
 	planType  PlanType
 	planMeta  PlanMeta
@@ -25,20 +26,20 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	dockerfile := ""
 	planType := opt.planType
 	planMeta := opt.planMeta
-	src := *opt.src
+	src := opt.src
 
 	switch planType {
 	case PlanTypeDocker:
 
 		dockerfileName := ""
 		for _, filename := range []string{"dockerfile", "Dockerfile"} {
-			if src.HasFile(filename) {
+			if utils.HasFile(src, filename) {
 				dockerfileName = filename
 				break
 			}
 		}
 
-		fileContent, err := src.ReadFile(dockerfileName)
+		fileContent, err := afero.ReadFile(src, dockerfileName)
 		if err != nil {
 			return "", err
 		}
