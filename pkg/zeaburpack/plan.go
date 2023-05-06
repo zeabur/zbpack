@@ -1,10 +1,11 @@
 package zeaburpack
 
 import (
-	"github.com/zeabur/zbpack/internal/plan"
-	"github.com/zeabur/zbpack/internal/source"
-	"github.com/zeabur/zbpack/pkg/types"
 	"strings"
+
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/plan"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type PlanOptions struct {
@@ -32,8 +33,7 @@ type PlanOptions struct {
 }
 
 func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
-
-	var src *source.Source
+	var src afero.Fs
 	if strings.HasPrefix(*opt.Path, "https://github.com") {
 		var err error
 		src, err = getGitHubSourceFromUrl(*opt.Path, *opt.AccessToken)
@@ -41,8 +41,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 			panic(err)
 		}
 	} else {
-		lSrc := source.NewLocalSource(*opt.Path)
-		src = &lSrc
+		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	}
 
 	planner := plan.NewPlanner(
