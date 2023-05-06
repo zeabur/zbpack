@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/plan"
-	"github.com/zeabur/zbpack/internal/source"
 
 	. "github.com/zeabur/zbpack/pkg/types"
 )
@@ -120,11 +120,11 @@ func Build(opt *BuildOptions) error {
 		return fmt.Errorf("build from git repository is not supported yet")
 	}
 
-	src := source.NewLocalSource(*opt.Path)
+	src := afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
-			Source:             &src,
+			Source:             src,
 			SubmoduleName:      *opt.SubmoduleName,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
@@ -140,7 +140,7 @@ func Build(opt *BuildOptions) error {
 
 	dockerfile, err := generateDockerfile(
 		&generateDockerfileOptions{
-			src:       &src,
+			src:       src,
 			HandleLog: handleLog,
 			planType:  t,
 			planMeta:  m,
