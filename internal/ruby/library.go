@@ -1,18 +1,19 @@
 package ruby
 
 import (
-	"fmt"
-	"github.com/zeabur/zbpack/internal/source"
+	"log"
 	"regexp"
 	"strings"
+
+	"github.com/spf13/afero"
 )
 
-func GetGemfileValue(source *source.Source, key string) string {
-	src := *source
+func GetGemfileValue(source afero.Fs, key string) string {
 	var ret string
-	file, err := src.ReadFile("Gemfile")
+	file, err := afero.ReadFile(source, "Gemfile")
 	if err != nil {
-		fmt.Errorf("failed to parse Gemfile: %w", err)
+		// TODO)) return
+		log.Printf("failed to parse Gemfile: %v", err)
 		return ""
 	}
 	matchString := regexp.MustCompile(key)

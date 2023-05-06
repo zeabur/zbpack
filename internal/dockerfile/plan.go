@@ -1,32 +1,34 @@
 package dockerfile
 
 import (
-	"github.com/moznion/go-optional"
-	"github.com/zeabur/zbpack/internal/source"
-	"github.com/zeabur/zbpack/pkg/types"
 	"strings"
+
+	"github.com/moznion/go-optional"
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type dockerfilePlanContext struct {
-	src        *source.Source
+	src        afero.Fs
 	ExposePort optional.Option[string]
 }
 
 type GetMetaOptions struct {
-	Src *source.Source
+	Src afero.Fs
 }
 
 func GetExposePort(ctx *dockerfilePlanContext) string {
 	pm := &ctx.ExposePort
-	src := *ctx.src
+	src := ctx.src
 	if port, err := pm.Take(); err == nil {
 		return port
 	}
 
 	filenames := []string{"Dockerfile", "dockerfile"}
 	for _, filename := range filenames {
-		if src.HasFile(filename) {
-			content, err := src.ReadFile(filename)
+		if utils.HasFile(src, filename) {
+			content, err := afero.ReadFile(src, filename)
 			if err != nil {
 				continue
 			}

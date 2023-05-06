@@ -3,17 +3,16 @@ package php
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zeabur/zbpack/internal/source"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/spf13/afero"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func GetPhpVersion(source *source.Source) string {
-	src := *source
-	composerJsonMarshal, err := src.ReadFile("composer.json")
+func GetPhpVersion(source afero.Fs) string {
+	composerJsonMarshal, err := afero.ReadFile(source, "composer.json")
 	if err != nil {
 		return ""
 	}
@@ -68,9 +67,8 @@ func GetPhpVersion(source *source.Source) string {
 	return "8.1"
 }
 
-func DetermineProjectFramework(source *source.Source) PhpFramework {
-	src := *source
-	composerJsonMarshal, err := src.ReadFile("composer.json")
+func DetermineProjectFramework(source afero.Fs) PhpFramework {
+	composerJsonMarshal, err := afero.ReadFile(source, "composer.json")
 	if err != nil {
 		return PhpFrameworkNone
 	}

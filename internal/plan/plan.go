@@ -1,10 +1,10 @@
 package plan
 
 import (
-	"github.com/zeabur/zbpack/internal/source"
 	"path"
 	"strings"
 
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/rust"
 
@@ -23,7 +23,7 @@ type Planner interface {
 }
 
 type planner struct {
-	source             *source.Source
+	source             afero.Fs
 	submoduleName      string
 	customBuildCommand *string
 	customStartCommand *string
@@ -31,7 +31,7 @@ type planner struct {
 }
 
 type NewPlannerOptions struct {
-	Source             *source.Source
+	Source             afero.Fs
 	SubmoduleName      string
 	CustomBuildCommand *string
 	CustomStartCommand *string
@@ -161,7 +161,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// static site generator (hugo, gatsby, etc) detection
 	if utils.HasFile(b.source, "index.html") {
-		html, err := (*b.source).ReadFile("index.html")
+		html, err := afero.ReadFile(b.source, "index.html")
 
 		if err == nil && strings.Contains(string(html), "Hugo") {
 			return PlanTypeStatic, PlanMeta{"framework": "hugo"}
