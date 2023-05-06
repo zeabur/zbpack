@@ -127,3 +127,32 @@ func TestDeserializePackageJson_WithMainAndEngines(t *testing.T) {
 	assert.Equal(t, "hello", packageJson.Main)
 	assert.Equal(t, "^18", packageJson.Engines.Node)
 }
+
+func TestDeserializePackageJson_WithPackageManager(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	data, err := json.Marshal(map[string]interface{}{
+		"packageManager": "yarn@1.2.3",
+	})
+	assert.NoError(t, err)
+
+	afero.WriteFile(fs, "package.json", data, 0o644)
+
+	packageJson, err := nodejs.DeserializePackageJson(fs)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, packageJson.PackageManager)
+	assert.Equal(t, "yarn@1.2.3", *packageJson.PackageManager)
+}
+
+func TestDeserializePackageJson_WithoutPackageManager(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	data, err := json.Marshal(map[string]interface{}{})
+	assert.NoError(t, err)
+
+	afero.WriteFile(fs, "package.json", data, 0o644)
+
+	packageJson, err := nodejs.DeserializePackageJson(fs)
+	assert.NoError(t, err)
+
+	assert.Nil(t, packageJson.PackageManager)
+}
