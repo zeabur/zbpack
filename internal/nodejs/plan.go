@@ -36,6 +36,27 @@ func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
 		return packageManager
 	}
 
+	if ctx.PackageJson.PackageManager != nil {
+		// [pnpm]@8.4.0
+		packageManagerSection := strings.SplitN(*ctx.PackageJson.PackageManager, "@", 2)
+
+		switch packageManagerSection[0] {
+		case "npm":
+			*pm = optional.Some(NodePackageManagerNpm)
+			return pm.Unwrap()
+		case "yarn":
+			*pm = optional.Some(NodePackageManagerYarn)
+			return pm.Unwrap()
+		case "pnpm":
+			*pm = optional.Some(NodePackageManagerPnpm)
+			return pm.Unwrap()
+		default:
+			log.Printf("Unknown package manager: %s", packageManagerSection[0])
+			*pm = optional.Some(NodePackageManagerUnknown)
+			return pm.Unwrap()
+		}
+	}
+
 	if utils.HasFile(src, "yarn.lock") {
 		*pm = optional.Some(NodePackageManagerYarn)
 		return pm.Unwrap()
@@ -264,7 +285,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	case NodePackageManagerNpm:
 		installCmd = "npm install"
 	case NodePackageManagerPnpm:
-		installCmd = "npm install -g pnpm && pnpm install"
+		installCmd = "pnpm install"
 	case NodePackageManagerYarn:
 		fallthrough
 	default:
