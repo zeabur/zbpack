@@ -1,19 +1,20 @@
 package nodejs
 
 import (
-	"github.com/zeabur/zbpack/internal/source"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/moznion/go-optional"
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type nodePlanContext struct {
 	PackageJson PackageJson
-	Src         *source.Source
+	Src         afero.Fs
 
 	PackageManager  optional.Option[NodePackageManager]
 	Framework       optional.Option[NodeProjectFramework]
@@ -28,24 +29,45 @@ type nodePlanContext struct {
 }
 
 func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
-	src := *ctx.Src
+	src := ctx.Src
 	pm := &ctx.PackageManager
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
 	}
 
-	if src.HasFile("yarn.lock") {
+	if ctx.PackageJson.PackageManager != nil {
+		// [pnpm]@8.4.0
+		packageManagerSection := strings.SplitN(*ctx.PackageJson.PackageManager, "@", 2)
+
+		switch packageManagerSection[0] {
+		case "npm":
+			*pm = optional.Some(NodePackageManagerNpm)
+			return pm.Unwrap()
+		case "yarn":
+			*pm = optional.Some(NodePackageManagerYarn)
+			return pm.Unwrap()
+		case "pnpm":
+			*pm = optional.Some(NodePackageManagerPnpm)
+			return pm.Unwrap()
+		default:
+			log.Printf("Unknown package manager: %s", packageManagerSection[0])
+			*pm = optional.Some(NodePackageManagerUnknown)
+			return pm.Unwrap()
+		}
+	}
+
+	if utils.HasFile(src, "yarn.lock") {
 		*pm = optional.Some(NodePackageManagerYarn)
 		return pm.Unwrap()
 	}
 
-	if src.HasFile("pnpm-lock.yaml") {
+	if utils.HasFile(src, "pnpm-lock.yaml") {
 		*pm = optional.Some(NodePackageManagerPnpm)
 		return pm.Unwrap()
 	}
 
-	if src.HasFile("package-lock.json") {
+	if utils.HasFile(src, "package-lock.json") {
 		*pm = optional.Some(NodePackageManagerNpm)
 		return pm.Unwrap()
 	}
@@ -263,7 +285,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	case NodePackageManagerNpm:
 		installCmd = "npm install"
 	case NodePackageManagerPnpm:
-		installCmd = "npm install -g pnpm && pnpm install"
+		installCmd = "pnpm install"
 	case NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -383,14 +405,13 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 type GetMetaOptions struct {
-	Src            *source.Source
+	Src            afero.Fs
 	CustomBuildCmd *string
 	CustomStartCmd *string
 	OutputDir      *string
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {
-
 	packageJson, err := DeserializePackageJson(opt.Src)
 	if err != nil {
 		log.Printf("Failed to read package.json: %v", err)
