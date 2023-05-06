@@ -2,12 +2,13 @@ package deno
 
 import (
 	"encoding/json"
-	"github.com/zeabur/zbpack/internal/source"
+
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineFramework(src *source.Source) DenoFramework {
+func DetermineFramework(src afero.Fs) DenoFramework {
 	if utils.HasFile(src, "fresh.gen.ts") {
 		return DenoFrameworkFresh
 	}
@@ -15,7 +16,7 @@ func DetermineFramework(src *source.Source) DenoFramework {
 	return DenoFrameworkNone
 }
 
-func DetermineEntry(src *source.Source) string {
+func DetermineEntry(src afero.Fs) string {
 	if utils.HasFile(src, "main.ts") {
 		return "main.ts"
 	}
@@ -43,8 +44,8 @@ func DetermineEntry(src *source.Source) string {
 	return ""
 }
 
-func GetStartCommand(src *source.Source) string {
-	denoJsonMarshal, err := (*src).ReadFile("deno.json")
+func GetStartCommand(src afero.Fs) string {
+	denoJsonMarshal, err := afero.ReadFile(src, "deno.json")
 	if err != nil {
 		return ""
 	}

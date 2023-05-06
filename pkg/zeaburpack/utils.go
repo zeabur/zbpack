@@ -1,9 +1,12 @@
 package zeaburpack
 
 import (
+	"errors"
 	"fmt"
-	"github.com/zeabur/zbpack/internal/source"
 	"strings"
+
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/source"
 
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -46,13 +49,14 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(l
 }
 
 // getGitHubSourceFromUrl returns a GitHub source from a GitHub URL.
-func getGitHubSourceFromUrl(url, token string) (*source.Source, error) {
+func getGitHubSourceFromUrl(url, token string) (afero.Fs, error) {
 	parts := strings.Split(url, "/")
 	if len(parts) < 5 {
-		panic("Invalid GitHub URL")
+		return nil, errors.New("invalid GitHub URL")
 	}
 	repoOwner := parts[3]
 	repoName := parts[4]
-	src := source.NewGitHubSource(repoOwner, repoName, token)
-	return &src, nil
+
+	src := source.NewGitHubFs(repoOwner, repoName, token)
+	return src, nil
 }

@@ -2,7 +2,6 @@ package rust
 
 import (
 	"bytes"
-	"github.com/zeabur/zbpack/internal/source"
 	"log"
 	"os"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	_ "embed"
 
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -17,16 +17,15 @@ import (
 var templateDockerfile string
 
 type GetMetaOptions struct {
-	Src *source.Source
+	Src afero.Fs
 
 	// In Rust, the submodule name is the binary name.
 	SubmoduleName string
 }
 
-func needOpenssl(source *source.Source) bool {
-	src := *source
+func needOpenssl(source afero.Fs) bool {
 	for _, file := range []string{"Cargo.toml", "Cargo.lock"} {
-		file, err := src.ReadFile(file)
+		file, err := afero.ReadFile(source, file)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				log.Println(err)
