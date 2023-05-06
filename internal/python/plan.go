@@ -163,7 +163,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		// if there is something like `app = FastAPI(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
 		re := regexp.MustCompile(`(\w+)\s*=\s*FastAPI\([^)]*\)`)
-		content, err := src.ReadFile(entryFile)
+		content, err := afero.ReadFile(src, entryFile)
 		if err != nil {
 			return ""
 		}
