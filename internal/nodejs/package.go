@@ -13,6 +13,7 @@ type PackageJsonEngine struct {
 
 // PackageJson is the structure of `package.json`.
 type PackageJson struct {
+	PackageManager  *string           `json:"packageManager"`
 	Dependencies    map[string]string `json:"dependencies"`
 	DevDependencies map[string]string `json:"devDependencies"`
 	Scripts         map[string]string `json:"scripts"`
