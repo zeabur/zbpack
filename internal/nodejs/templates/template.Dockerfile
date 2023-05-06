@@ -3,6 +3,7 @@ FROM node:{{.NodeVersion}} as build
 ENV PORT=8080
 WORKDIR /src
 
+RUN corepack enable && corepack prepare --all
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 
 RUN {{ .InstallCmd }}
