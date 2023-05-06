@@ -79,7 +79,7 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 		return depFile
 	}
 
-	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "poetry.lock"} {
+	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml"} {
 		if utils.HasFile(src, file) {
 			*df = optional.Some(file)
 			return df.Unwrap()
@@ -88,6 +88,24 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 
 	*df = optional.Some("requirements.txt")
 	return df.Unwrap()
+}
+
+// HasDependency checks if a python project has the one of the dependencies.
+func HasDependency(src afero.Fs, dependencies ...string) bool {
+	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "Pipfile.lock", "poetry.lock"} {
+		file, err := afero.ReadFile(src, file)
+		if err != nil {
+			continue
+		}
+
+		for _, dependency := range dependencies {
+			if strings.Contains(string(file), dependency) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func DetermineWsgi(ctx *pythonPlanContext) string {
@@ -161,12 +179,6 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 		} else {
 			return "poetry install"
 		}
-	case "poetry.lock":
-		if wsgi != "" {
-			return "poetry install && poetry install gunicorn"
-		} else {
-			return "poetry install"
-		}
 	default:
 		if wsgi != "" {
 			return "pip install gunicorn"
@@ -176,48 +188,12 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	}
 }
 
-func determineNeedMySQL(ctx *pythonPlanContext) bool {
-	src := ctx.Src
-
-	p := DetermineDependencyPolicy(ctx)
-	file, err := afero.ReadFile(src, p)
-	if err != nil {
-		return false
-	}
-
-	if strings.Contains(string(file), "mysqlclient") {
-		return true
-	}
-
-	// it probably doesn't have a dependency on `mysqlclient`
-	return false
-}
-
-func determineNeedPostgreSQL(ctx *pythonPlanContext) bool {
-	src := ctx.Src
-
-	p := DetermineDependencyPolicy(ctx)
-	file, err := afero.ReadFile(src, p)
-	if err != nil {
-		return false
-	}
-
-	if strings.Contains(string(file), "psycopg2") {
-		return true
-	}
-
-	return false
-}
-
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	needMySQL := determineNeedMySQL(ctx)
-	needPostgreSQL := determineNeedPostgreSQL(ctx)
-
-	if needMySQL {
+	if HasDependency(ctx.Src, "mysqlclient") {
 		return []string{"libmariadb-dev", "build-essential"}
 	}
 
-	if needPostgreSQL {
+	if HasDependency(ctx.Src, "psycopg2") {
 		return []string{"libpq-dev"}
 	}
 
