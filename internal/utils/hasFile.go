@@ -1,12 +1,10 @@
 package utils
 
-import (
-	"github.com/zeabur/zbpack/internal/source"
-)
+import "github.com/spf13/afero"
 
-func HasFile(src *source.Source, fileNames ...string) bool {
+func HasFile(src afero.Fs, fileNames ...string) bool {
 	for _, fileName := range fileNames {
-		if (*src).HasFile(fileName) {
+		if exists, _ := afero.Exists(src, fileName); exists {
 			return true
 		}
 	}
