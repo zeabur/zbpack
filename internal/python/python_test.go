@@ -11,21 +11,21 @@ import (
 func TestIsMysqlNeeded_Empty(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	assert.False(t, IsMysqlNeeded(fs))
+	assert.False(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Requirement_HasMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	afero.WriteFile(fs, "/src/requirements.txt", []byte("mysqlclient==1.145.14"), 0o644)
 
-	assert.True(t, IsMysqlNeeded(fs))
+	assert.True(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Requirement_NoMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	afero.WriteFile(fs, "/src/requirements.txt", []byte("mysqlalternative==19.19.810"), 0o644)
 
-	assert.False(t, IsMysqlNeeded(fs))
+	assert.False(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Pipfile_DirectlyUseMysqlClient(t *testing.T) {
@@ -35,7 +35,7 @@ func TestIsMysqlNeeded_Pipfile_DirectlyUseMysqlClient(t *testing.T) {
 mysqlclient = "*"
 `)), 0o644)
 
-	assert.True(t, IsMysqlNeeded(fs))
+	assert.True(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Pipfile_DependOnMysqlClient(t *testing.T) {
@@ -71,7 +71,7 @@ func TestIsMysqlNeeded_Pipfile_DependOnMysqlClient(t *testing.T) {
 }
 `)), 0o644)
 
-	assert.True(t, IsMysqlNeeded(fs))
+	assert.True(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Pipfile_NoMysqlClient(t *testing.T) {
@@ -110,7 +110,7 @@ mysqlalt = "*"
 }
 `)), 0o644)
 
-	assert.False(t, IsMysqlNeeded(fs))
+	assert.False(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Poetry_DirectlyUseMysqlClient(t *testing.T) {
@@ -120,7 +120,7 @@ func TestIsMysqlNeeded_Poetry_DirectlyUseMysqlClient(t *testing.T) {
 mysqlclient = "^12.34.56"
 `)), 0o644)
 
-	assert.True(t, IsMysqlNeeded(fs))
+	assert.True(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Poetry_DependOnMysqlClient(t *testing.T) {
@@ -140,7 +140,7 @@ files = [
 ]
 `)), 0o644)
 
-	assert.True(t, IsMysqlNeeded(fs))
+	assert.True(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
 
 func TestIsMysqlNeeded_Poetry_NoMysqlClient(t *testing.T) {
@@ -160,5 +160,5 @@ files = [
 ]
 `)), 0o644)
 
-	assert.False(t, IsMysqlNeeded(fs))
+	assert.False(t, determineNeedMySQL(&pythonPlanContext{Src: fs}))
 }
