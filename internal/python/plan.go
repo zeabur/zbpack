@@ -1,16 +1,17 @@
 package python
 
 import (
-	"github.com/moznion/go-optional"
-	"github.com/zeabur/zbpack/internal/source"
-	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
 	"regexp"
 	"strings"
+
+	"github.com/moznion/go-optional"
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
+	. "github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
-	Src            *source.Source
+	Src            afero.Fs
 	DependencyFile optional.Option[string]
 	Framework      optional.Option[PythonFramework]
 	Entry          optional.Option[string]
@@ -18,14 +19,14 @@ type pythonPlanContext struct {
 }
 
 func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
-	src := *ctx.Src
+	src := ctx.Src
 	fw := &ctx.Framework
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
 	}
 
-	requirementsTxt, err := src.ReadFile("requirements.txt")
+	requirementsTxt, err := afero.ReadFile(src, "requirements.txt")
 	if err != nil {
 		*fw = optional.Some(PythonFrameworkNone)
 		return fw.Unwrap()
@@ -37,7 +38,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if src.HasFile("manage.py") {
+	if utils.HasFile(src, "manage.py") {
 		*fw = optional.Some(PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -52,7 +53,7 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 }
 
 func DetermineEntry(ctx *pythonPlanContext) string {
-	src := *ctx.Src
+	src := ctx.Src
 	et := &ctx.Entry
 
 	if entry, err := et.Take(); err == nil {
@@ -60,7 +61,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 	}
 
 	for _, file := range []string{"main.py", "app.py", "manage.py"} {
-		if src.HasFile(file) {
+		if utils.HasFile(src, file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
 		}
@@ -71,7 +72,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 }
 
 func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
-	src := *ctx.Src
+	src := ctx.Src
 	df := &ctx.DependencyFile
 
 	if depFile, err := df.Take(); err == nil {
@@ -79,7 +80,7 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 	}
 
 	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "poetry.lock"} {
-		if src.HasFile(file) {
+		if utils.HasFile(src, file) {
 			*df = optional.Some(file)
 			return df.Unwrap()
 		}
@@ -90,22 +91,22 @@ func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 }
 
 func DetermineWsgi(ctx *pythonPlanContext) string {
-	src := *ctx.Src
+	src := ctx.Src
 	wa := &ctx.Wsgi
 
 	framework := DetermineFramework(ctx)
 
 	if framework == PythonFrameworkDjango {
 
-		dir, err := src.ReadDir("/")
+		dir, err := afero.ReadDir(src, "/")
 		if err != nil {
 			return ""
 		}
 
 		for _, d := range dir {
-			if d.IsDir {
-				if src.HasFile(d.Name + "/wsgi.py") {
-					*wa = optional.Some(d.Name + ".wsgi")
+			if d.IsDir() {
+				if utils.HasFile(src, d.Name()+"/wsgi.py") {
+					*wa = optional.Some(d.Name() + ".wsgi")
 					return wa.Unwrap()
 				}
 			}
@@ -119,7 +120,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		// if there is something like `app = Flask(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
 		re := regexp.MustCompile(`(\w+)\s*=\s*Flask\([^)]*\)`)
-		content, err := src.ReadFile(entryFile)
+		content, err := afero.ReadFile(src, entryFile)
 		if err != nil {
 			return ""
 		}
@@ -173,14 +174,13 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 			return "echo \"skip install\""
 		}
 	}
-
 }
 
 func determineNeedMySQL(ctx *pythonPlanContext) bool {
-	src := *ctx.Src
+	src := ctx.Src
 
 	p := DetermineDependencyPolicy(ctx)
-	file, err := src.ReadFile(p)
+	file, err := afero.ReadFile(src, p)
 	if err != nil {
 		return false
 	}
@@ -194,10 +194,10 @@ func determineNeedMySQL(ctx *pythonPlanContext) bool {
 }
 
 func determineNeedPostgreSQL(ctx *pythonPlanContext) bool {
-	src := *ctx.Src
+	src := ctx.Src
 
 	p := DetermineDependencyPolicy(ctx)
-	file, err := src.ReadFile(p)
+	file, err := afero.ReadFile(src, p)
 	if err != nil {
 		return false
 	}
@@ -235,7 +235,7 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 }
 
 type GetMetaOptions struct {
-	Src *source.Source
+	Src afero.Fs
 }
 
 func GetMeta(opt GetMetaOptions) PlanMeta {

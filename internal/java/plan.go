@@ -1,16 +1,16 @@
 package java
 
 import (
-	"github.com/zeabur/zbpack/internal/source"
 	"regexp"
 	"strings"
 
+	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
 
 	. "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineProjectType(src *source.Source) JavaProjectType {
+func DetermineProjectType(src afero.Fs) JavaProjectType {
 	if utils.HasFile(src, "pom.xml", "pom.yml", "pom.yaml") {
 		return JavaProjectTypeMaven
 	}
@@ -22,10 +22,10 @@ func DetermineProjectType(src *source.Source) JavaProjectType {
 	return JavaProjectTypeNone
 }
 
-func DetermineFramework(pj JavaProjectType, src *source.Source) JavaFramework {
+func DetermineFramework(pj JavaProjectType, src afero.Fs) JavaFramework {
 	if pj == JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
-			pom, err := (*src).ReadFile("pom.xml")
+			pom, err := afero.ReadFile(src, "pom.xml")
 			if err != nil {
 				return JavaFrameworkNone
 			}
@@ -38,7 +38,7 @@ func DetermineFramework(pj JavaProjectType, src *source.Source) JavaFramework {
 
 	if pj == JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
-			gradle, err := (*src).ReadFile("build.gradle")
+			gradle, err := afero.ReadFile(src, "build.gradle")
 			if err != nil {
 				return JavaFrameworkNone
 			}
@@ -52,13 +52,12 @@ func DetermineFramework(pj JavaProjectType, src *source.Source) JavaFramework {
 	return JavaFrameworkNone
 }
 
-func DetermineJDKVersion(pj JavaProjectType, src *source.Source) string {
-
+func DetermineJDKVersion(pj JavaProjectType, src afero.Fs) string {
 	defaultVersion := "17"
 
 	if pj == JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
-			pom, err := (*src).ReadFile("pom.xml")
+			pom, err := afero.ReadFile(src, "pom.xml")
 			if err != nil {
 				return defaultVersion
 			}
@@ -83,7 +82,7 @@ func DetermineJDKVersion(pj JavaProjectType, src *source.Source) string {
 
 	if pj == JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
-			gradle, err := (*src).ReadFile("build.gradle")
+			gradle, err := afero.ReadFile(src, "build.gradle")
 			if err != nil {
 				return defaultVersion
 			}

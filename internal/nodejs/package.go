@@ -3,7 +3,8 @@ package nodejs
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zeabur/zbpack/internal/source"
+
+	"github.com/spf13/afero"
 )
 
 type PackageJsonEngine struct {
@@ -31,11 +32,10 @@ func NewPackageJson() PackageJson {
 // DeserializePackageJson deserializes a package.json file
 // from source. When the deserialize failed, it returns an
 // empty PackageJson with the error.
-func DeserializePackageJson(source *source.Source) (PackageJson, error) {
-	src := *source
+func DeserializePackageJson(source afero.Fs) (PackageJson, error) {
 	p := NewPackageJson()
 
-	packageJsonMarshal, err := src.ReadFile("package.json")
+	packageJsonMarshal, err := afero.ReadFile(source, "package.json")
 	if err != nil {
 		return p, fmt.Errorf("read file: %w", err)
 	}
