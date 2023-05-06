@@ -53,9 +53,10 @@ const (
 type PythonFramework string
 
 const (
-	PythonFrameworkFlask  PythonFramework = "flask"
-	PythonFrameworkDjango PythonFramework = "django"
-	PythonFrameworkNone   PythonFramework = "none"
+	PythonFrameworkFlask   PythonFramework = "flask"
+	PythonFrameworkDjango  PythonFramework = "django"
+	PythonFrameworkFastapi PythonFramework = "fastapi"
+	PythonFrameworkNone    PythonFramework = "none"
 )
 
 type JavaProjectType string

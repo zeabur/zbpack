@@ -48,6 +48,11 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 		return fw.Unwrap()
 	}
 
+	if utils.WeakContains(req, "fastapi") {
+		*fw = optional.Some(PythonFrameworkFastapi)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(PythonFrameworkNone)
 	return fw.Unwrap()
 }
@@ -153,17 +158,40 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		return ""
 	}
 
+	if framework == PythonFrameworkFastapi {
+		entryFile := DetermineEntry(ctx)
+		// if there is something like `app = FastAPI(__name__)` in the entry file
+		// we use this variable (app) as the wsgi application
+		re := regexp.MustCompile(`(\w+)\s*=\s*FastAPI\([^)]*\)`)
+		content, err := src.ReadFile(entryFile)
+		if err != nil {
+			return ""
+		}
+
+		match := re.FindStringSubmatch(string(content))
+		if len(match) > 1 {
+			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
+			*wa = optional.Some(entryWithoutExt + ":" + match[1])
+			return wa.Unwrap()
+		}
+
+		return ""
+	}
+
 	return ""
 }
 
 func determineInstallCmd(ctx *pythonPlanContext) string {
 	depPolicy := DetermineDependencyPolicy(ctx)
 	wsgi := DetermineWsgi(ctx)
+	framwork := DetermineFramework(ctx)
 
 	switch depPolicy {
 	case "requirements.txt":
 		if wsgi != "" {
 			return "pip install -r requirements.txt && pip install gunicorn"
+		} else if framwork == PythonFrameworkFastapi {
+			return "pip install -r requirements.txt && pip install uvicorn"
 		} else {
 			return "pip install -r requirements.txt"
 		}
@@ -202,7 +230,12 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 
 func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
+	framework := DetermineFramework(ctx)
+
 	if wsgi != "" {
+		if framework == PythonFrameworkFastapi {
+			return `uvicorn ` + wsgi + ` --host 0.0.0.0 --port 8080`
+		}
 		return "gunicorn --bind :8080 " + wsgi
 	}
 
