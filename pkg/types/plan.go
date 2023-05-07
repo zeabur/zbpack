@@ -48,6 +48,7 @@ const (
 	NodeProjectFrameworkVitepress      NodeProjectFramework = "vitepress"
 	NodeProjectFrameworkAstroStatic    NodeProjectFramework = "astro-static"
 	NodeProjectFrameworkAstroSSR       NodeProjectFramework = "astro-ssr"
+	NodeProjectFrameworkSliDev         NodeProjectFramework = "sli.dev"
 )
 
 type PythonFramework string
