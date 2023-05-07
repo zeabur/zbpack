@@ -38,7 +38,9 @@ func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
 
 	if ctx.PackageJson.PackageManager != nil {
 		// [pnpm]@8.4.0
-		packageManagerSection := strings.SplitN(*ctx.PackageJson.PackageManager, "@", 2)
+		packageManagerSection := strings.SplitN(
+			*ctx.PackageJson.PackageManager, "@", 2,
+		)
 
 		switch packageManagerSection[0] {
 		case "npm":
@@ -91,6 +93,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) NodeProjectFramework {
 		}
 
 		*fw = optional.Some(NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
+	}
+
+	if _, isSliDev := packageJson.Dependencies["@slidev/cli"]; isSliDev {
+		*fw = optional.Some(NodeProjectFrameworkSliDev)
 		return fw.Unwrap()
 	}
 
@@ -393,6 +400,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		NodeProjectFrameworkHexo:           "public",
 		NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
 		NodeProjectFrameworkAstroStatic:    "dist",
+		NodeProjectFrameworkSliDev:         "dist",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
