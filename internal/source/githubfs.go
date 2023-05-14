@@ -96,7 +96,7 @@ func (fs githubFs) openAsDir(root *github.RepositoryContent, content []*github.R
 
 func (fs githubFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
 	if flag != os.O_RDONLY {
-		return nil, ErrUnimplemented
+		return nil, ErrReadonly
 	}
 
 	if perm != 0o444 {
