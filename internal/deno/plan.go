@@ -5,17 +5,19 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
+	t "github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineFramework(src afero.Fs) DenoFramework {
+// DetermineFramework determines the framework of the Deno project.
+func DetermineFramework(src afero.Fs) t.DenoFramework {
 	if utils.HasFile(src, "fresh.gen.ts") {
-		return DenoFrameworkFresh
+		return t.DenoFrameworkFresh
 	}
 
-	return DenoFrameworkNone
+	return t.DenoFrameworkNone
 }
 
+// DetermineEntry determines the entry point of the Deno project.
 func DetermineEntry(src afero.Fs) string {
 	if utils.HasFile(src, "main.ts") {
 		return "main.ts"
@@ -44,22 +46,23 @@ func DetermineEntry(src afero.Fs) string {
 	return ""
 }
 
+// GetStartCommand gets the start command of the Deno project.
 func GetStartCommand(src afero.Fs) string {
-	denoJsonMarshal, err := afero.ReadFile(src, "deno.json")
+	denoJSONMarshal, err := afero.ReadFile(src, "deno.json")
 	if err != nil {
 		return ""
 	}
 
-	denoJson := struct {
+	denoJSON := struct {
 		Scripts map[string]string `json:"tasks"`
 	}{}
 
-	if err := json.Unmarshal(denoJsonMarshal, &denoJson); err != nil {
+	if err := json.Unmarshal(denoJSONMarshal, &denoJSON); err != nil {
 		return ""
 	}
 
-	if _, ok := denoJson.Scripts["start"]; ok {
-		return denoJson.Scripts["start"]
+	if _, ok := denoJSON.Scripts["start"]; ok {
+		return denoJSON.Scripts["start"]
 	}
 
 	return ""

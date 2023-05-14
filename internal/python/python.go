@@ -4,9 +4,7 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-// IsMysqlNeeded checks if the project has a dependency on `mysqlclient`,
-// and it will return true if it does.
-
+// GenerateDockerfile generates the Dockerfile for Python projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	installCmd := meta["install"]
 	startCmd := meta["start"]

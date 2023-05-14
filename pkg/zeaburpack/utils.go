@@ -48,8 +48,8 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(l
 	printFunc(table)
 }
 
-// getGitHubSourceFromUrl returns a GitHub source from a GitHub URL.
-func getGitHubSourceFromUrl(url, token string) (afero.Fs, error) {
+// getGitHubSourceFromURL returns a GitHub source from a GitHub URL.
+func getGitHubSourceFromURL(url, token string) (afero.Fs, error) {
 	parts := strings.Split(url, "/")
 	if len(parts) < 5 {
 		return nil, errors.New("invalid GitHub URL")

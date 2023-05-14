@@ -1,3 +1,4 @@
+// Package plan is the interface for planners.
 package plan
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/rust"
+	"github.com/zeabur/zbpack/pkg/types"
 
 	"github.com/zeabur/zbpack/internal/deno"
 	"github.com/zeabur/zbpack/internal/java"
@@ -15,11 +17,11 @@ import (
 	"github.com/zeabur/zbpack/internal/python"
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
 )
 
+// Planner is the interface for planners.
 type Planner interface {
-	Plan() (PlanType, PlanMeta)
+	Plan() (types.PlanType, types.PlanMeta)
 }
 
 type planner struct {
@@ -30,6 +32,7 @@ type planner struct {
 	outputDir          *string
 }
 
+// NewPlannerOptions is the options for NewPlanner.
 type NewPlannerOptions struct {
 	Source             afero.Fs
 	SubmoduleName      string
@@ -38,6 +41,7 @@ type NewPlannerOptions struct {
 	OutputDir          *string
 }
 
+// NewPlanner creates a new Planner.
 func NewPlanner(opt *NewPlannerOptions) Planner {
 	return &planner{
 		source:             opt.Source,
@@ -48,10 +52,10 @@ func NewPlanner(opt *NewPlannerOptions) Planner {
 	}
 }
 
-func (b planner) Plan() (PlanType, PlanMeta) {
+func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 	// custom Dockerfile
 	if utils.HasFile(b.source, "Dockerfile", "dockerfile") {
-		return PlanTypeDocker, dockerfile.GetMeta(
+		return types.PlanTypeDocker, dockerfile.GetMeta(
 			dockerfile.GetMetaOptions{
 				Src: b.source,
 			},
@@ -61,8 +65,8 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 	// PHP project
 	if utils.HasFile(b.source, "index.php", "composer.json") {
 		framework := php.DetermineProjectFramework(b.source)
-		phpVersion := php.GetPhpVersion(b.source)
-		return PlanTypePhp, PlanMeta{
+		phpVersion := php.GetPHPVersion(b.source)
+		return types.PlanTypePHP, types.PlanMeta{
 			"framework":  string(framework),
 			"phpVersion": phpVersion,
 		}
@@ -70,7 +74,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Node.js project
 	if utils.HasFile(b.source, "package.json") {
-		return PlanTypeNodejs, nodejs.GetMeta(
+		return types.PlanTypeNodejs, nodejs.GetMeta(
 			nodejs.GetMetaOptions{
 				Src:            b.source,
 				CustomBuildCmd: b.customBuildCommand,
@@ -85,7 +89,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 		// in a basic go project, we assume the entrypoint is main.go in root directory
 		if utils.HasFile(b.source, "main.go") {
-			return PlanTypeGo, PlanMeta{"entry": "main.go"}
+			return types.PlanTypeGo, types.PlanMeta{"entry": "main.go"}
 		}
 
 		// if there is no main.go in root directory, we assume it's a monorepo project.
@@ -94,12 +98,12 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 			b.source, path.Join("cmd", b.submoduleName, "main.go"),
 		) {
 			entry := path.Join("cmd", b.submoduleName, "main.go")
-			return PlanTypeGo, PlanMeta{"entry": entry}
+			return types.PlanTypeGo, types.PlanMeta{"entry": entry}
 		}
 
 		// We know it's a Go project, but we don't know how to build it.
 		// We'll just return a generic Go plan type.
-		return PlanTypeGo, PlanMeta{}
+		return types.PlanTypeGo, types.PlanMeta{}
 	}
 
 	// Python project
@@ -107,14 +111,14 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		b.source,
 		"app.py", "main.py", "app.py", "manage.py", "requirements.txt",
 	) {
-		return PlanTypePython, python.GetMeta(python.GetMetaOptions{Src: b.source})
+		return types.PlanTypePython, python.GetMeta(python.GetMetaOptions{Src: b.source})
 	}
 
 	// Ruby project
 	if utils.HasFile(b.source, "Gemfile") {
 		rubyVersion := ruby.DetermineRubyVersion(b.source)
 		framework := ruby.DetermineRubyFramework(b.source)
-		return PlanTypeRuby, PlanMeta{
+		return types.PlanTypeRuby, types.PlanMeta{
 			"rubyVersion": rubyVersion,
 			"framework":   string(framework),
 		}
@@ -128,7 +132,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		projectType := java.DetermineProjectType(b.source)
 		framework := java.DetermineFramework(projectType, b.source)
 		jdkVersion := java.DetermineJDKVersion(projectType, b.source)
-		return PlanTypeJava, PlanMeta{
+		return types.PlanTypeJava, types.PlanMeta{
 			"type":      string(projectType),
 			"framework": string(framework),
 			"jdk":       jdkVersion,
@@ -142,7 +146,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		framework := deno.DetermineFramework(b.source)
 		entry := deno.DetermineEntry(b.source)
 		startCmd := deno.GetStartCommand(b.source)
-		return PlanTypeDeno, PlanMeta{
+		return types.PlanTypeDeno, types.PlanMeta{
 			"framework":    string(framework),
 			"entry":        entry,
 			"startCommand": startCmd,
@@ -151,7 +155,7 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 
 	// Rust project
 	if utils.HasFile(b.source, "Cargo.toml") {
-		return PlanTypeRust, rust.GetMeta(
+		return types.PlanTypeRust, rust.GetMeta(
 			rust.GetMetaOptions{
 				Src:           b.source,
 				SubmoduleName: b.submoduleName,
@@ -164,13 +168,13 @@ func (b planner) Plan() (PlanType, PlanMeta) {
 		html, err := afero.ReadFile(b.source, "index.html")
 
 		if err == nil && strings.Contains(string(html), "Hugo") {
-			return PlanTypeStatic, PlanMeta{"framework": "hugo"}
+			return types.PlanTypeStatic, types.PlanMeta{"framework": "hugo"}
 		}
 
 		if err == nil && strings.Contains(string(html), "Hexo") {
-			return PlanTypeStatic, PlanMeta{"framework": "hexo"}
+			return types.PlanTypeStatic, types.PlanMeta{"framework": "hexo"}
 		}
 	}
 
-	return PlanTypeStatic, PlanMeta{}
+	return types.PlanTypeStatic, types.PlanMeta{}
 }

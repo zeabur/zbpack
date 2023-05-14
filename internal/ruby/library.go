@@ -1,3 +1,4 @@
+// Package ruby is the build planner for Ruby projects.
 package ruby
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 )
 
+// GetGemfileValue returns the value of the key in Gemfile.
 func GetGemfileValue(source afero.Fs, key string) string {
 	var ret string
 	file, err := afero.ReadFile(source, "Gemfile")

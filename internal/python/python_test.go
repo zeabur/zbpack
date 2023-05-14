@@ -16,21 +16,21 @@ func TestHasDependency_Empty(t *testing.T) {
 
 func TestHasDependency_Requirement_HasMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "requirements.txt", []byte("mysqlclient==1.145.14"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("mysqlclient==1.145.14"), 0o644)
 
 	assert.True(t, HasDependency(fs, "mysqlclient"))
 }
 
 func TestHasDependency_Requirement_NoMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "requirements.txt", []byte("mysqlalternative==19.19.810"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("mysqlalternative==19.19.810"), 0o644)
 
 	assert.False(t, HasDependency(fs, "mysqlclient"))
 }
 
 func TestHasDependency_Pipfile_DirectlyUseMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "Pipfile", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "Pipfile", []byte(strings.TrimSpace(`
 [packages]
 mysqlclient = "*"
 `)), 0o644)
@@ -40,8 +40,8 @@ mysqlclient = "*"
 
 func TestHasDependency_Pipfile_DependOnMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "Pipfile", []byte(""), 0o644)
-	afero.WriteFile(fs, "Pipfile.lock", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "Pipfile", []byte(""), 0o644)
+	_ = afero.WriteFile(fs, "Pipfile.lock", []byte(strings.TrimSpace(`
 {
 	"_meta": {
 	"hash": {
@@ -76,11 +76,11 @@ func TestHasDependency_Pipfile_DependOnMysqlClient(t *testing.T) {
 
 func TestHasDependency_Pipfile_NoMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "Pipfile", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "Pipfile", []byte(strings.TrimSpace(`
 [packages]
 mysqlalt = "*"
 `)), 0o644)
-	afero.WriteFile(fs, "Pipfile.lock", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "Pipfile.lock", []byte(strings.TrimSpace(`
 {
 	"_meta": {
 	"hash": {
@@ -115,7 +115,7 @@ mysqlalt = "*"
 
 func TestHasDependency_Poetry_DirectlyUseMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
 [tool.poetry.dependencies]
 mysqlclient = "^12.34.56"
 `)), 0o644)
@@ -125,8 +125,8 @@ mysqlclient = "^12.34.56"
 
 func TestHasDependency_Poetry_DependOnMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "pyproject.toml", []byte(""), 0o644)
-	afero.WriteFile(fs, "poetry.lock", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(""), 0o644)
+	_ = afero.WriteFile(fs, "poetry.lock", []byte(strings.TrimSpace(`
 [[package]]
 name = "mysqlclient"
 version = "22.2.0"
@@ -145,8 +145,8 @@ files = [
 
 func TestHasDependency_Poetry_NoMysqlClient(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "pyproject.toml", []byte(""), 0o644)
-	afero.WriteFile(fs, "poetry.lock", []byte(strings.TrimSpace(`
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(""), 0o644)
+	_ = afero.WriteFile(fs, "poetry.lock", []byte(strings.TrimSpace(`
 [[package]]
 name = "attrs"
 version = "22.2.0"
@@ -165,7 +165,7 @@ files = [
 
 func TestHasDependency_Multiple_OneMatch(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14"), 0o644)
 
 	assert.True(t, HasDependency(fs, "mysqlclient", "psycopg2"))
 	assert.True(t, HasDependency(fs, "psycopg2", "mysqlclient"))
@@ -173,14 +173,14 @@ func TestHasDependency_Multiple_OneMatch(t *testing.T) {
 
 func TestHasDependency_Multiple_BothMatch(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14\nmysqlclient=19.19.810"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14\nmysqlclient=19.19.810"), 0o644)
 
 	assert.True(t, HasDependency(fs, "mysqlclient", "psycopg2"))
 }
 
 func TestHasDependency_Multiple_NoMatch(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("psycopg2==1.145.14"), 0o644)
 
 	assert.False(t, HasDependency(fs, "mysqlclient", "django"))
 }

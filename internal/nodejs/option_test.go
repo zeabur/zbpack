@@ -6,7 +6,7 @@ import (
 	"github.com/moznion/go-optional"
 )
 
-func Blackhole[T any](v ...T) {}
+func Blackhole[T any](...T) {}
 
 // tl;dr basically the same
 func BenchmarkOption(b *testing.B) {
@@ -30,11 +30,11 @@ func TestPtrWrite(t *testing.T) {
 		val *string
 	}
 
-	string__ := "123456"
+	exampleString := "123456"
 	val := &box.val
-	*val = &string__
+	*val = &exampleString
 
-	if *box.val != string__ {
-		t.Errorf("expected %s, got %s", string__, *box.val)
+	if *box.val != exampleString {
+		t.Errorf("expected %s, got %s", exampleString, *box.val)
 	}
 }
