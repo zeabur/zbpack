@@ -3,7 +3,7 @@ package zeaburpack
 import (
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/deno"
-	_go "github.com/zeabur/zbpack/internal/go"
+	"github.com/zeabur/zbpack/internal/golang"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
@@ -12,14 +12,14 @@ import (
 	"github.com/zeabur/zbpack/internal/rust"
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type generateDockerfileOptions struct {
 	src       afero.Fs
 	HandleLog func(log string)
-	planType  PlanType
-	planMeta  PlanMeta
+	planType  types.PlanType
+	planMeta  types.PlanMeta
 }
 
 func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
@@ -29,7 +29,7 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 	src := opt.src
 
 	switch planType {
-	case PlanTypeDocker:
+	case types.PlanTypeDocker:
 
 		dockerfileName := ""
 		for _, filename := range []string{"dockerfile", "Dockerfile"} {
@@ -45,49 +45,49 @@ func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
 		}
 		dockerfile = string(fileContent)
 		return dockerfile, nil
-	case PlanTypeNodejs:
+	case types.PlanTypeNodejs:
 		df, err := nodejs.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypeGo:
-		df, err := _go.GenerateDockerfile(planMeta)
+	case types.PlanTypeGo:
+		df, err := golang.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypePython:
+	case types.PlanTypePython:
 		df, err := python.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypeRuby:
+	case types.PlanTypeRuby:
 		df, err := ruby.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypePhp:
+	case types.PlanTypePHP:
 		df, err := php.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypeJava:
+	case types.PlanTypeJava:
 		df, err := java.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypeDeno:
+	case types.PlanTypeDeno:
 		df, err := deno.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err
 		}
 		dockerfile = df
-	case PlanTypeRust:
+	case types.PlanTypeRust:
 		df, err := rust.GenerateDockerfile(planMeta)
 		if err != nil {
 			return "", err

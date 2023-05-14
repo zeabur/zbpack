@@ -7,41 +7,42 @@ import (
 	"github.com/spf13/afero"
 )
 
-type PackageJsonEngine struct {
+// PackageJSONEngine is the structure of `package.json`'s `engines` field.
+type PackageJSONEngine struct {
 	Node string `json:"node"`
 }
 
-// PackageJson is the structure of `package.json`.
-type PackageJson struct {
+// PackageJSON is the structure of `package.json`.
+type PackageJSON struct {
 	PackageManager  *string           `json:"packageManager"`
 	Dependencies    map[string]string `json:"dependencies"`
 	DevDependencies map[string]string `json:"devDependencies"`
 	Scripts         map[string]string `json:"scripts"`
-	Engines         PackageJsonEngine `json:"engines"`
+	Engines         PackageJSONEngine `json:"engines"`
 	Main            string            `json:"main"`
 }
 
-// NewPackageJson returns a new instance of PackageJson
+// NewPackageJSON returns a new instance of PackageJson
 // with some default values.
-func NewPackageJson() PackageJson {
+func NewPackageJSON() PackageJSON {
 	// we don't need to allocate an map for Dependencies,
 	// DevDependencies and Scripts, since we won't set them
 	// in the null state.
-	return PackageJson{}
+	return PackageJSON{}
 }
 
-// DeserializePackageJson deserializes a package.json file
+// DeserializePackageJSON deserializes a package.json file
 // from source. When the deserialize failed, it returns an
 // empty PackageJson with the error.
-func DeserializePackageJson(source afero.Fs) (PackageJson, error) {
-	p := NewPackageJson()
+func DeserializePackageJSON(source afero.Fs) (PackageJSON, error) {
+	p := NewPackageJSON()
 
-	packageJsonMarshal, err := afero.ReadFile(source, "package.json")
+	packageJSONMarshal, err := afero.ReadFile(source, "package.json")
 	if err != nil {
 		return p, fmt.Errorf("read file: %w", err)
 	}
 
-	if err := json.Unmarshal(packageJsonMarshal, &p); err != nil {
+	if err := json.Unmarshal(packageJSONMarshal, &p); err != nil {
 		return p, fmt.Errorf("unmarshal: %w", err)
 	}
 

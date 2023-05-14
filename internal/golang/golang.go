@@ -1,7 +1,9 @@
-package _go
+// Package golang is the planner for Golang projects.
+package golang
 
 import "github.com/zeabur/zbpack/pkg/types"
 
+// GenerateDockerfile generates the Dockerfile for Golang projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	return `FROM docker.io/library/golang:1.18 as builder
 RUN mkdir /src

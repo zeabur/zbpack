@@ -3,31 +3,33 @@ package php
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
-func GetPhpVersion(source afero.Fs) string {
-	composerJsonMarshal, err := afero.ReadFile(source, "composer.json")
+// GetPHPVersion gets the php version of the project.
+func GetPHPVersion(source afero.Fs) string {
+	composerJSONMarshal, err := afero.ReadFile(source, "composer.json")
 	if err != nil {
 		return ""
 	}
-	composerJson := struct {
+	composerJSON := struct {
 		Require map[string]string `json:"require"`
 	}{}
 
-	if err := json.Unmarshal(composerJsonMarshal, &composerJson); err != nil {
+	if err := json.Unmarshal(composerJSONMarshal, &composerJSON); err != nil {
 		return "8.0"
 	}
-	if composerJson.Require["php"] == "" {
+	if composerJSON.Require["php"] == "" {
 		return "8.0"
 	}
 
-	versionRange := composerJson.Require["php"]
+	versionRange := composerJSON.Require["php"]
 
 	isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
 	if isVersion {
@@ -42,7 +44,8 @@ func GetPhpVersion(source afero.Fs) string {
 			minVerString := strings.TrimPrefix(r, ">")
 			value, err := strconv.ParseFloat(minVerString, 64)
 			if err != nil {
-				// insert error handling here
+				log.Println("parse php version error", err)
+				continue
 			}
 			value += 0.1
 			minVerString = fmt.Sprintf("%f", value)
@@ -55,7 +58,8 @@ func GetPhpVersion(source afero.Fs) string {
 			maxVerString := strings.TrimPrefix(r, "<=")
 			value, err := strconv.ParseFloat(maxVerString, 64)
 			if err != nil {
-				// insert error handling here
+				log.Println("parse php version error", err)
+				continue
 			}
 			value -= 0.1
 
@@ -67,32 +71,33 @@ func GetPhpVersion(source afero.Fs) string {
 	return "8.1"
 }
 
-func DetermineProjectFramework(source afero.Fs) PhpFramework {
-	composerJsonMarshal, err := afero.ReadFile(source, "composer.json")
+// DetermineProjectFramework determines the framework of the project.
+func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
+	composerJSONMarshal, err := afero.ReadFile(source, "composer.json")
 	if err != nil {
-		return PhpFrameworkNone
+		return types.PHPFrameworkNone
 	}
 
-	composerJson := struct {
+	composerJSON := struct {
 		Name       string            `json:"name"`
 		Require    map[string]string `json:"require"`
 		Requiredev map[string]string `json:"require-dev"`
 	}{}
-	if err := json.Unmarshal(composerJsonMarshal, &composerJson); err != nil {
-		return PhpFrameworkNone
+	if err := json.Unmarshal(composerJSONMarshal, &composerJSON); err != nil {
+		return types.PHPFrameworkNone
 	}
 
-	if _, isLaravel := composerJson.Require["laravel/framework"]; isLaravel {
-		return PhpFrameworkLaravel
+	if _, isLaravel := composerJSON.Require["laravel/framework"]; isLaravel {
+		return types.PHPFrameworkLaravel
 	}
 
-	if _, isThinkPHP := composerJson.Require["topthink/framework"]; isThinkPHP {
-		return PhpFrameworkThinkphp
+	if _, isThinkPHP := composerJSON.Require["topthink/framework"]; isThinkPHP {
+		return types.PHPFrameworkThinkphp
 	}
 
-	if _, isCodeIgniter := composerJson.Require["codeigniter4/framework"]; isCodeIgniter {
-		return PhpFrameworkCodeigniter
+	if _, isCodeIgniter := composerJSON.Require["codeigniter4/framework"]; isCodeIgniter {
+		return types.PHPFrameworkCodeigniter
 	}
 
-	return PhpFrameworkNone
+	return types.PHPFrameworkNone
 }

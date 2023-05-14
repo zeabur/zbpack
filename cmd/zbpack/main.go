@@ -1,9 +1,12 @@
+// Zbpack is a tool to help you build your project
+// as Docker image in one click.
 package main
 
 import (
-	"github.com/zeabur/zbpack/pkg/types"
 	"os"
 	"path/filepath"
+
+	"github.com/zeabur/zbpack/pkg/types"
 
 	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )

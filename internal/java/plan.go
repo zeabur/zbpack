@@ -6,56 +6,58 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
-
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
-func DetermineProjectType(src afero.Fs) JavaProjectType {
+// DetermineProjectType determines the project type of the Java project.
+func DetermineProjectType(src afero.Fs) types.JavaProjectType {
 	if utils.HasFile(src, "pom.xml", "pom.yml", "pom.yaml") {
-		return JavaProjectTypeMaven
+		return types.JavaProjectTypeMaven
 	}
 
 	if utils.HasFile(src, "build.gradle", "build.gradle.kts") {
-		return JavaProjectTypeGradle
+		return types.JavaProjectTypeGradle
 	}
 
-	return JavaProjectTypeNone
+	return types.JavaProjectTypeNone
 }
 
-func DetermineFramework(pj JavaProjectType, src afero.Fs) JavaFramework {
-	if pj == JavaProjectTypeMaven {
+// DetermineFramework determines the framework of the Java project.
+func DetermineFramework(pj types.JavaProjectType, src afero.Fs) types.JavaFramework {
+	if pj == types.JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
 			pom, err := afero.ReadFile(src, "pom.xml")
 			if err != nil {
-				return JavaFrameworkNone
+				return types.JavaFrameworkNone
 			}
 
 			if strings.Contains(string(pom), "spring-boot-starter-parent") {
-				return JavaFrameworkSpringBoot
+				return types.JavaFrameworkSpringBoot
 			}
 		}
 	}
 
-	if pj == JavaProjectTypeGradle {
+	if pj == types.JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
 			gradle, err := afero.ReadFile(src, "build.gradle")
 			if err != nil {
-				return JavaFrameworkNone
+				return types.JavaFrameworkNone
 			}
 
 			if strings.Contains(string(gradle), "org.springframework.boot") {
-				return JavaFrameworkSpringBoot
+				return types.JavaFrameworkSpringBoot
 			}
 		}
 	}
 
-	return JavaFrameworkNone
+	return types.JavaFrameworkNone
 }
 
-func DetermineJDKVersion(pj JavaProjectType, src afero.Fs) string {
+// DetermineJDKVersion determines the JDK version of the Java project.
+func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 	defaultVersion := "17"
 
-	if pj == JavaProjectTypeMaven {
+	if pj == types.JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
 			pom, err := afero.ReadFile(src, "pom.xml")
 			if err != nil {
@@ -80,7 +82,7 @@ func DetermineJDKVersion(pj JavaProjectType, src afero.Fs) string {
 		return defaultVersion
 	}
 
-	if pj == JavaProjectTypeGradle {
+	if pj == types.JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
 			gradle, err := afero.ReadFile(src, "build.gradle")
 			if err != nil {

@@ -1,3 +1,4 @@
+// Package php is the planner for PHP projects.
 package php
 
 import (
@@ -10,6 +11,7 @@ import (
 //go:embed nginx.conf
 var nginxConf string
 
+// GenerateDockerfile generates the Dockerfile for PHP projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
 	getPhpImage := "FROM docker.io/library/php:" + phpVersion + "-fpm\n"

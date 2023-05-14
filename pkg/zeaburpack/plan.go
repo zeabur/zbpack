@@ -8,6 +8,7 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// PlanOptions is the options for Plan function.
 type PlanOptions struct {
 	// SubmoduleName is the of the submodule to build.
 	// For example, if directory is considered as a Go project,
@@ -32,11 +33,12 @@ type PlanOptions struct {
 	OutputDir *string
 }
 
+// Plan returns the build plan and meta data.
 func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	var src afero.Fs
 	if strings.HasPrefix(*opt.Path, "https://github.com") {
 		var err error
-		src, err = getGitHubSourceFromUrl(*opt.Path, *opt.AccessToken)
+		src, err = getGitHubSourceFromURL(*opt.Path, *opt.AccessToken)
 		if err != nil {
 			panic(err)
 		}

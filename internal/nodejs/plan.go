@@ -9,15 +9,15 @@ import (
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type nodePlanContext struct {
-	PackageJson PackageJson
+	PackageJSON PackageJSON
 	Src         afero.Fs
 
-	PackageManager  optional.Option[NodePackageManager]
-	Framework       optional.Option[NodeProjectFramework]
+	PackageManager  optional.Option[types.NodePackageManager]
+	Framework       optional.Option[types.NodeProjectFramework]
 	NeedPuppeteer   optional.Option[bool]
 	BuildScript     optional.Option[string]
 	StartScript     optional.Option[string]
@@ -28,7 +28,8 @@ type nodePlanContext struct {
 	StaticOutputDir optional.Option[string]
 }
 
-func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
+// DeterminePackageManager determines the package manager of the Node.js project.
+func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 	src := ctx.Src
 	pm := &ctx.PackageManager
 
@@ -36,149 +37,151 @@ func DeterminePackageManager(ctx *nodePlanContext) NodePackageManager {
 		return packageManager
 	}
 
-	if ctx.PackageJson.PackageManager != nil {
+	if ctx.PackageJSON.PackageManager != nil {
 		// [pnpm]@8.4.0
 		packageManagerSection := strings.SplitN(
-			*ctx.PackageJson.PackageManager, "@", 2,
+			*ctx.PackageJSON.PackageManager, "@", 2,
 		)
 
 		switch packageManagerSection[0] {
 		case "npm":
-			*pm = optional.Some(NodePackageManagerNpm)
+			*pm = optional.Some(types.NodePackageManagerNpm)
 			return pm.Unwrap()
 		case "yarn":
-			*pm = optional.Some(NodePackageManagerYarn)
+			*pm = optional.Some(types.NodePackageManagerYarn)
 			return pm.Unwrap()
 		case "pnpm":
-			*pm = optional.Some(NodePackageManagerPnpm)
+			*pm = optional.Some(types.NodePackageManagerPnpm)
 			return pm.Unwrap()
 		default:
 			log.Printf("Unknown package manager: %s", packageManagerSection[0])
-			*pm = optional.Some(NodePackageManagerUnknown)
+			*pm = optional.Some(types.NodePackageManagerUnknown)
 			return pm.Unwrap()
 		}
 	}
 
 	if utils.HasFile(src, "yarn.lock") {
-		*pm = optional.Some(NodePackageManagerYarn)
+		*pm = optional.Some(types.NodePackageManagerYarn)
 		return pm.Unwrap()
 	}
 
 	if utils.HasFile(src, "pnpm-lock.yaml") {
-		*pm = optional.Some(NodePackageManagerPnpm)
+		*pm = optional.Some(types.NodePackageManagerPnpm)
 		return pm.Unwrap()
 	}
 
 	if utils.HasFile(src, "package-lock.json") {
-		*pm = optional.Some(NodePackageManagerNpm)
+		*pm = optional.Some(types.NodePackageManagerNpm)
 		return pm.Unwrap()
 	}
 
-	*pm = optional.Some(NodePackageManagerUnknown)
+	*pm = optional.Some(types.NodePackageManagerUnknown)
 	return pm.Unwrap()
 }
 
-func DetermineProjectFramework(ctx *nodePlanContext) NodeProjectFramework {
+// DetermineProjectFramework determines the framework of the Node.js project.
+func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 	fw := &ctx.Framework
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
 	}
 
-	if _, isAstro := packageJson.Dependencies["astro"]; isAstro {
-		if _, isAstroSSR := packageJson.Dependencies["@astrojs/node"]; isAstroSSR {
-			*fw = optional.Some(NodeProjectFrameworkAstroSSR)
+	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
+		if _, isAstroSSR := packageJSON.Dependencies["@astrojs/node"]; isAstroSSR {
+			*fw = optional.Some(types.NodeProjectFrameworkAstroSSR)
 			return fw.Unwrap()
 		}
 
-		*fw = optional.Some(NodeProjectFrameworkAstroStatic)
+		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
 		return fw.Unwrap()
 	}
 
-	if _, isSliDev := packageJson.Dependencies["@slidev/cli"]; isSliDev {
-		*fw = optional.Some(NodeProjectFrameworkSliDev)
+	if _, isSliDev := packageJSON.Dependencies["@slidev/cli"]; isSliDev {
+		*fw = optional.Some(types.NodeProjectFrameworkSliDev)
 		return fw.Unwrap()
 	}
 
-	if _, isSvelte := packageJson.DevDependencies["svelte"]; isSvelte {
-		*fw = optional.Some(NodeProjectFrameworkSvelte)
+	if _, isSvelte := packageJSON.DevDependencies["svelte"]; isSvelte {
+		*fw = optional.Some(types.NodeProjectFrameworkSvelte)
 		return fw.Unwrap()
 	}
 
-	if _, isHexo := packageJson.Dependencies["hexo"]; isHexo {
-		*fw = optional.Some(NodeProjectFrameworkHexo)
+	if _, isHexo := packageJSON.Dependencies["hexo"]; isHexo {
+		*fw = optional.Some(types.NodeProjectFrameworkHexo)
 		return fw.Unwrap()
 	}
 
-	if _, isQwik := packageJson.DevDependencies["@builder.io/qwik"]; isQwik {
-		*fw = optional.Some(NodeProjectFrameworkQwik)
+	if _, isQwik := packageJSON.DevDependencies["@builder.io/qwik"]; isQwik {
+		*fw = optional.Some(types.NodeProjectFrameworkQwik)
 		return fw.Unwrap()
 	}
 
-	if _, isVitepress := packageJson.DevDependencies["vitepress"]; isVitepress {
-		*fw = optional.Some(NodeProjectFrameworkVitepress)
+	if _, isVitepress := packageJSON.DevDependencies["vitepress"]; isVitepress {
+		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
 	}
 
-	if _, isVite := packageJson.DevDependencies["vite"]; isVite {
-		*fw = optional.Some(NodeProjectFrameworkVite)
+	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
+		*fw = optional.Some(types.NodeProjectFrameworkVite)
 		return fw.Unwrap()
 	}
 
-	if _, isUmi := packageJson.Dependencies["umi"]; isUmi {
-		*fw = optional.Some(NodeProjectFrameworkUmi)
+	if _, isUmi := packageJSON.Dependencies["umi"]; isUmi {
+		*fw = optional.Some(types.NodeProjectFrameworkUmi)
 		return fw.Unwrap()
 	}
 
-	if _, isNextJs := packageJson.Dependencies["next"]; isNextJs {
-		*fw = optional.Some(NodeProjectFrameworkNextJs)
+	if _, isNextJs := packageJSON.Dependencies["next"]; isNextJs {
+		*fw = optional.Some(types.NodeProjectFrameworkNextJs)
 		return fw.Unwrap()
 	}
 
-	if _, isNestJs := packageJson.Dependencies["@nestjs/core"]; isNestJs {
-		*fw = optional.Some(NodeProjectFrameworkNestJs)
+	if _, isNestJs := packageJSON.Dependencies["@nestjs/core"]; isNestJs {
+		*fw = optional.Some(types.NodeProjectFrameworkNestJs)
 		return fw.Unwrap()
 	}
 
-	if _, isRemix := packageJson.Dependencies["@remix-run/react"]; isRemix {
-		*fw = optional.Some(NodeProjectFrameworkRemix)
+	if _, isRemix := packageJSON.Dependencies["@remix-run/react"]; isRemix {
+		*fw = optional.Some(types.NodeProjectFrameworkRemix)
 		return fw.Unwrap()
 	}
 
-	if _, isCreateReactApp := packageJson.Dependencies["react-scripts"]; isCreateReactApp {
-		*fw = optional.Some(NodeProjectFrameworkCreateReactApp)
+	if _, isCreateReactApp := packageJSON.Dependencies["react-scripts"]; isCreateReactApp {
+		*fw = optional.Some(types.NodeProjectFrameworkCreateReactApp)
 		return fw.Unwrap()
 	}
 
-	if _, isNuxtJs := packageJson.Dependencies["nuxt"]; isNuxtJs {
-		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+	if _, isNuxtJs := packageJSON.Dependencies["nuxt"]; isNuxtJs {
+		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
 		return fw.Unwrap()
 	}
 
-	if _, isNuxtJs := packageJson.DevDependencies["nuxt"]; isNuxtJs {
-		*fw = optional.Some(NodeProjectFrameworkNuxtJs)
+	if _, isNuxtJs := packageJSON.DevDependencies["nuxt"]; isNuxtJs {
+		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
 		return fw.Unwrap()
 	}
 
-	if _, isVueCliApp := packageJson.DevDependencies["@vue/cli-service"]; isVueCliApp {
-		*fw = optional.Some(NodeProjectFrameworkVueCli)
+	if _, isVueCliApp := packageJSON.DevDependencies["@vue/cli-service"]; isVueCliApp {
+		*fw = optional.Some(types.NodeProjectFrameworkVueCli)
 		return fw.Unwrap()
 	}
 
-	*fw = optional.Some(NodeProjectFrameworkNone)
+	*fw = optional.Some(types.NodeProjectFrameworkNone)
 	return fw.Unwrap()
 }
 
+// DetermineNeedPuppeteer determines whether the project needs Puppeteer.
 func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	pup := &ctx.NeedPuppeteer
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 
 	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
 	}
 
-	if _, hasPuppeteer := packageJson.Dependencies["puppeteer"]; hasPuppeteer {
+	if _, hasPuppeteer := packageJSON.Dependencies["puppeteer"]; hasPuppeteer {
 		*pup = optional.Some(true)
 		return pup.Unwrap()
 	}
@@ -187,20 +190,21 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	return pup.Unwrap()
 }
 
+// GetBuildScript gets the build command in package.json's `scripts` of the Node.js project.
 func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 
 	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
 	}
 
-	if _, ok := packageJson.Scripts["build"]; ok {
+	if _, ok := packageJSON.Scripts["build"]; ok {
 		*bs = optional.Some("build")
 		return bs.Unwrap()
 	}
 
-	for key := range packageJson.Scripts {
+	for key := range packageJSON.Scripts {
 		if strings.Contains(key, "build") {
 			*bs = optional.Some(key)
 			return bs.Unwrap()
@@ -211,22 +215,23 @@ func GetBuildScript(ctx *nodePlanContext) string {
 	return bs.Unwrap()
 }
 
+// GetStartScript gets the start command in package.json's `scripts` of the Node.js project.
 func GetStartScript(ctx *nodePlanContext) string {
 	ss := &ctx.StartScript
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 
 	if startScript, err := ss.Take(); err == nil {
 		return startScript
 	}
 
-	if _, ok := packageJson.DevDependencies["@builder.io/qwik"]; ok {
-		if _, ok := packageJson.Scripts["deploy"]; ok {
+	if _, ok := packageJSON.DevDependencies["@builder.io/qwik"]; ok {
+		if _, ok := packageJSON.Scripts["deploy"]; ok {
 			*ss = optional.Some("deploy")
 			return ss.Unwrap()
 		}
 	}
 
-	if _, ok := packageJson.Scripts["start"]; ok {
+	if _, ok := packageJSON.Scripts["start"]; ok {
 		*ss = optional.Some("start")
 		return ss.Unwrap()
 	}
@@ -260,25 +265,28 @@ func getNodeVersion(versionRange string, versionsList []*semver.Version) string 
 	return defaultNodeVersion
 }
 
+// GetNodeVersion gets the Node.js version of the project.
 func GetNodeVersion(ctx *nodePlanContext) string {
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 
 	// nodeVersions is generated on compile time
-	return getNodeVersion(packageJson.Engines.Node, nodeVersions)
+	return getNodeVersion(packageJSON.Engines.Node, nodeVersions)
 }
 
+// GetEntry gets the entry file of the Node.js project.
 func GetEntry(ctx *nodePlanContext) string {
-	packageJson := ctx.PackageJson
+	packageJSON := ctx.PackageJSON
 	ent := &ctx.Entry
 
 	if entry, err := ent.Take(); err == nil {
 		return entry
 	}
 
-	*ent = optional.Some(packageJson.Main)
+	*ent = optional.Some(packageJSON.Main)
 	return ent.Unwrap()
 }
 
+// GetInstallCmd gets the install command of the Node.js project.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
 
@@ -289,20 +297,21 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	pkgManager := DeterminePackageManager(ctx)
 	var installCmd string
 	switch pkgManager {
-	case NodePackageManagerNpm:
+	case types.NodePackageManagerNpm:
 		installCmd = "npm install"
-	case NodePackageManagerPnpm:
+	case types.NodePackageManagerPnpm:
 		installCmd = "pnpm install"
-	case NodePackageManagerYarn:
+	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
-		installCmd = "yarn install"
+		installCmd = "yarn instypes.tall"
 	}
 
 	*cmd = optional.Some(installCmd)
 	return cmd.Unwrap()
 }
 
+// GetBuildCmd gets the build command of the Node.js project.
 func GetBuildCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.BuildCmd
 
@@ -315,11 +324,11 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 
 	var buildCmd string
 	switch pkgManager {
-	case NodePackageManagerPnpm:
+	case types.NodePackageManagerPnpm:
 		buildCmd = "pnpm run " + buildScript
-	case NodePackageManagerNpm:
+	case types.NodePackageManagerNpm:
 		buildCmd = "npm run " + buildScript
-	case NodePackageManagerYarn:
+	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
 		buildCmd = "yarn " + buildScript
@@ -338,6 +347,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
+// GetStartCmd gets the start command of the Node.js project.
 func GetStartCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.StartCmd
 
@@ -352,11 +362,11 @@ func GetStartCmd(ctx *nodePlanContext) string {
 
 	var startCmd string
 	switch pkgManager {
-	case NodePackageManagerPnpm:
+	case types.NodePackageManagerPnpm:
 		startCmd = "pnpm " + startScript
-	case NodePackageManagerNpm:
+	case types.NodePackageManagerNpm:
 		startCmd = "npm run " + startScript
-	case NodePackageManagerYarn:
+	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
 		startCmd = "yarn " + startScript
@@ -365,7 +375,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	if startScript == "" {
 		if entry != "" {
 			startCmd = "node " + entry
-		} else if framework == NodeProjectFrameworkNuxtJs {
+		} else if framework == types.NodeProjectFrameworkNuxtJs {
 			startCmd = "node .output/server/index.mjs"
 		} else {
 			startCmd = "node index.js"
@@ -392,15 +402,15 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 
 	framework := DetermineProjectFramework(ctx)
 
-	defaultStaticOutputDirs := map[NodeProjectFramework]string{
-		NodeProjectFrameworkVite:           "dist",
-		NodeProjectFrameworkUmi:            "dist",
-		NodeProjectFrameworkVueCli:         "dist",
-		NodeProjectFrameworkCreateReactApp: "build",
-		NodeProjectFrameworkHexo:           "public",
-		NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
-		NodeProjectFrameworkAstroStatic:    "dist",
-		NodeProjectFrameworkSliDev:         "dist",
+	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
+		types.NodeProjectFrameworkVite:           "dist",
+		types.NodeProjectFrameworkUmi:            "dist",
+		types.NodeProjectFrameworkVueCli:         "dist",
+		types.NodeProjectFrameworkCreateReactApp: "build",
+		types.NodeProjectFrameworkHexo:           "public",
+		types.NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
+		types.NodeProjectFrameworkAstroStatic:    "dist",
+		types.NodeProjectFrameworkSliDev:         "dist",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
@@ -412,6 +422,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	return dir.Unwrap()
 }
 
+// GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src            afero.Fs
 	CustomBuildCmd *string
@@ -419,19 +430,20 @@ type GetMetaOptions struct {
 	OutputDir      *string
 }
 
-func GetMeta(opt GetMetaOptions) PlanMeta {
-	packageJson, err := DeserializePackageJson(opt.Src)
+// GetMeta gets the metadata of the Node.js project.
+func GetMeta(opt GetMetaOptions) types.PlanMeta {
+	packageJSON, err := DeserializePackageJSON(opt.Src)
 	if err != nil {
 		log.Printf("Failed to read package.json: %v", err)
 		// not fatal
 	}
 
 	ctx := &nodePlanContext{
-		PackageJson: packageJson,
+		PackageJSON: packageJSON,
 		Src:         opt.Src,
 	}
 
-	meta := PlanMeta{}
+	meta := types.PlanMeta{}
 
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)
