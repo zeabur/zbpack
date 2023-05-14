@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewPackageJson(t *testing.T) {
-	p := nodejs.NewPackageJson()
+	p := nodejs.NewPackageJSON()
 
 	// dependencies
 	assert.NotPanics(t, func() {
@@ -45,23 +45,23 @@ func TestNewPackageJson(t *testing.T) {
 func TestDeserializePackageJson_NoSuchFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	_, err := nodejs.DeserializePackageJson(fs)
+	_, err := nodejs.DeserializePackageJSON(fs)
 	assert.Error(t, err)
 }
 
 func TestDeserializePackageJson_InvalidFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "package.json", []byte("\\0"), 0o644)
+	_ = afero.WriteFile(fs, "package.json", []byte("\\0"), 0o644)
 
-	_, err := nodejs.DeserializePackageJson(fs)
+	_, err := nodejs.DeserializePackageJSON(fs)
 	assert.Error(t, err)
 }
 
 func TestDeserializePackageJson_EmptyJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "package.json", []byte("{}"), 0o644)
+	_ = afero.WriteFile(fs, "package.json", []byte("{}"), 0o644)
 
-	p, err := nodejs.DeserializePackageJson(fs)
+	p, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 	assert.Nil(t, p.Dependencies)
 	assert.Nil(t, p.DevDependencies)
@@ -72,9 +72,9 @@ func TestDeserializePackageJson_EmptyJson(t *testing.T) {
 
 func TestDeserializePackageJson_NoMatchField(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	afero.WriteFile(fs, "package.json", []byte(`{"this_is_a_test": "hhh"}`), 0o644)
+	_ = afero.WriteFile(fs, "package.json", []byte(`{"this_is_a_test": "hhh"}`), 0o644)
 
-	_, err := nodejs.DeserializePackageJson(fs)
+	_, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 }
 
@@ -93,20 +93,20 @@ func TestDeserializePackageJson_WithDepsAndEngines(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	afero.WriteFile(fs, "package.json", data, 0o644)
+	_ = afero.WriteFile(fs, "package.json", data, 0o644)
 
-	packageJson, err := nodejs.DeserializePackageJson(fs)
+	packageJSON, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 
-	version, ok := packageJson.Dependencies["astro"]
+	version, ok := packageJSON.Dependencies["astro"]
 	assert.True(t, ok)
 	assert.Equal(t, "0.0.1", version)
 
-	version, ok = packageJson.DevDependencies["prettier"]
+	version, ok = packageJSON.DevDependencies["prettier"]
 	assert.True(t, ok)
 	assert.Equal(t, "^1.2.3", version)
 
-	assert.Equal(t, "^18", packageJson.Engines.Node)
+	assert.Equal(t, "^18", packageJSON.Engines.Node)
 }
 
 func TestDeserializePackageJson_WithMainAndEngines(t *testing.T) {
@@ -119,13 +119,13 @@ func TestDeserializePackageJson_WithMainAndEngines(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	afero.WriteFile(fs, "package.json", data, 0o644)
+	_ = afero.WriteFile(fs, "package.json", data, 0o644)
 
-	packageJson, err := nodejs.DeserializePackageJson(fs)
+	packageJSON, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "hello", packageJson.Main)
-	assert.Equal(t, "^18", packageJson.Engines.Node)
+	assert.Equal(t, "hello", packageJSON.Main)
+	assert.Equal(t, "^18", packageJSON.Engines.Node)
 }
 
 func TestDeserializePackageJson_WithPackageManager(t *testing.T) {
@@ -135,13 +135,13 @@ func TestDeserializePackageJson_WithPackageManager(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	afero.WriteFile(fs, "package.json", data, 0o644)
+	_ = afero.WriteFile(fs, "package.json", data, 0o644)
 
-	packageJson, err := nodejs.DeserializePackageJson(fs)
+	packageJSON, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, packageJson.PackageManager)
-	assert.Equal(t, "yarn@1.2.3", *packageJson.PackageManager)
+	assert.NotNil(t, packageJSON.PackageManager)
+	assert.Equal(t, "yarn@1.2.3", *packageJSON.PackageManager)
 }
 
 func TestDeserializePackageJson_WithoutPackageManager(t *testing.T) {
@@ -149,10 +149,10 @@ func TestDeserializePackageJson_WithoutPackageManager(t *testing.T) {
 	data, err := json.Marshal(map[string]interface{}{})
 	assert.NoError(t, err)
 
-	afero.WriteFile(fs, "package.json", data, 0o644)
+	_ = afero.WriteFile(fs, "package.json", data, 0o644)
 
-	packageJson, err := nodejs.DeserializePackageJson(fs)
+	packageJSON, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
 
-	assert.Nil(t, packageJson.PackageManager)
+	assert.Nil(t, packageJSON.PackageManager)
 }

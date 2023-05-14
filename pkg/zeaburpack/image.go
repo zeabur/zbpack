@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-type BuildImageOptions struct {
+type buildImageOptions struct {
 	Dockerfile          string
 	AbsPath             string
 	UserVars            map[string]string
@@ -21,8 +21,7 @@ type BuildImageOptions struct {
 	CacheFrom           *string
 }
 
-func buildImage(opt *BuildImageOptions) error {
-
+func buildImage(opt *buildImageOptions) error {
 	lines := strings.Split(opt.Dockerfile, "\n")
 	stageLines := []int{}
 	for i, line := range lines {
@@ -53,14 +52,14 @@ func buildImage(opt *BuildImageOptions) error {
 	tempDir := os.TempDir()
 	buildID := strconv.Itoa(rand.Int())
 
-	err := os.MkdirAll(path.Join(tempDir, buildID), 0755)
+	err := os.MkdirAll(path.Join(tempDir, buildID), 0o755)
 	if err != nil {
 		return err
 	}
 
 	dockerfilePath := path.Join(tempDir, buildID, "Dockerfile")
 	if err := os.WriteFile(
-		dockerfilePath, []byte(newDockerfile), 0644,
+		dockerfilePath, []byte(newDockerfile), 0o644,
 	); err != nil {
 		return err
 	}
@@ -130,9 +129,5 @@ func buildImage(opt *BuildImageOptions) error {
 		}
 	}()
 
-	if err := cmd.Wait(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Wait()
 }

@@ -1,7 +1,9 @@
+// Package java is the planner of Java projects.
 package java
 
 import "github.com/zeabur/zbpack/pkg/types"
 
+// GenerateDockerfile generates the Dockerfile for Java projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	projectType := meta["type"]
 	framework := meta["framework"]

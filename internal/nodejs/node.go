@@ -1,3 +1,4 @@
+// Package nodejs generates the Dockerfile for Node.js projects.
 package nodejs
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// TemplateContext is the context for the Node.js Dockerfile template.
 type TemplateContext struct {
 	NodeVersion string
 
@@ -27,6 +29,7 @@ var tmpl = template.Must(
 		ParseFS(tmplFs, "templates/*"),
 )
 
+// Execute executes the template.
 func (c TemplateContext) Execute() (string, error) {
 	writer := new(bytes.Buffer)
 	err := tmpl.Execute(writer, c)
@@ -73,6 +76,7 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	return context
 }
 
+// GenerateDockerfile generates the Dockerfile for Node.js projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	return getContextBasedOnMeta(meta).Execute()
 }

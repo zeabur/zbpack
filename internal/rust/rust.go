@@ -1,3 +1,4 @@
+// Package rust is the build planner for Rust projects.
 package rust
 
 import (
@@ -16,6 +17,7 @@ import (
 //go:embed template.Dockerfile
 var templateDockerfile string
 
+// GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
 
@@ -40,6 +42,7 @@ func needOpenssl(source afero.Fs) bool {
 	return false
 }
 
+// GetMeta gets the metadata of the Rust project.
 func GetMeta(options GetMetaOptions) types.PlanMeta {
 	var opensslFlag string
 	if needOpenssl(options.Src) {
@@ -54,6 +57,7 @@ func GetMeta(options GetMetaOptions) types.PlanMeta {
 	}
 }
 
+// GenerateDockerfile generates the Dockerfile for the Rust project.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	template := template.Must(
 		template.New("RustDockerfile").Parse(templateDockerfile),

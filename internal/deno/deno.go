@@ -1,9 +1,11 @@
+// Package deno is the planner for Deno projects.
 package deno
 
 import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// GenerateDockerfile generates the Dockerfile for Deno projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	framework := meta["framework"]
 	entry := meta["entry"]

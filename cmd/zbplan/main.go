@@ -1,3 +1,4 @@
+// Zbplan is a command line tool to plan a new module
 package main
 
 import (
