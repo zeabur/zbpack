@@ -5,7 +5,8 @@ FROM node:18 as build
 ENV PORT=8080
 WORKDIR /src
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare --all
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
 
 RUN yarn install
 
@@ -27,7 +28,8 @@ FROM node:18 as build
 ENV PORT=8080
 WORKDIR /src
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare --all
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
 
 RUN yarn install
 
@@ -59,7 +61,8 @@ FROM node:18 as build
 ENV PORT=8080
 WORKDIR /src
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare --all
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
 
 RUN yarn install
 
@@ -91,7 +94,8 @@ FROM node:18 as build
 ENV PORT=8080
 WORKDIR /src
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare --all
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
 
 RUN yarn install
 
@@ -113,7 +117,8 @@ FROM node:18 as build
 ENV PORT=8080
 WORKDIR /src
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN corepack enable && corepack prepare --all
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
 
 RUN yarn install
 
