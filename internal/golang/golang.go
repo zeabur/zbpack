@@ -5,7 +5,7 @@ import "github.com/zeabur/zbpack/pkg/types"
 
 // GenerateDockerfile generates the Dockerfile for Golang projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	return `FROM docker.io/library/golang:1.18 as builder
+	return `FROM docker.io/library/golang:` + meta["goVersion"] + ` as builder
 RUN mkdir /src
 WORKDIR /src
 COPY go.mod ./
