@@ -23,6 +23,7 @@ type githubFs struct {
 	GitHubClient    *github.Client
 }
 
+// NewGitHubFs creates a new github filesystem.
 func NewGitHubFs(repoOwner, repoName, token string) afero.Fs {
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	oauth2Client := oauth2.NewClient(context.TODO(), tokenSource)
@@ -35,20 +36,23 @@ func NewGitHubFs(repoOwner, repoName, token string) afero.Fs {
 }
 
 var (
+	// ErrUnimplemented is returned when a method is not implemented.
 	ErrUnimplemented = errors.New("unimplemented")
-	ErrReadonly      = errors.New("readonly")
-	ErrNotDir        = errors.New("not a directory")
+	// ErrReadonly is returned when this filesystem is readonly.
+	ErrReadonly = errors.New("readonly")
+	// ErrNotDir is returned when something is not a directory.
+	ErrNotDir = errors.New("not a directory")
 )
 
-func (fs githubFs) Create(name string) (afero.File, error) {
+func (fs githubFs) Create(string) (afero.File, error) {
 	return nil, ErrReadonly
 }
 
-func (fs githubFs) Mkdir(name string, perm os.FileMode) error {
+func (fs githubFs) Mkdir(string, os.FileMode) error {
 	return ErrReadonly
 }
 
-func (fs githubFs) MkdirAll(path string, perm os.FileMode) error {
+func (fs githubFs) MkdirAll(string, os.FileMode) error {
 	return ErrReadonly
 }
 
@@ -91,8 +95,8 @@ func (fs githubFs) openAsDir(root *github.RepositoryContent, content []*github.R
 }
 
 func (fs githubFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
-	if flag&os.O_RDONLY != os.O_RDONLY {
-		return nil, ErrUnimplemented
+	if flag != os.O_RDONLY {
+		return nil, ErrReadonly
 	}
 
 	if perm != 0o444 {
@@ -103,15 +107,15 @@ func (fs githubFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File
 	return fs.Open(name)
 }
 
-func (fs githubFs) Remove(name string) error {
+func (fs githubFs) Remove(string) error {
 	return ErrReadonly
 }
 
-func (fs githubFs) RemoveAll(path string) error {
+func (fs githubFs) RemoveAll(string) error {
 	return ErrReadonly
 }
 
-func (fs githubFs) Rename(oldname, newname string) error {
+func (fs githubFs) Rename(_, _ string) error {
 	return ErrReadonly
 }
 
@@ -127,15 +131,15 @@ func (fs githubFs) Name() string {
 	return "GithubFs"
 }
 
-func (fs githubFs) Chmod(name string, mode os.FileMode) error {
+func (fs githubFs) Chmod(_ string, _ os.FileMode) error {
 	return ErrReadonly
 }
 
-func (fs githubFs) Chtimes(name string, atime time.Time, mtime time.Time) error {
+func (fs githubFs) Chtimes(_ string, _, _ time.Time) error {
 	return ErrReadonly
 }
 
-func (fs githubFs) Chown(name string, uid, gid int) error {
+func (fs githubFs) Chown(_ string, _, _ int) error {
 	return ErrReadonly
 }
 
@@ -155,11 +159,11 @@ func (f githubFile) Name() string {
 	return f.info.Name()
 }
 
-func (f githubFile) Readdir(count int) ([]os.FileInfo, error) {
+func (f githubFile) Readdir(int) ([]os.FileInfo, error) {
 	return nil, ErrNotDir
 }
 
-func (f githubFile) Readdirnames(n int) ([]string, error) {
+func (f githubFile) Readdirnames(int) ([]string, error) {
 	return nil, ErrNotDir
 }
 
@@ -171,23 +175,23 @@ func (f githubFile) Sync() error {
 	return nil // we don't need to sync a []byte
 }
 
-func (f githubFile) Truncate(size int64) error {
+func (f githubFile) Truncate(int64) error {
 	return ErrReadonly
 }
 
-func (f githubFile) WriteString(s string) (ret int, err error) {
+func (f githubFile) WriteString(string) (ret int, err error) {
 	return 0, ErrReadonly
 }
 
-func (f githubFile) Write(b []byte) (n int, err error) {
+func (f githubFile) Write([]byte) (n int, err error) {
 	return 0, ErrReadonly
 }
 
-func (f githubFile) WriteAt(b []byte, off int64) (n int, err error) {
+func (f githubFile) WriteAt([]byte, int64) (n int, err error) {
 	return 0, ErrReadonly
 }
 
-func (f githubFile) WriteTo(w io.Writer) (n int64, err error) {
+func (f githubFile) WriteTo(io.Writer) (n int64, err error) {
 	return 0, ErrReadonly
 }
 

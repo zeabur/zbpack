@@ -11,10 +11,10 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/plan"
-
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// BuildOptions is the options for the Build function.
 type BuildOptions struct {
 	// SubmoduleName is the of the submodule to build.
 	// For example, if directory is considered as a Go project,
@@ -24,7 +24,7 @@ type BuildOptions struct {
 
 	// HandlePlanDetermined is a callback function that will be called when
 	// the build plan is determined.
-	HandlePlanDetermined *func(PlanType, PlanMeta)
+	HandlePlanDetermined *func(types.PlanType, types.PlanMeta)
 
 	// HandleBuildFailed is a callback function that will be called when
 	// the build failed.
@@ -159,7 +159,7 @@ func Build(opt *BuildOptions) error {
 	}
 
 	err = buildImage(
-		&BuildImageOptions{
+		&buildImageOptions{
 			Dockerfile:          dockerfile,
 			AbsPath:             *opt.Path,
 			UserVars:            *opt.UserVars,

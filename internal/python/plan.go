@@ -1,3 +1,4 @@
+// Package python is the build planner for Python projects.
 package python
 
 import (
@@ -7,18 +8,19 @@ import (
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
-	. "github.com/zeabur/zbpack/pkg/types"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
 	Src            afero.Fs
 	DependencyFile optional.Option[string]
-	Framework      optional.Option[PythonFramework]
+	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
 }
 
-func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
+// DetermineFramework determines the framework of the Python project.
+func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 	src := ctx.Src
 	fw := &ctx.Framework
 
@@ -28,35 +30,36 @@ func DetermineFramework(ctx *pythonPlanContext) PythonFramework {
 
 	requirementsTxt, err := afero.ReadFile(src, "requirements.txt")
 	if err != nil {
-		*fw = optional.Some(PythonFrameworkNone)
+		*fw = optional.Some(types.PythonFrameworkNone)
 		return fw.Unwrap()
 	}
 
 	req := string(requirementsTxt)
 	if utils.WeakContains(req, "django") {
-		*fw = optional.Some(PythonFrameworkDjango)
+		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
 
 	if utils.HasFile(src, "manage.py") {
-		*fw = optional.Some(PythonFrameworkDjango)
+		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
 
 	if utils.WeakContains(req, "flask") {
-		*fw = optional.Some(PythonFrameworkFlask)
+		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
 	if utils.WeakContains(req, "fastapi") {
-		*fw = optional.Some(PythonFrameworkFastapi)
+		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
 
-	*fw = optional.Some(PythonFrameworkNone)
+	*fw = optional.Some(types.PythonFrameworkNone)
 	return fw.Unwrap()
 }
 
+// DetermineEntry determines the entry of the Python project.
 func DetermineEntry(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	et := &ctx.Entry
@@ -76,6 +79,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 	return et.Unwrap()
 }
 
+// DetermineDependencyPolicy determines the file with the dependencies of a Python project.
 func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	df := &ctx.DependencyFile
@@ -113,13 +117,14 @@ func HasDependency(src afero.Fs, dependencies ...string) bool {
 	return false
 }
 
+// DetermineWsgi determines the WSGI application filepath of a Python project.
 func DetermineWsgi(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	wa := &ctx.Wsgi
 
 	framework := DetermineFramework(ctx)
 
-	if framework == PythonFrameworkDjango {
+	if framework == types.PythonFrameworkDjango {
 
 		dir, err := afero.ReadDir(src, "/")
 		if err != nil {
@@ -138,7 +143,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		return ""
 	}
 
-	if framework == PythonFrameworkFlask {
+	if framework == types.PythonFrameworkFlask {
 		entryFile := DetermineEntry(ctx)
 		// if there is something like `app = Flask(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
@@ -158,7 +163,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		return ""
 	}
 
-	if framework == PythonFrameworkFastapi {
+	if framework == types.PythonFrameworkFastapi {
 		entryFile := DetermineEntry(ctx)
 		// if there is something like `app = FastAPI(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
@@ -190,7 +195,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	case "requirements.txt":
 		if wsgi != "" {
 			return "pip install -r requirements.txt && pip install gunicorn"
-		} else if framwork == PythonFrameworkFastapi {
+		} else if framwork == types.PythonFrameworkFastapi {
 			return "pip install -r requirements.txt && pip install uvicorn"
 		} else {
 			return "pip install -r requirements.txt"
@@ -198,21 +203,18 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	case "Pipfile":
 		if wsgi != "" {
 			return "pipenv install && pipenv install gunicorn"
-		} else {
-			return "pipenv install"
 		}
+		return "pipenv install"
 	case "pyproject.toml":
 		if wsgi != "" {
 			return "poetry install && poetry install gunicorn"
-		} else {
-			return "poetry install"
 		}
+		return "poetry install"
 	default:
 		if wsgi != "" {
 			return "pip install gunicorn"
-		} else {
-			return "echo \"skip install\""
 		}
+		return "echo \"skip install\""
 	}
 }
 
@@ -233,7 +235,7 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	framework := DetermineFramework(ctx)
 
 	if wsgi != "" {
-		if framework == PythonFrameworkFastapi {
+		if framework == types.PythonFrameworkFastapi {
 			return `uvicorn ` + wsgi + ` --host 0.0.0.0 --port 8080`
 		}
 		return "gunicorn --bind :8080 " + wsgi
@@ -243,17 +245,19 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	return "python " + entry
 }
 
+// GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
 }
 
-func GetMeta(opt GetMetaOptions) PlanMeta {
+// GetMeta returns the metadata of a Python project.
+func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := &pythonPlanContext{Src: opt.Src}
 
-	meta := PlanMeta{}
+	meta := types.PlanMeta{}
 
 	framework := DetermineFramework(ctx)
-	if framework != PythonFrameworkNone {
+	if framework != types.PythonFrameworkNone {
 		meta["framework"] = string(framework)
 	}
 

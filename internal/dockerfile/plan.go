@@ -1,3 +1,4 @@
+// Package dockerfile is the planner for projects already include Dockerfile.
 package dockerfile
 
 import (
@@ -14,10 +15,12 @@ type dockerfilePlanContext struct {
 	ExposePort optional.Option[string]
 }
 
+// GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
 }
 
+// GetExposePort gets the exposed port of the Dockerfile project.
 func GetExposePort(ctx *dockerfilePlanContext) string {
 	pm := &ctx.ExposePort
 	src := ctx.src
@@ -49,6 +52,7 @@ func GetExposePort(ctx *dockerfilePlanContext) string {
 	return pm.Unwrap()
 }
 
+// GetMeta gets the meta of the Dockerfile project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := new(dockerfilePlanContext)
 	ctx.src = opt.Src
