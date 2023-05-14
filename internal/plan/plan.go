@@ -2,7 +2,7 @@
 package plan
 
 import (
-	"path"
+	"github.com/zeabur/zbpack/internal/golang"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -86,24 +86,12 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 
 	// Go project
 	if utils.HasFile(b.source, "go.mod") {
-
-		// in a basic go project, we assume the entrypoint is main.go in root directory
-		if utils.HasFile(b.source, "main.go") {
-			return types.PlanTypeGo, types.PlanMeta{"entry": "main.go"}
-		}
-
-		// if there is no main.go in root directory, we assume it's a monorepo project.
-		// in a general monorepo Go repo of service "user-service", the entry point might be `./cmd/user-service/main.go`
-		if utils.HasFile(
-			b.source, path.Join("cmd", b.submoduleName, "main.go"),
-		) {
-			entry := path.Join("cmd", b.submoduleName, "main.go")
-			return types.PlanTypeGo, types.PlanMeta{"entry": entry}
-		}
-
-		// We know it's a Go project, but we don't know how to build it.
-		// We'll just return a generic Go plan type.
-		return types.PlanTypeGo, types.PlanMeta{}
+		return types.PlanTypeGo, golang.GetMeta(
+			golang.GetMetaOptions{
+				Src:           b.source,
+				SubmoduleName: b.submoduleName,
+			},
+		)
 	}
 
 	// Python project
