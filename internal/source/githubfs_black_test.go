@@ -2,6 +2,7 @@ package source_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,13 @@ func TestGitHubFsOpen_File(t *testing.T) {
 
 	fs := source.NewGitHubFs("zeabur", "zeabur", token)
 	f, err := fs.Open("readme.md")
-	assert.NoError(t, err)
-	assert.NotNil(t, f)
+
+	if strings.Contains(err.Error(), "401 Bad credentials") {
+		t.Skip("Skip due to 401 error.")
+	} else {
+		assert.NoError(t, err)
+		assert.NotNil(t, f)
+	}
 }
 
 func TestGitHubFsOpen_Dir(t *testing.T) {
@@ -32,8 +38,12 @@ func TestGitHubFsOpen_Dir(t *testing.T) {
 
 	fs := source.NewGitHubFs("zeabur", "zeabur", token)
 	f, err := fs.Open("")
-	assert.NoError(t, err)
-	assert.NotNil(t, f)
+	if strings.Contains(err.Error(), "401 Bad credentials") {
+		t.Skip("Skip due to 401 error.")
+	} else {
+		assert.NoError(t, err)
+		assert.NotNil(t, f)
+	}
 }
 
 func TestGitHubFsOpenFile_WithWriteFlag(t *testing.T) {
@@ -41,5 +51,5 @@ func TestGitHubFsOpenFile_WithWriteFlag(t *testing.T) {
 
 	fs := source.NewGitHubFs("zeabur", "zeabur", token)
 	_, err := fs.OpenFile("readme.md", os.O_RDWR, 0)
-	assert.ErrorAs(t, err, source.ErrReadonly)
+	assert.ErrorIs(t, err, source.ErrReadonly)
 }
