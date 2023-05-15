@@ -2,11 +2,12 @@ package golang
 
 import (
 	"bufio"
+	"path"
+
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
-	"path"
 )
 
 type goPlanContext struct {
@@ -29,7 +30,9 @@ func getGoVersion(ctx *goPlanContext) string {
 	if err != nil {
 		return ""
 	}
-	defer file.Close()
+	defer func(file afero.File) {
+		_ = file.Close()
+	}(file)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
