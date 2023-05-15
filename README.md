@@ -1,6 +1,6 @@
 # zbpack
 
-`zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com/home) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually.)
+`zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually.)
 
 ## Components
 
