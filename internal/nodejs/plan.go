@@ -304,7 +304,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
-		installCmd = "yarn instypes.tall"
+		installCmd = "yarn install"
 	}
 
 	*cmd = optional.Some(installCmd)
