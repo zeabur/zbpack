@@ -11,6 +11,8 @@ import (
 	_ "embed"
 
 	"github.com/spf13/afero"
+
+	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -71,3 +73,20 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	return result.String(), nil
 }
+
+type pack struct {
+	*identify
+}
+
+// NewPacker returns a new Rust packer.
+func NewPacker() packer.Packer {
+	return &pack{
+		identify: &identify{},
+	}
+}
+
+func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return GenerateDockerfile(meta)
+}
+
+var _ packer.Packer = (*pack)(nil)

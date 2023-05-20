@@ -6,6 +6,7 @@ import (
 	"embed"
 	"text/template"
 
+	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -80,3 +81,20 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	return getContextBasedOnMeta(meta).Execute()
 }
+
+type pack struct {
+	*identify
+}
+
+// NewPacker returns a new Node.js packer.
+func NewPacker() packer.Packer {
+	return &pack{
+		identify: &identify{},
+	}
+}
+
+func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return GenerateDockerfile(meta)
+}
+
+var _ packer.Packer = (*pack)(nil)
