@@ -3,6 +3,7 @@ package ruby
 import (
 	"fmt"
 
+	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -45,3 +46,20 @@ CMD ["rails", "server", "-b", "0.0.0.0","-p","8080"]
 
 	return dockerFile, nil
 }
+
+type pack struct {
+	*identify
+}
+
+// NewPacker returns a new Ruby packer.
+func NewPacker() packer.Packer {
+	return &pack{
+		identify: &identify{},
+	}
+}
+
+func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return GenerateDockerfile(meta)
+}
+
+var _ packer.Packer = (*pack)(nil)

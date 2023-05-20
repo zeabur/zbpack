@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/plan"
+
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -130,6 +131,7 @@ func Build(opt *BuildOptions) error {
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,
 		},
+		SupportedIdentifiers()...,
 	)
 
 	t, m := planner.Plan()
@@ -140,7 +142,6 @@ func Build(opt *BuildOptions) error {
 
 	dockerfile, err := generateDockerfile(
 		&generateDockerfileOptions{
-			src:       src,
 			HandleLog: handleLog,
 			planType:  t,
 			planMeta:  m,

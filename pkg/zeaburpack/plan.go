@@ -4,7 +4,8 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/plan"
+
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -54,6 +55,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 			OutputDir:          opt.OutputDir,
 			SubmoduleName:      *opt.SubmoduleName,
 		},
+		SupportedIdentifiers()...,
 	)
 
 	t, m := planner.Plan()
