@@ -5,11 +5,9 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-const dockerfileKey = "dockerfile"
-
 // GenerateDockerfile generates the Dockerfile for static files.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	return meta[dockerfileKey], nil
+	return meta["content"], nil
 }
 
 type pack struct {
