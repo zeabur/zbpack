@@ -6,6 +6,7 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -57,8 +58,25 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := new(dockerfilePlanContext)
 	ctx.src = opt.Src
 	exposePort := GetExposePort(ctx)
+
 	meta := types.PlanMeta{
-		"expose": exposePort,
+		"expose":      exposePort,
+		dockerfileKey: readDockerfile(opt.Src),
 	}
 	return meta
+}
+
+func readDockerfile(src afero.Fs) string {
+	var dockerfileName string
+	for _, filename := range []string{"dockerfile", "Dockerfile"} {
+		if utils.HasFile(src, filename) {
+			dockerfileName = filename
+			break
+		}
+	}
+
+	// because we already check the file exist, so ignore the error
+	fileContent, _ := afero.ReadFile(src, dockerfileName)
+
+	return string(fileContent)
 }
