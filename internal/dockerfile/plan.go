@@ -60,7 +60,11 @@ func ReadDockerfile(ctx *dockerfilePlanContext) ([]byte, error) {
 		return []byte(content), nil
 	}
 
-	content, err := afero.ReadFile(ctx.src, "Dockerfile")
+	dockerfileName, err := FindDockerfile(ctx)
+	if err != nil {
+		return nil, err
+	}
+	content, err := afero.ReadFile(ctx.src, dockerfileName)
 	if err != nil {
 		return nil, err
 	}
