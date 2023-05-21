@@ -7,6 +7,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestFindDockerfile_WithUppercase(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src: fs,
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Dockerfile", path)
+}
+
+func TestFindDockerfile_WithLowercase(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src: fs,
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "dockerfile", path)
+}
+
+func TestFindDockerfile_WithRandomcase(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src: fs,
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "dOckErFIle", path)
+}
+
 func TestGetExposePort_WithExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine\nEXPOSE 1145"), 0o644)
