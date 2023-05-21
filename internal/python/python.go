@@ -1,6 +1,7 @@
 package python
 
 import (
+	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -23,3 +24,20 @@ CMD ` + startCmd
 
 	return dockerfile, nil
 }
+
+type pack struct {
+	*identify
+}
+
+// NewPacker returns a new Python packer.
+func NewPacker() packer.Packer {
+	return &pack{
+		identify: &identify{},
+	}
+}
+
+func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return GenerateDockerfile(meta)
+}
+
+var _ packer.Packer = (*pack)(nil)

@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"strings"
 
+	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -72,3 +73,20 @@ CMD nginx; php-fpm
 
 	return dockerFile, nil
 }
+
+type pack struct {
+	*identify
+}
+
+// NewPacker returns a new PHP packer.
+func NewPacker() packer.Packer {
+	return &pack{
+		identify: &identify{},
+	}
+}
+
+func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	return GenerateDockerfile(meta)
+}
+
+var _ packer.Packer = (*pack)(nil)
