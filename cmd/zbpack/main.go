@@ -12,10 +12,12 @@ import (
 )
 
 func main() {
-	path := ""
-	if len(os.Args) > 1 {
-		path = os.Args[1]
+	if len(os.Args) < 2 {
+		println("Usage: zbpack <directory to analyse or build>")
+		os.Exit(0)
 	}
+
+	path := os.Args[1]
 
 	trueValue := true
 
