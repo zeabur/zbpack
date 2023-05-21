@@ -93,3 +93,12 @@ func TestGetExposePort_WithLowercaseDockerfileSpecified(t *testing.T) {
 
 	assert.Equal(t, "1145", port)
 }
+
+func TestGetMeta_Content(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+
+	meta := GetMeta(GetMetaOptions{Src: fs})
+
+	assert.Equal(t, "FROM alpine", meta["content"])
+}

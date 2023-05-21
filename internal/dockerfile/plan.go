@@ -3,6 +3,7 @@ package dockerfile
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"log"
 	"strconv"
@@ -17,8 +18,9 @@ import (
 type dockerfilePlanContext struct {
 	src afero.Fs
 
-	dockerfileName optional.Option[string]
-	ExposePort     optional.Option[string]
+	dockerfileName    optional.Option[string]
+	dockerfileContent optional.Option[[]byte]
+	ExposePort        optional.Option[string]
 }
 
 // GetMetaOptions is the options for GetMeta.
@@ -50,13 +52,25 @@ func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
 	return "", errors.New("no dockerfile in this environment")
 }
 
-func openDockerfile(ctx *dockerfilePlanContext) (afero.File, error) {
+// ReadDockerfile reads the Dockerfile in the project.
+func ReadDockerfile(ctx *dockerfilePlanContext) ([]byte, error) {
+	c := &ctx.dockerfileContent
+
+	if content, err := c.Take(); err == nil {
+		return []byte(content), nil
+	}
+
 	dockerfileName, err := FindDockerfile(ctx)
 	if err != nil {
 		return nil, err
 	}
+	content, err := afero.ReadFile(ctx.src, dockerfileName)
+	if err != nil {
+		return nil, err
+	}
 
-	return ctx.src.Open(dockerfileName)
+	*c = optional.Some(content)
+	return content, nil
 }
 
 // GetExposePort gets the exposed port of the Dockerfile project.
@@ -64,19 +78,15 @@ func GetExposePort(ctx *dockerfilePlanContext) string {
 	const defaultValue = "8080"
 	const exposePrefix = "EXPOSE "
 	ctxPort := &ctx.ExposePort
-	dockerFile, err := openDockerfile(ctx)
+	dockerFile, err := ReadDockerfile(ctx)
 	if err != nil {
 		return defaultValue
 	}
-	defer func() {
-		if err := dockerFile.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
 
-	buf := bufio.NewScanner(dockerFile)
-	for buf.Scan() {
-		line := strings.ToUpper(buf.Text())
+	reader := bytes.NewReader(dockerFile)
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := strings.ToUpper(scanner.Text())
 
 		port, found := strings.CutPrefix(line, exposePrefix)
 		if !found {
@@ -98,16 +108,18 @@ func GetExposePort(ctx *dockerfilePlanContext) string {
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := new(dockerfilePlanContext)
 	ctx.src = opt.Src
-	dockerfileName, err := FindDockerfile(ctx)
+
+	dockerfileContent, err := ReadDockerfile(ctx)
 	if err != nil {
 		log.Println(err)
-		dockerfileName = "" // no Dockerfile
+		dockerfileContent = []byte{} // no Dockerfile
 	}
+
 	exposePort := GetExposePort(ctx)
 
 	meta := types.PlanMeta{
-		"expose":      exposePort,
-		dockerfileKey: dockerfileName,
+		"expose":  exposePort,
+		"content": string(dockerfileContent),
 	}
 	return meta
 }
