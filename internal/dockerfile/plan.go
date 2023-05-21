@@ -2,18 +2,23 @@
 package dockerfile
 
 import (
+	"bufio"
+	"errors"
+	"log"
+	"strconv"
 	"strings"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 
-	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type dockerfilePlanContext struct {
-	src        afero.Fs
-	ExposePort optional.Option[string]
+	src afero.Fs
+
+	dockerfileName optional.Option[string]
+	ExposePort     optional.Option[string]
 }
 
 // GetMetaOptions is the options for GetMeta.
@@ -21,62 +26,88 @@ type GetMetaOptions struct {
 	Src afero.Fs
 }
 
-// GetExposePort gets the exposed port of the Dockerfile project.
-func GetExposePort(ctx *dockerfilePlanContext) string {
-	pm := &ctx.ExposePort
+// FindDockerfile finds the Dockerfile in the project.
+func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
 	src := ctx.src
-	if port, err := pm.Take(); err == nil {
-		return port
+	path := &ctx.dockerfileName
+
+	if path, err := ctx.dockerfileName.Take(); err == nil {
+		return path, nil
 	}
 
-	filenames := []string{"Dockerfile", "dockerfile"}
-	for _, filename := range filenames {
-		if utils.HasFile(src, filename) {
-			content, err := afero.ReadFile(src, filename)
-			if err != nil {
-				continue
-			}
+	files, err := afero.ReadDir(src, ".")
+	if err != nil {
+		return "", err
+	}
 
-			lines := strings.Split(string(content), "\n")
-			for _, line := range lines {
-				if strings.HasPrefix(strings.ToUpper(line), "EXPOSE") {
-					v := strings.Split(line, " ")[1]
-					*pm = optional.Some(v)
-					return pm.Unwrap()
-				}
-			}
-
+	for _, file := range files {
+		if file.Mode().IsRegular() && strings.EqualFold(file.Name(), "Dockerfile") {
+			*path = optional.Some(file.Name())
+			return path.Unwrap(), nil
 		}
 	}
 
-	*pm = optional.Some("8080")
-	return pm.Unwrap()
+	return "", errors.New("no dockerfile in this environment")
+}
+
+func openDockerfile(ctx *dockerfilePlanContext) (afero.File, error) {
+	dockerfileName, err := FindDockerfile(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx.src.Open(dockerfileName)
+}
+
+// GetExposePort gets the exposed port of the Dockerfile project.
+func GetExposePort(ctx *dockerfilePlanContext) string {
+	const defaultValue = "8080"
+	const exposePrefix = "EXPOSE "
+	ctxPort := &ctx.ExposePort
+	dockerFile, err := openDockerfile(ctx)
+	if err != nil {
+		return defaultValue
+	}
+	defer func() {
+		if err := dockerFile.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	buf := bufio.NewScanner(dockerFile)
+	for buf.Scan() {
+		line := strings.ToUpper(buf.Text())
+
+		port, found := strings.CutPrefix(line, exposePrefix)
+		if !found {
+			continue
+		}
+		if _, err := strconv.Atoi(port); err != nil {
+			continue // not a valid `EXPOSE`
+		}
+
+		*ctxPort = optional.Some(port)
+		return ctxPort.Unwrap()
+	}
+
+	*ctxPort = optional.Some(defaultValue)
+	return defaultValue
 }
 
 // GetMeta gets the meta of the Dockerfile project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := new(dockerfilePlanContext)
 	ctx.src = opt.Src
+	dockerfileName, err := FindDockerfile(ctx)
+	if err != nil {
+		log.Println(err)
+		dockerfileName = "" // no Dockerfile
+	}
 	exposePort := GetExposePort(ctx)
 
 	meta := types.PlanMeta{
 		"expose":      exposePort,
-		dockerfileKey: readDockerfile(opt.Src),
+		dockerfileKey: dockerfileName,
 	}
 	return meta
-}
-
-func readDockerfile(src afero.Fs) string {
-	var dockerfileName string
-	for _, filename := range []string{"dockerfile", "Dockerfile"} {
-		if utils.HasFile(src, filename) {
-			dockerfileName = filename
-			break
-		}
-	}
-
-	// because we already check the file exist, so ignore the error
-	fileContent, _ := afero.ReadFile(src, dockerfileName)
-
-	return string(fileContent)
 }
