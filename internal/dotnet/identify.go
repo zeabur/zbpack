@@ -1,4 +1,4 @@
-package nodejs
+package dotnet
 
 import (
 	"github.com/spf13/afero"
@@ -10,28 +10,29 @@ import (
 
 type identify struct{}
 
-// NewIdentifier returns a new NodeJS identifier.
+// NewIdentifier returns a new Dotnet identifier.
 func NewIdentifier() plan.Identifier {
 	return &identify{}
 }
 
 func (i *identify) PlanType() types.PlanType {
-	return types.PlanTypeNodejs
+	return types.PlanTypeDotnet
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "package.json")
+	return utils.HasFile(fs, "Program.cs", "Startup.cs")
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	return GetMeta(
-		GetMetaOptions{
-			Src:            options.Source,
-			CustomBuildCmd: options.CustomBuildCommand,
-			CustomStartCmd: options.CustomStartCommand,
-			OutputDir:      options.OutputDir,
-		},
-	)
+	sdkVer, err := DetermineSDKVersion(options.SubmoduleName, options.Source)
+	if err != nil {
+		panic(err)
+	}
+
+	return types.PlanMeta{
+		"sdk":        sdkVer,
+		"entryPoint": options.SubmoduleName,
+	}
 }
 
 var _ plan.Identifier = (*identify)(nil)
