@@ -1,0 +1,6 @@
+[submodule "tests/python-pip-fastapi"]
+	path = tests/python-pip-fastapi
+	url = https://github.com/zeabur/fastapi-template
+[submodule "tests/python-pip-flask"]
+	path = tests/python-pip-flask
+	url = https://github.com/zeabur/flask-template
