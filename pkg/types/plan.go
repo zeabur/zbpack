@@ -20,6 +20,7 @@ const (
 	PlanTypeJava   PlanType = "java"
 	PlanTypeDeno   PlanType = "deno"
 	PlanTypeRust   PlanType = "rust"
+	PlanTypeDotnet PlanType = "dotnet"
 	PlanTypeStatic PlanType = "static"
 )
 
