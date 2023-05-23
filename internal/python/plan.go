@@ -202,14 +202,14 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 		}
 	case "Pipfile":
 		if wsgi != "" {
-			return "pipenv install && pipenv install gunicorn"
+			return "pip install pipenv && pipenv install && pipenv install gunicorn"
 		}
-		return "pipenv install"
+		return "pip install pipenv && pipenv install"
 	case "pyproject.toml":
 		if wsgi != "" {
-			return "poetry install && poetry install gunicorn"
+			return "pip install poetry && poetry install && poetry install gunicorn"
 		}
-		return "poetry install"
+		return "pip install poetry && poetry install"
 	default:
 		if wsgi != "" {
 			return "pip install gunicorn"
