@@ -1,0 +1,48 @@
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-wsgi - 1]
+pip install pipenv && pipenv install && pipenv install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-wsgi - 1]
+pip install poetry && poetry install && poetry add gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-none - 1]
+pip install poetry && poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-none - 1]
+pip install pipenv && pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
+pip install -r requirements.txt && pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-none - 1]
+pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
+pip install -r requirements.txt && pip install uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
+pip install poetry && poetry install && poetry add uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-fastapi - 1]
+pip install pipenv && pipenv install && pipenv install uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-wsgi - 1]
+pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
+pip install uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-none - 1]
+echo "skip install"
+---
