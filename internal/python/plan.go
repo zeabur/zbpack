@@ -195,31 +195,48 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 
+	// Will be joined with `&&`
+	andCommands := []string{}
+
 	switch pm {
-	case types.PythonPackageManagerPip:
-		if wsgi != "" {
-			return "pip install -r requirements.txt && pip install gunicorn"
-		} else if framework == types.PythonFrameworkFastapi {
-			return "pip install -r requirements.txt && pip install uvicorn"
-		} else {
-			return "pip install -r requirements.txt"
-		}
 	case types.PythonPackageManagerPipenv:
+		andCommands = append(andCommands, "pip install pipenv", "pipenv install")
+
 		if wsgi != "" {
-			return "pip install pipenv && pipenv install && pipenv install gunicorn"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "pipenv install uvicorn")
+			} else {
+				andCommands = append(andCommands, "pipenv install gunicorn")
+			}
 		}
-		return "pip install pipenv && pipenv install"
 	case types.PythonPackageManagerPoetry:
+		andCommands = append(andCommands, "pip install poetry", "poetry install")
+
 		if wsgi != "" {
-			return "pip install poetry && poetry install && poetry install gunicorn"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "poetry add uvicorn")
+			} else {
+				andCommands = append(andCommands, "poetry add gunicorn")
+			}
 		}
-		return "pip install poetry && poetry install"
+	case types.PythonPackageManagerPip:
+		andCommands = append(andCommands, "pip install -r requirements.txt")
+		fallthrough
 	default:
 		if wsgi != "" {
-			return "pip install gunicorn"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "pip install uvicorn")
+			} else {
+				andCommands = append(andCommands, "pip install gunicorn")
+			}
 		}
-		return "echo \"skip install\""
 	}
+
+	command := strings.Join(andCommands, " && ")
+	if command != "" {
+		return command
+	}
+	return "echo \"skip install\""
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {

@@ -72,3 +72,44 @@ func TestPackageManager_PipenvWithOldRequirements(t *testing.T) {
 	assert.Equal(t, types.PythonPackageManagerPipenv, pm)
 }
 
+func TestDetermineInstallCmd_Snapshot(t *testing.T) {
+	const (
+		WithWsgi    = "with-wsgi"
+		WithFastapi = "with-fastapi"
+		None        = "none"
+	)
+
+	for _, pm := range []types.PackageManager{
+		types.PythonPackageManagerPipenv,
+		types.PythonPackageManagerPoetry,
+		types.PythonPackageManagerPip,
+		types.PythonPackageManagerUnknown,
+	} {
+		pm := pm
+		for _, mode := range []string{WithWsgi, WithFastapi, None} {
+			mode := mode
+			t.Run(string(pm)+"-"+mode, func(t *testing.T) {
+				t.Parallel()
+
+				ctx := pythonPlanContext{
+					PackageManager: optional.Some(pm),
+				}
+
+				if mode == WithWsgi || mode == WithFastapi {
+					ctx.Wsgi = optional.Some("wsgi.py")
+				} else {
+					ctx.Wsgi = optional.Some("") // fake cache
+				}
+
+				if mode == WithFastapi {
+					ctx.Framework = optional.Some(types.PythonFrameworkFastapi)
+				} else {
+					ctx.Framework = optional.Some(types.PythonFrameworkNone)
+				}
+
+				ic := determineInstallCmd(&ctx)
+				snaps.MatchSnapshot(t, ic)
+			})
+		}
+	}
+}
