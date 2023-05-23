@@ -452,3 +452,16 @@ files = [
 
 	assert.False(t, HasDependency(ctx, "mysqlclient"))
 }
+
+func TestHasDependency_CaseInsensitive(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("FOO"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPip),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
