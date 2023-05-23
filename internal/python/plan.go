@@ -255,15 +255,28 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 
-	if wsgi != "" {
-		if framework == types.PythonFrameworkFastapi {
-			return `uvicorn ` + wsgi + ` --host 0.0.0.0 --port 8080`
-		}
-		return "gunicorn --bind :8080 " + wsgi
+	var commandSegment []string
+
+	switch DeterminePackageManager(ctx) {
+	case types.PythonPackageManagerPipenv:
+		commandSegment = append(commandSegment, "pipenv run")
+	case types.PythonPackageManagerPoetry:
+		commandSegment = append(commandSegment, "poetry run")
 	}
 
-	entry := DetermineEntry(ctx)
-	return "python " + entry
+	if wsgi != "" {
+		if framework == types.PythonFrameworkFastapi {
+			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port 8080")
+		} else {
+			commandSegment = append(commandSegment, "gunicorn", "--bind :8080", wsgi)
+		}
+	} else {
+		entry := DetermineEntry(ctx)
+		commandSegment = append(commandSegment, "python", entry)
+	}
+
+	command := strings.Join(commandSegment, " ")
+	return command
 }
 
 // GetMetaOptions is the options for GetMeta.
