@@ -122,6 +122,10 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	wa := &ctx.Wsgi
 
+	if wsgi, err := wa.Take(); err == nil {
+		return wsgi
+	}
+
 	framework := DetermineFramework(ctx)
 
 	if framework == types.PythonFrameworkDjango {
