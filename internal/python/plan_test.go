@@ -156,3 +156,110 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 		}
 	}
 }
+
+func TestHasDependency_Unknown(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	// should always False
+	assert.False(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_Pip(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPip),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_Poetry(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_PoetryDep(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "poetry.lock", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_Pipenv(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_PipenvDep(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile.lock", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_Pipenv_WithObsoleteRequirements(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile", []byte("foo"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("bar"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_PipenvDep_WithObsoleteRequirements(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile.lock", []byte("foo"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("bar"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+

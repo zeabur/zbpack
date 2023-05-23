@@ -28,7 +28,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	if HasDependency(src, "django") {
+	if HasDependency(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -38,12 +38,12 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if HasDependency(src, "flask") {
+	if HasDependency(ctx, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if HasDependency(src, "fastapi") {
+	if HasDependency(ctx, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
@@ -99,18 +99,33 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	return cpm.Unwrap()
 }
 
-// HasDependency checks if a python project has the one of the dependencies.
-func HasDependency(src afero.Fs, dependencies ...string) bool {
-	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "Pipfile.lock", "poetry.lock"} {
+// HasDependency checks if the specified dependency is in the project.
+func HasDependency(ctx *pythonPlanContext, dependency string) bool {
+	src := ctx.Src
+	pm := DeterminePackageManager(ctx)
+
+	switch pm {
+	case types.PythonPackageManagerPip:
+		return hasStringsInFile(src, []string{"requirements.txt"}, dependency)
+	case types.PythonPackageManagerPoetry:
+		return hasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
+	case types.PythonPackageManagerPipenv:
+		return hasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
+	}
+
+	return false
+}
+
+// hasStringsInFile checks if the specified text are in the listed files.
+func hasStringsInFile(src afero.Fs, filelist []string, text string) bool {
+	for _, file := range filelist {
 		file, err := afero.ReadFile(src, file)
 		if err != nil {
 			continue
 		}
 
-		for _, dependency := range dependencies {
-			if strings.Contains(string(file), dependency) {
-				return true
-			}
+		if strings.Contains(string(file), text) {
+			return true
 		}
 	}
 
@@ -240,11 +255,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	if HasDependency(ctx.Src, "mysqlclient") {
+	if HasDependency(ctx, "mysqlclient") {
 		return []string{"libmariadb-dev", "build-essential"}
 	}
 
-	if HasDependency(ctx.Src, "psycopg2") {
+	if HasDependency(ctx, "psycopg2") {
 		return []string{"libpq-dev"}
 	}
 
