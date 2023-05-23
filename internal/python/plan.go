@@ -13,7 +13,7 @@ import (
 
 type pythonPlanContext struct {
 	Src            afero.Fs
-	DependencyFile optional.Option[string]
+	PackageManager optional.Option[types.PackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
@@ -72,24 +72,31 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 	return et.Unwrap()
 }
 
-// DetermineDependencyPolicy determines the file with the dependencies of a Python project.
-func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
+// DeterminePackageManager determines the package manager of this Python project.
+func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	src := ctx.Src
-	df := &ctx.DependencyFile
+	cpm := &ctx.PackageManager
 
-	if depFile, err := df.Take(); err == nil {
-		return depFile
+	// Pipfile > pyproject.toml > requirements.txt
+	depFile := map[types.PackageManager]string{
+		types.PythonPackageManagerPipenv: "Pipfile",
+		types.PythonPackageManagerPoetry: "pyproject.toml",
+		types.PythonPackageManagerPip:    "requirements.txt",
 	}
 
-	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml"} {
+	if packageManager, err := cpm.Take(); err == nil {
+		return packageManager
+	}
+
+	for pm, file := range depFile {
 		if utils.HasFile(src, file) {
-			*df = optional.Some(file)
-			return df.Unwrap()
+			*cpm = optional.Some(pm)
+			return cpm.Unwrap()
 		}
 	}
 
-	*df = optional.Some("requirements.txt")
-	return df.Unwrap()
+	*cpm = optional.Some(types.PythonPackageManagerUnknown)
+	return cpm.Unwrap()
 }
 
 // HasDependency checks if a python project has the one of the dependencies.
@@ -180,25 +187,25 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 }
 
 func determineInstallCmd(ctx *pythonPlanContext) string {
-	depPolicy := DetermineDependencyPolicy(ctx)
+	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
-	framwork := DetermineFramework(ctx)
+	framework := DetermineFramework(ctx)
 
-	switch depPolicy {
-	case "requirements.txt":
+	switch pm {
+	case types.PythonPackageManagerPip:
 		if wsgi != "" {
 			return "pip install -r requirements.txt && pip install gunicorn"
-		} else if framwork == types.PythonFrameworkFastapi {
+		} else if framework == types.PythonFrameworkFastapi {
 			return "pip install -r requirements.txt && pip install uvicorn"
 		} else {
 			return "pip install -r requirements.txt"
 		}
-	case "Pipfile":
+	case types.PythonPackageManagerPipenv:
 		if wsgi != "" {
 			return "pip install pipenv && pipenv install && pipenv install gunicorn"
 		}
 		return "pip install pipenv && pipenv install"
-	case "pyproject.toml":
+	case types.PythonPackageManagerPoetry:
 		if wsgi != "" {
 			return "pip install poetry && poetry install && poetry install gunicorn"
 		}
