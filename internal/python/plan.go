@@ -106,25 +106,25 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 
 	switch pm {
 	case types.PythonPackageManagerPip:
-		return hasStringsInFile(src, []string{"requirements.txt"}, dependency)
+		return weakHasStringsInFile(src, []string{"requirements.txt"}, dependency)
 	case types.PythonPackageManagerPoetry:
-		return hasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
+		return weakHasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
 	case types.PythonPackageManagerPipenv:
-		return hasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
+		return weakHasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
 	}
 
 	return false
 }
 
-// hasStringsInFile checks if the specified text are in the listed files.
-func hasStringsInFile(src afero.Fs, filelist []string, text string) bool {
+// weakHasStringsInFile checks if the specified text are in the listed files.
+func weakHasStringsInFile(src afero.Fs, filelist []string, text string) bool {
 	for _, file := range filelist {
 		file, err := afero.ReadFile(src, file)
 		if err != nil {
 			continue
 		}
 
-		if strings.Contains(string(file), text) {
+		if utils.WeakContains(string(file), text) {
 			return true
 		}
 	}
