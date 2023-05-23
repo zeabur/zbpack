@@ -28,14 +28,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	requirementsTxt, err := afero.ReadFile(src, "requirements.txt")
-	if err != nil {
-		*fw = optional.Some(types.PythonFrameworkNone)
-		return fw.Unwrap()
-	}
-
-	req := string(requirementsTxt)
-	if utils.WeakContains(req, "django") {
+	if HasDependency(src, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -45,12 +38,12 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if utils.WeakContains(req, "flask") {
+	if HasDependency(src, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if utils.WeakContains(req, "fastapi") {
+	if HasDependency(src, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
