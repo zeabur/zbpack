@@ -46,3 +46,51 @@ pip install uvicorn
 [TestDetermineInstallCmd_Snapshot/unknown-none - 1]
 echo "skip install"
 ---
+
+[TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
+pipenv run gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-none - 1]
+python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-with-fastapi - 1]
+poetry run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-with-fastapi - 1]
+uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/pip-none - 1]
+python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-with-wsgi - 1]
+gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/pip-with-wsgi - 1]
+gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-none - 1]
+poetry run python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/pip-with-fastapi - 1]
+uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-none - 1]
+pipenv run python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-with-fastapi - 1]
+pipenv run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-with-wsgi - 1]
+poetry run gunicorn --bind :8080 wsgi.py
+---
