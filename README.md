@@ -1,8 +1,16 @@
 # zbpack
 
-`zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually.)
+`zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually). With zbpack, you can easily build your project into static assets, serverless functions, or container images without the need for writing complex Dockerfiles manually.
 
-## Components
+## ✅ Features
+
+zbpack offers the following features:
+
+- Automatic Analysis: zbpack automatically analyzes your source code to determine the language, version, and framework used in your project.
+
+- Versatile Deployment: Based on the analysis, zbpack intelligently packages your service into the most appropriate deployment form, whether it's static resources, cloud functions, containers, or multiple types.
+
+## 🏗️ Components
 
 `zbpack` is consist of the following components:
 
@@ -10,7 +18,7 @@
 - `zeaburpack` library: The `zeaburpack` library is the library of `zbpack` that can be used in your platform directly. It is located in the `pkg/zeaburpack` directory.
 - CLI: The CLI is the command-line interface of `zbpack` for testing purpose. It is located in the `cmd/zbpack` directory.
 
-## Usage
+## ✨ Usage
 
 ### Common Part
 
@@ -51,11 +59,12 @@ $ ./zbplan ./tests/node-corepack
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-## Contributing
+## ✅ Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 
-## License
+We welcome contributions to zbpack! If you're interested in contributing, please refer to the [CONTRIBUTING.md](./CONTRIBUTING.md)  file for more information on how to get started.
+
+## 🪪 License
 
 `zbpack` is licensed under the [Mozilla Public License 2.0](./LICENSE). According to MPL 2.0 (and the summarization of Bing AI), if you want to use, modify or distribute MPL 2.0 software, you have the following rights and obligations:
 
