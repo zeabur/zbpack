@@ -13,7 +13,7 @@ import (
 
 type pythonPlanContext struct {
 	Src            afero.Fs
-	DependencyFile optional.Option[string]
+	PackageManager optional.Option[types.PackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
@@ -28,14 +28,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	requirementsTxt, err := afero.ReadFile(src, "requirements.txt")
-	if err != nil {
-		*fw = optional.Some(types.PythonFrameworkNone)
-		return fw.Unwrap()
-	}
-
-	req := string(requirementsTxt)
-	if utils.WeakContains(req, "django") {
+	if HasDependency(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -45,12 +38,12 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if utils.WeakContains(req, "flask") {
+	if HasDependency(ctx, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if utils.WeakContains(req, "fastapi") {
+	if HasDependency(ctx, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
@@ -79,38 +72,60 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 	return et.Unwrap()
 }
 
-// DetermineDependencyPolicy determines the file with the dependencies of a Python project.
-func DetermineDependencyPolicy(ctx *pythonPlanContext) string {
+// DeterminePackageManager determines the package manager of this Python project.
+func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	src := ctx.Src
-	df := &ctx.DependencyFile
+	cpm := &ctx.PackageManager
 
-	if depFile, err := df.Take(); err == nil {
-		return depFile
+	// Pipfile > pyproject.toml > requirements.txt
+	depFile := map[types.PackageManager]string{
+		types.PythonPackageManagerPipenv: "Pipfile",
+		types.PythonPackageManagerPoetry: "pyproject.toml",
+		types.PythonPackageManagerPip:    "requirements.txt",
 	}
 
-	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml"} {
+	if packageManager, err := cpm.Take(); err == nil {
+		return packageManager
+	}
+
+	for pm, file := range depFile {
 		if utils.HasFile(src, file) {
-			*df = optional.Some(file)
-			return df.Unwrap()
+			*cpm = optional.Some(pm)
+			return cpm.Unwrap()
 		}
 	}
 
-	*df = optional.Some("requirements.txt")
-	return df.Unwrap()
+	*cpm = optional.Some(types.PythonPackageManagerUnknown)
+	return cpm.Unwrap()
 }
 
-// HasDependency checks if a python project has the one of the dependencies.
-func HasDependency(src afero.Fs, dependencies ...string) bool {
-	for _, file := range []string{"requirements.txt", "Pipfile", "pyproject.toml", "Pipfile.lock", "poetry.lock"} {
+// HasDependency checks if the specified dependency is in the project.
+func HasDependency(ctx *pythonPlanContext, dependency string) bool {
+	src := ctx.Src
+	pm := DeterminePackageManager(ctx)
+
+	switch pm {
+	case types.PythonPackageManagerPip:
+		return weakHasStringsInFile(src, []string{"requirements.txt"}, dependency)
+	case types.PythonPackageManagerPoetry:
+		return weakHasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
+	case types.PythonPackageManagerPipenv:
+		return weakHasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
+	}
+
+	return false
+}
+
+// weakHasStringsInFile checks if the specified text are in the listed files.
+func weakHasStringsInFile(src afero.Fs, filelist []string, text string) bool {
+	for _, file := range filelist {
 		file, err := afero.ReadFile(src, file)
 		if err != nil {
 			continue
 		}
 
-		for _, dependency := range dependencies {
-			if strings.Contains(string(file), dependency) {
-				return true
-			}
+		if utils.WeakContains(string(file), text) {
+			return true
 		}
 	}
 
@@ -121,6 +136,10 @@ func HasDependency(src afero.Fs, dependencies ...string) bool {
 func DetermineWsgi(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	wa := &ctx.Wsgi
+
+	if wsgi, err := wa.Take(); err == nil {
+		return wsgi
+	}
 
 	framework := DetermineFramework(ctx)
 
@@ -187,43 +206,60 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 }
 
 func determineInstallCmd(ctx *pythonPlanContext) string {
-	depPolicy := DetermineDependencyPolicy(ctx)
+	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
-	framwork := DetermineFramework(ctx)
+	framework := DetermineFramework(ctx)
 
-	switch depPolicy {
-	case "requirements.txt":
+	// Will be joined with `&&`
+	andCommands := []string{}
+
+	switch pm {
+	case types.PythonPackageManagerPipenv:
+		andCommands = append(andCommands, "pip install pipenv", "pipenv install")
+
 		if wsgi != "" {
-			return "pip install -r requirements.txt && pip install gunicorn"
-		} else if framwork == types.PythonFrameworkFastapi {
-			return "pip install -r requirements.txt && pip install uvicorn"
-		} else {
-			return "pip install -r requirements.txt"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "pipenv install uvicorn")
+			} else {
+				andCommands = append(andCommands, "pipenv install gunicorn")
+			}
 		}
-	case "Pipfile":
+	case types.PythonPackageManagerPoetry:
+		andCommands = append(andCommands, "pip install poetry", "poetry install")
+
 		if wsgi != "" {
-			return "pipenv install && pipenv install gunicorn"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "poetry add uvicorn")
+			} else {
+				andCommands = append(andCommands, "poetry add gunicorn")
+			}
 		}
-		return "pipenv install"
-	case "pyproject.toml":
-		if wsgi != "" {
-			return "poetry install && poetry install gunicorn"
-		}
-		return "poetry install"
+	case types.PythonPackageManagerPip:
+		andCommands = append(andCommands, "pip install -r requirements.txt")
+		fallthrough
 	default:
 		if wsgi != "" {
-			return "pip install gunicorn"
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "pip install uvicorn")
+			} else {
+				andCommands = append(andCommands, "pip install gunicorn")
+			}
 		}
-		return "echo \"skip install\""
 	}
+
+	command := strings.Join(andCommands, " && ")
+	if command != "" {
+		return command
+	}
+	return "echo \"skip install\""
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	if HasDependency(ctx.Src, "mysqlclient") {
+	if HasDependency(ctx, "mysqlclient") {
 		return []string{"libmariadb-dev", "build-essential"}
 	}
 
-	if HasDependency(ctx.Src, "psycopg2") {
+	if HasDependency(ctx, "psycopg2") {
 		return []string{"libpq-dev"}
 	}
 
@@ -234,15 +270,28 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 
-	if wsgi != "" {
-		if framework == types.PythonFrameworkFastapi {
-			return `uvicorn ` + wsgi + ` --host 0.0.0.0 --port 8080`
-		}
-		return "gunicorn --bind :8080 " + wsgi
+	var commandSegment []string
+
+	switch DeterminePackageManager(ctx) {
+	case types.PythonPackageManagerPipenv:
+		commandSegment = append(commandSegment, "pipenv run")
+	case types.PythonPackageManagerPoetry:
+		commandSegment = append(commandSegment, "poetry run")
 	}
 
-	entry := DetermineEntry(ctx)
-	return "python " + entry
+	if wsgi != "" {
+		if framework == types.PythonFrameworkFastapi {
+			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port 8080")
+		} else {
+			commandSegment = append(commandSegment, "gunicorn", "--bind :8080", wsgi)
+		}
+	} else {
+		entry := DetermineEntry(ctx)
+		commandSegment = append(commandSegment, "python", entry)
+	}
+
+	command := strings.Join(commandSegment, " ")
+	return command
 }
 
 // GetMetaOptions is the options for GetMeta.

@@ -77,6 +77,19 @@ const (
 
 //revive:enable:exported
 
+// PackageManager is the type of the package manager.
+type PackageManager string
+
+//revive:disable:exported
+const (
+	PythonPackageManagerUnknown PackageManager = "unknown"
+	PythonPackageManagerPip     PackageManager = "pip"
+	PythonPackageManagerPoetry  PackageManager = "poetry"
+	PythonPackageManagerPipenv  PackageManager = "pipenv"
+)
+
+//revive:enable:exported
+
 // JavaProjectType represents the type of a Java project.
 type JavaProjectType string
 
