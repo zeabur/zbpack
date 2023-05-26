@@ -78,19 +78,22 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	cpm := &ctx.PackageManager
 
 	// Pipfile > pyproject.toml > requirements.txt
-	depFile := map[types.PackageManager]string{
-		types.PythonPackageManagerPipenv: "Pipfile",
-		types.PythonPackageManagerPoetry: "pyproject.toml",
-		types.PythonPackageManagerPip:    "requirements.txt",
+	depFiles := []struct {
+		packageManagerID types.PackageManager
+		filename         string
+	}{
+		{types.PythonPackageManagerPipenv, "Pipfile"},
+		{types.PythonPackageManagerPoetry, "pyproject.toml"},
+		{types.PythonPackageManagerPip, "requirements.txt"},
 	}
 
 	if packageManager, err := cpm.Take(); err == nil {
 		return packageManager
 	}
 
-	for pm, file := range depFile {
-		if utils.HasFile(src, file) {
-			*cpm = optional.Some(pm)
+	for _, depFile := range depFiles {
+		if utils.HasFile(src, depFile.filename) {
+			*cpm = optional.Some(depFile.packageManagerID)
 			return cpm.Unwrap()
 		}
 	}

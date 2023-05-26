@@ -1,6 +1,7 @@
 package python
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -71,6 +72,22 @@ func TestPackageManager_PipenvWithOldRequirements(t *testing.T) {
 	pm := DeterminePackageManager(ctx)
 
 	assert.Equal(t, types.PythonPackageManagerPipenv, pm)
+}
+
+func TestPackageManager_PipenvWithOldRequirements_FixedOrder(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile", nil, 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
+
+	ctx := &pythonPlanContext{
+		Src: fs,
+	}
+
+	for i := 0; i < 1_000; i++ {
+		pm := DeterminePackageManager(ctx)
+		assert.Equal(t, types.PythonPackageManagerPipenv, pm, fmt.Sprintf("in the test round %d", i))
+		ctx.PackageManager = nil
+	}
 }
 
 func TestDetermineInstallCmd_Snapshot(t *testing.T) {
