@@ -1,5 +1,21 @@
 # zbpack
+<div align="center">
+<img src="https://forthebadge.com/images/badges/built-with-love.svg" />
+<img src="https://forthebadge.com/images/badges/uses-brains.svg" />
+<img src="https://forthebadge.com/images/badges/powered-by-responsibility.svg" />
+  <br>
+<img src="https://img.shields.io/github/repo-size/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/issues/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/issues-closed-raw/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/issues-pr-closed-raw/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/issues-pr/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/forks/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/stars/zeabur/zbpack" />
+  <img src="https://img.shields.io/github/contributors/zeabur/zbpack" />
 
+</div>
+  
+  
 `zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually.)
 
 ## Components
