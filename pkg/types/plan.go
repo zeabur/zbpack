@@ -147,3 +147,15 @@ const (
 )
 
 //revive:enable:exported
+
+// DotnetFramework represents the framework of a Dotnet project.
+type DotnetFramework string
+
+//revive:disable:exported
+const (
+	DotnetFrameworkAspnet     DotnetFramework = "aspnet"
+	DotnetFrameworkBlazorWasm DotnetFramework = "blazorwasm"
+	DotnetFrameworkConsole    DotnetFramework = "console"
+)
+
+//revive:enable:exported
