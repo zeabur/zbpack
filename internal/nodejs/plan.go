@@ -168,6 +168,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isDocusaurus := packageJSON.Dependencies["@docusaurus/core"]; isDocusaurus {
+		*fw = optional.Some(types.NodeProjectFrameworkDocusaurus)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.NodeProjectFrameworkNone)
 	return fw.Unwrap()
 }
@@ -411,6 +416,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		types.NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
 		types.NodeProjectFrameworkAstroStatic:    "dist",
 		types.NodeProjectFrameworkSliDev:         "dist",
+		types.NodeProjectFrameworkDocusaurus:     "build",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
