@@ -64,3 +64,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 - You have the obligation to disclose any modifications you make to MPL 2.0 source code files, and to provide them to others under MPL 2.0 or a more permissive license.
 - You have the right to combine MPL 2.0 source code files with source code files under other licenses in a software, but you cannot change the license of MPL 2.0 source code files.
 - You have the right to choose to provide MPL 2.0 source code files to others under another compatible Copyleft license, such as GNU GPL, LGPL or AGPL.
+## Contributors
+
+<p align="center">
+<a href="https://github.com/zeabur/zbpack/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=zeabur/zbpack" />
+</a></p>
