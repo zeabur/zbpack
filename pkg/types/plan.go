@@ -60,6 +60,7 @@ const (
 	NodeProjectFrameworkAstroStatic    NodeProjectFramework = "astro-static"
 	NodeProjectFrameworkAstroSSR       NodeProjectFramework = "astro-ssr"
 	NodeProjectFrameworkSliDev         NodeProjectFramework = "sli.dev"
+	NodeProjectFrameworkDocusaurus     NodeProjectFramework = "docusaurus"
 )
 
 //revive:enable:exported
