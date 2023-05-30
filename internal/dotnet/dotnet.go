@@ -2,36 +2,51 @@
 package dotnet
 
 import (
+	"bytes"
+	"embed"
+	"text/template"
+
 	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// TemplateContext is the context for the Dotnet Dockerfile template.
+type TemplateContext struct {
+	DotnetVer string
+	Out       string
+	Static    bool
+}
+
+//go:embed templates
+var tmplFs embed.FS
+
+var tmpl = template.Must(
+	template.New("template.Dockerfile").
+		ParseFS(tmplFs, "templates/*"),
+)
+
+// Execute executes the template.
+func (c TemplateContext) Execute() (string, error) {
+	writer := new(bytes.Buffer)
+	err := tmpl.Execute(writer, c)
+
+	return writer.String(), err
+}
+
 // GenerateDockerfile generates the Dockerfile for Dotnet projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	sdkVer := meta["sdk"]
-	entryPoint := meta["entryPoint"]
-	dockerfile := `
-		# https://hub.docker.com/_/microsoft-dotnet
-		FROM mcr.microsoft.com/dotnet/sdk:` + sdkVer + ` AS build
-		WORKDIR /source
-		
-		# copy csproj and restore as distinct layers
-		COPY *.csproj ./
-		RUN dotnet restore
-		
-		# copy everything else and build app
-		COPY . ./
-		WORKDIR /source
-		RUN dotnet publish -c release -o /app
-		
-		# final stage/image
-		FROM mcr.microsoft.com/dotnet/aspnet:` + sdkVer + `
-		WORKDIR /app
-		COPY --from=build /app ./
-		ENTRYPOINT ["dotnet", "` + entryPoint + `.dll"]	
-	`
+	context := TemplateContext{
+		DotnetVer: meta["sdk"],
+		Out:       meta["entryPoint"],
+	}
 
-	return dockerfile, nil
+	if framework := meta["framework"]; framework == "blazorwasm" {
+		context.Static = true
+	} else {
+		context.Static = false
+	}
+
+	return context.Execute()
 }
 
 type pack struct {

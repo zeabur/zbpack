@@ -7,7 +7,36 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/types"
 )
+
+// DetermineFramework is used to determine the Dotnet framework
+func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
+	fileName := entryPoint + ".csproj"
+	if utils.HasFile(src, fileName) {
+		content, err := afero.ReadFile(src, fileName)
+		if err != nil {
+			return "", err
+		}
+
+		pattern := regexp.MustCompile(`Project Sdk="(.*?)"`)
+		// Search for the target framework in the file.
+		matches := pattern.FindStringSubmatch(string(content))
+		if len(matches) > 1 {
+			if strings.Contains(matches[1], "Microsoft.NET.Sdk.BlazorWebAssembly") {
+				return string(types.DotnetFrameworkBlazorWasm), nil
+			} else if strings.Contains(matches[1], "Microsoft.NET.Sdk.Web") {
+				return string(types.DotnetFrameworkAspnet), nil
+			} else if strings.Contains(matches[1], "Microsoft.NET.Sdk") {
+				return string(types.DotnetFrameworkConsole), nil
+			} else {
+				return "", errors.New("Unable to determine framework")
+			}
+		}
+	}
+
+	return "", errors.New("Unable to determine framework")
+}
 
 // DetermineSDKVersion returns the version of the SDK.
 func DetermineSDKVersion(entryPoint string, src afero.Fs) (string, error) {
