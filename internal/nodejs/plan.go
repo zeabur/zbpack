@@ -19,6 +19,7 @@ type nodePlanContext struct {
 	PackageManager  optional.Option[types.NodePackageManager]
 	Framework       optional.Option[types.NodeProjectFramework]
 	NeedPuppeteer   optional.Option[bool]
+	NeedPlaywright  optional.Option[bool]
 	BuildScript     optional.Option[string]
 	StartScript     optional.Option[string]
 	Entry           optional.Option[string]
@@ -195,6 +196,29 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	return pup.Unwrap()
 }
 
+// DetermineNeedPlaywright determines whether the project needs Playwright.
+func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
+	pw := &ctx.NeedPlaywright
+	packageJSON := ctx.PackageJSON
+
+	if needPlaywright, err := pw.Take(); err == nil {
+		return needPlaywright
+	}
+
+	if _, hasPlaywright := packageJSON.Dependencies["playwright-chromium"]; hasPlaywright {
+		*pw = optional.Some(true)
+		return pw.Unwrap()
+	}
+
+	if _, hasPlaywright := packageJSON.DevDependencies["playwright-chromium"]; hasPlaywright {
+		*pw = optional.Some(true)
+		return pw.Unwrap()
+	}
+
+	*pw = optional.Some(false)
+	return pw.Unwrap()
+}
+
 // GetBuildScript gets the build command in package.json's `scripts` of the Node.js project.
 func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
@@ -346,6 +370,11 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		buildCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer && USER puppeteer && ` + buildCmd
+	}
+
+	needPlaywright := DetermineNeedPlaywright(ctx)
+	if needPlaywright {
+		buildCmd = `npx playwright install-deps && ` + buildCmd
 	}
 
 	*cmd = optional.Some(buildCmd)
