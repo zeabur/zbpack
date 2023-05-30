@@ -29,9 +29,15 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		panic(err)
 	}
 
+	framework, err := DetermineFramework(options.SubmoduleName, options.Source)
+	if err != nil {
+		panic(err)
+	}
+
 	return types.PlanMeta{
 		"sdk":        sdkVer,
 		"entryPoint": options.SubmoduleName,
+		"framework":  framework,
 	}
 }
 
