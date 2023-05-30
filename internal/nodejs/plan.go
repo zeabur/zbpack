@@ -336,6 +336,11 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		installCmd = "yarn install"
 	}
 
+	needPlaywright := DetermineNeedPlaywright(ctx)
+	if needPlaywright {
+		installCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && ` + installCmd
+	}
+
 	*cmd = optional.Some(installCmd)
 	return cmd.Unwrap()
 }
@@ -370,11 +375,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		buildCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer && USER puppeteer && ` + buildCmd
-	}
-
-	needPlaywright := DetermineNeedPlaywright(ctx)
-	if needPlaywright {
-		buildCmd = `npx playwright install-deps && ` + buildCmd
 	}
 
 	*cmd = optional.Some(buildCmd)
