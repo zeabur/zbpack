@@ -1,6 +1,6 @@
 name: 🐛 Bug report
 description: Please provide a clear and concise description of the issue encountered
-title: '[bug] <title>'
+title: '[bug]'
 labels: ["bug"]
 
 body:
@@ -17,12 +17,7 @@ body:
     attributes:
       label: Expected behaviour
       description: A clear and concise description of what you expected to happen.
-      
-      label: Screenshots
-      description: Please add screenshots if applicable
-    validations:
-      required: true
-
+ 
   - type: textarea
     attributes:
       label: Additional context

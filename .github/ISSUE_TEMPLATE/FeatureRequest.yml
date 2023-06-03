@@ -1,6 +1,6 @@
 name: 💡 Feature request
 description: Have a new idea/feature? Please suggest it!
-title: '[feature] <title>'
+title: '[feature]'
 labels: ["enhancement"]
 
 body:

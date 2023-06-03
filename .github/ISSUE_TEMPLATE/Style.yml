@@ -1,6 +1,6 @@
 name: 👯‍♂️ Style Changing Request
 description: Suggest a style designs
-title: '[style] <title>'
+title: '[style]'
 labels: ["enhancement"]
 
 body:
@@ -15,10 +15,6 @@ body:
       label: What's the style idea?
       placeholder: Add descriptions
       value: 'We need to improve'
-      label: Add screenshots
-      description: Add screenshots to see the demo
-      placeholder: Add screenshots
-      value: 'Add screenshots'
       validations:
           required: true
 
