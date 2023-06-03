@@ -1,22 +1,19 @@
 name: 📄 Documentation issue
 description: Found an issue in the documentation? You can use this one!
-title: "[DOCS] <description>"
+title: "[DOCS] <title>"
 labels: ["documentation"]
+
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
       description: A brief description of the question or issue, also include what you tried and what didn't work
-    validations:
-      required: true
-  - type: textarea
-    id: screenshots
-    attributes:
       label: Screenshots
       description: Please add screenshots if applicable
     validations:
-      required: false
+      required: true
+
   - type: textarea
     id: extrainfo
     attributes:
@@ -24,6 +21,7 @@ body:
       description: Is there anything else we should know about this issue?
     validations:
       required: false
+
    - type: checkboxes
     id: terms
     attributes:

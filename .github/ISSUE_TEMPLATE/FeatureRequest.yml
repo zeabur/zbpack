@@ -1,6 +1,8 @@
 name: 💡 Feature request
-description: Have a new idea/feature ? Please suggest!
+description: Have a new idea/feature? Please suggest it!
+title: '[feature] <title>'
 labels: ["enhancement"]
+
 body:
   - type: textarea
     id: description
@@ -33,6 +35,7 @@ body:
       description: Add any other context or screenshots about the feature request here.
     validations:
       required: false
+      
   - type: checkboxes
     id: terms
     attributes:
