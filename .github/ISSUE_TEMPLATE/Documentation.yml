@@ -20,7 +20,7 @@ body:
     validations:
       required: false
 
-   - type: checkboxes
+  - type: checkboxes
     id: terms
     attributes:
       label: Code of Conduct

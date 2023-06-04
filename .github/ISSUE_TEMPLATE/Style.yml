@@ -4,19 +4,14 @@ title: '[style]'
 labels: ["enhancement"]
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to fill out this template!
-
   - type: textarea
     id: style-idea
     attributes:
       label: What's the style idea?
       placeholder: Add descriptions
       value: 'We need to improve'
-      validations:
-          required: true
+    validations:
+      required: true
 
   - type: checkboxes
     id: terms
