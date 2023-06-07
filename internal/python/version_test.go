@@ -30,3 +30,18 @@ func TestGetPython3Version_WithInvalidVersion(t *testing.T) {
 	version := getNodeVersion(">99.99.99")
 	assert.Equal(t, version, defaultPython3Version)
 }
+
+func TestGetPython3Version_WithInvalidVersion_1(t *testing.T) {
+	version := getNodeVersion(">w<")
+	assert.Equal(t, version, defaultPython3Version)
+}
+
+func TestGetPython3Version_WithInvalidVersion_2(t *testing.T) {
+	version := getNodeVersion("99999999")
+	assert.Equal(t, version, defaultPython3Version)
+}
+
+func TestGetPython3Version_WithInvalidVersion_3(t *testing.T) {
+	version := getNodeVersion("^=====^")
+	assert.Equal(t, version, defaultPython3Version)
+}
