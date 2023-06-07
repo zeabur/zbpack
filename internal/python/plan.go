@@ -81,10 +81,13 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	depFiles := []struct {
 		packageManagerID types.PackageManager
 		filename         string
+		content          string
+		lockFile         string
 	}{
-		{types.PythonPackageManagerPipenv, "Pipfile"},
-		{types.PythonPackageManagerPdm, "pyproject.toml"},
-		{types.PythonPackageManagerPip, "requirements.txt"},
+		{types.PythonPackageManagerPipenv, "Pipfile", "", ""},
+		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
+		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
+		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
 	}
 
 	if packageManager, err := cpm.Take(); err == nil {
@@ -92,16 +95,23 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	}
 
 	for _, depFile := range depFiles {
-		if utils.HasFile(src, depFile.filename) {
-			if depFile.packageManagerID == types.PythonPackageManagerPdm {
-				if weakHasStringsInFile(src, []string{"pyproject.toml"}, "[tool.poetry]") {
-					*cpm = optional.Some(types.PythonPackageManagerPoetry)
+		if depFile.content == "" && depFile.lockFile == "" {
+			if utils.HasFile(src, depFile.filename) {
+				*cpm = optional.Some(depFile.packageManagerID)
+				return cpm.Unwrap()
+			}
+		} else if depFile.content != "" && depFile.lockFile == "" {
+			if utils.HasFile(src, depFile.filename) && weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) {
+				*cpm = optional.Some(depFile.packageManagerID)
+				return cpm.Unwrap()
+			}
+		} else if depFile.content != "" && depFile.lockFile != "" {
+			if utils.HasFile(src, depFile.filename) {
+				if weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
+					*cpm = optional.Some(depFile.packageManagerID)
 					return cpm.Unwrap()
 				}
 			}
-
-			*cpm = optional.Some(depFile.packageManagerID)
-			return cpm.Unwrap()
 		}
 	}
 
@@ -364,7 +374,7 @@ func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
 	submatchs := compile.FindStringSubmatch(string(content))
 	if len(submatchs) > 1 {
 		version := submatchs[1]
-		getNodeVersion(version)
+		return getNodeVersion(version)
 	}
 
 	return defaultPython3Version

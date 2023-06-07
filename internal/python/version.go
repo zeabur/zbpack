@@ -6,7 +6,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-const defaultPython3Version = "3.8"
+const defaultPython3Version = "3.10"
 
 // python3Versions is a list of all the Python 3 versions.
 var python3Versions = []*semver.Version{

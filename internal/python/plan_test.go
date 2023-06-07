@@ -84,6 +84,7 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 
 `)), 0o644)
+	_ = afero.WriteFile(fs, "pdm.lock", nil, 0o644)
 
 	ctx := &pythonPlanContext{
 		Src: fs,
@@ -141,6 +142,7 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 
 `)), 0o644)
+	_ = afero.WriteFile(fs, "pdm.lock", nil, 0o644)
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
