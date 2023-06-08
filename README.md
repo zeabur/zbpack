@@ -25,16 +25,12 @@
 1. Build the binary by running `go build -o zbpack ./cmd/zbpack/main.go`.
 2. Run the binary with `./zbpack [the directory to analyze and build]`.
 
-You should see the `build plan` block and the subsequent `build log` block. The `build plan` block shows the metadata and the information (“recipes”) to build a image of this project. The `build log` block shows the build log of the container image, which is outputted by `docker build`.
+You should see the `build plan` block and the subsequent `build log` block. The `build plan` block shows the metadata and the information (“recipes”) to build an image of this project. The `build log` block shows the build log of the container image, which is outputted by `docker build`.
 
-For the example of `build plan` block, see `zbplan` section.
-
-### `zbplan`
-
-Like `zbpack`, but it just analyzes your projects. It doesn't build a Dockerfile.
+Use `-i` or `--info` to show the build plan only.
 
 ```bash
-$ ./zbplan ./tests/node-corepack
+$ ./zbpack --info ./tests/node-corepack
 
 ╔══════════════════════════ Build Plan ═════════════════════════╗
 ║ provider         │ nodejs                                     ║
@@ -50,6 +46,8 @@ $ ./zbplan ./tests/node-corepack
 ║ installCmd       │ pnpm install                               ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
+
+Get some more usage information by using `-h` or `--help`.
 
 ## Contributing
 
