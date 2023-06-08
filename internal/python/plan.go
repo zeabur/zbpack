@@ -356,7 +356,7 @@ func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
 	submatchs := compile.FindStringSubmatch(string(content))
 	if len(submatchs) > 1 {
 		version := submatchs[1]
-		getNodeVersion(version)
+		return getPython3Version(version)
 	}
 
 	return defaultPython3Version
@@ -374,7 +374,7 @@ func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
 	submatchs := compile.FindStringSubmatch(string(content))
 	if len(submatchs) > 1 {
 		version := submatchs[1]
-		return getNodeVersion(version)
+		return getPython3Version(version)
 	}
 
 	return defaultPython3Version
@@ -392,7 +392,7 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 	submatchs := compile.FindStringSubmatch(string(content))
 	if len(submatchs) > 1 {
 		version := submatchs[1]
-		return getNodeVersion(version)
+		return getPython3Version(version)
 	}
 
 	return defaultPython3Version

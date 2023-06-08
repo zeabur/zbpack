@@ -25,7 +25,7 @@ var python3Versions = []*semver.Version{
 	semver.MustParse("3.12"),
 }
 
-func getNodeVersion(versionRange string) string {
+func getPython3Version(versionRange string) string {
 	if versionRange == "" {
 		return defaultPython3Version
 	}
