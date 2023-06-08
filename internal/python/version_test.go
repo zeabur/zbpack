@@ -26,27 +26,27 @@ func TestGetPython3Version_WithErrorVersion(t *testing.T) {
 	assert.Equal(t, version, defaultPython3Version)
 }
 
-func TestGetPython3Version_WithInvalidVersion(t *testing.T) {
-	version := getPython3Version(">99.99.99")
+func TestGetPython3Version_WithNullVersion(t *testing.T) {
+	version := getPython3Version("")
 	assert.Equal(t, version, defaultPython3Version)
 }
 
 func TestGetPython3Version_WithInvalidVersion_1(t *testing.T) {
-	version := getPython3Version(">w<")
+	version := getPython3Version(">99.99.99")
 	assert.Equal(t, version, defaultPython3Version)
 }
 
 func TestGetPython3Version_WithInvalidVersion_2(t *testing.T) {
-	version := getPython3Version("99999999")
+	version := getPython3Version(">w<")
 	assert.Equal(t, version, defaultPython3Version)
 }
 
 func TestGetPython3Version_WithInvalidVersion_3(t *testing.T) {
-	version := getPython3Version("^=====^")
+	version := getPython3Version("99999999")
 	assert.Equal(t, version, defaultPython3Version)
 }
 
-func TestGetPython3Version_WithNullVersion_3(t *testing.T) {
-	version := getPython3Version("")
+func TestGetPython3Version_WithInvalidVersion_4(t *testing.T) {
+	version := getPython3Version("^=====^")
 	assert.Equal(t, version, defaultPython3Version)
 }
