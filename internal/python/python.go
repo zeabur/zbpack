@@ -11,7 +11,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	startCmd := meta["start"]
 	aptDeps := meta["apt-deps"]
 
-	dockerfile := "FROM docker.io/library/python:3.8.2-slim-buster\n"
+	dockerfile := "FROM docker.io/library/python:" + meta["pythonVersion"] + "-slim-buster\n"
 
 	dockerfile += `WORKDIR /app
 RUN apt-get update

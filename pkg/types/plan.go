@@ -87,6 +87,7 @@ const (
 	PythonPackageManagerPip     PackageManager = "pip"
 	PythonPackageManagerPoetry  PackageManager = "poetry"
 	PythonPackageManagerPipenv  PackageManager = "pipenv"
+	PythonPackageManagerPdm     PackageManager = "pdm"
 )
 
 //revive:enable:exported

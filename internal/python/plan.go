@@ -81,10 +81,13 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	depFiles := []struct {
 		packageManagerID types.PackageManager
 		filename         string
+		content          string
+		lockFile         string
 	}{
-		{types.PythonPackageManagerPipenv, "Pipfile"},
-		{types.PythonPackageManagerPoetry, "pyproject.toml"},
-		{types.PythonPackageManagerPip, "requirements.txt"},
+		{types.PythonPackageManagerPipenv, "Pipfile", "", ""},
+		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
+		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
+		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
 	}
 
 	if packageManager, err := cpm.Take(); err == nil {
@@ -92,9 +95,23 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 	}
 
 	for _, depFile := range depFiles {
-		if utils.HasFile(src, depFile.filename) {
-			*cpm = optional.Some(depFile.packageManagerID)
-			return cpm.Unwrap()
+		if depFile.content == "" && depFile.lockFile == "" {
+			if utils.HasFile(src, depFile.filename) {
+				*cpm = optional.Some(depFile.packageManagerID)
+				return cpm.Unwrap()
+			}
+		} else if depFile.content != "" && depFile.lockFile == "" {
+			if utils.HasFile(src, depFile.filename) && weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) {
+				*cpm = optional.Some(depFile.packageManagerID)
+				return cpm.Unwrap()
+			}
+		} else if depFile.content != "" && depFile.lockFile != "" {
+			if utils.HasFile(src, depFile.filename) {
+				if weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
+					*cpm = optional.Some(depFile.packageManagerID)
+					return cpm.Unwrap()
+				}
+			}
 		}
 	}
 
@@ -114,6 +131,8 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 		return weakHasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
 	case types.PythonPackageManagerPipenv:
 		return weakHasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
+	case types.PythonPackageManagerPdm:
+		return weakHasStringsInFile(src, []string{"pyproject.toml", "pdm.lock"}, dependency)
 	}
 
 	return false
@@ -237,6 +256,15 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				andCommands = append(andCommands, "poetry add gunicorn")
 			}
 		}
+	case types.PythonPackageManagerPdm:
+		andCommands = append(andCommands, "pip install pdm", "pdm install")
+		if wsgi != "" {
+			if framework == types.PythonFrameworkFastapi {
+				andCommands = append(andCommands, "pdm add uvicorn")
+			} else {
+				andCommands = append(andCommands, "pdm add gunicorn")
+			}
+		}
 	case types.PythonPackageManagerPip:
 		andCommands = append(andCommands, "pip install -r requirements.txt")
 		fallthrough
@@ -272,14 +300,16 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
-
+	pm := DeterminePackageManager(ctx)
 	var commandSegment []string
 
-	switch DeterminePackageManager(ctx) {
+	switch pm {
 	case types.PythonPackageManagerPipenv:
 		commandSegment = append(commandSegment, "pipenv run")
 	case types.PythonPackageManagerPoetry:
 		commandSegment = append(commandSegment, "poetry run")
+	case types.PythonPackageManagerPdm:
+		commandSegment = append(commandSegment, "pdm run")
 	}
 
 	if wsgi != "" {
@@ -297,6 +327,77 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	return command
 }
 
+// determinePythonVersion Determine Python Version
+func determinePythonVersion(ctx *pythonPlanContext) string {
+	pm := DeterminePackageManager(ctx)
+
+	switch pm {
+	case types.PythonPackageManagerPoetry:
+		return determinePythonVersionWithPoetry(ctx)
+
+	case types.PythonPackageManagerPdm:
+		return determinePythonVersionWithPdm(ctx)
+	case types.PythonPackageManagerPipenv:
+		return determinePythonVersionWithPipenv(ctx)
+	default:
+		return defaultPython3Version
+	}
+}
+
+func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
+	src := ctx.Src
+
+	content, err := afero.ReadFile(src, "pyproject.toml")
+	if err != nil {
+		return ""
+	}
+
+	compile := regexp.MustCompile(`python_version = "(.*?)"`)
+	submatchs := compile.FindStringSubmatch(string(content))
+	if len(submatchs) > 1 {
+		version := submatchs[1]
+		return getPython3Version(version)
+	}
+
+	return defaultPython3Version
+}
+
+func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
+	src := ctx.Src
+
+	content, err := afero.ReadFile(src, "pyproject.toml")
+	if err != nil {
+		return ""
+	}
+
+	compile := regexp.MustCompile(`requires-python = "(.*?)"`)
+	submatchs := compile.FindStringSubmatch(string(content))
+	if len(submatchs) > 1 {
+		version := submatchs[1]
+		return getPython3Version(version)
+	}
+
+	return defaultPython3Version
+}
+
+func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
+	src := ctx.Src
+
+	content, err := afero.ReadFile(src, "pyproject.toml")
+	if err != nil {
+		return ""
+	}
+
+	compile := regexp.MustCompile(`python = "(.*?)"`)
+	submatchs := compile.FindStringSubmatch(string(content))
+	if len(submatchs) > 1 {
+		version := submatchs[1]
+		return getPython3Version(version)
+	}
+
+	return defaultPython3Version
+}
+
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
@@ -304,9 +405,19 @@ type GetMetaOptions struct {
 
 // GetMeta returns the metadata of a Python project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	ctx := &pythonPlanContext{Src: opt.Src}
-
 	meta := types.PlanMeta{}
+
+	ctx := &pythonPlanContext{
+		Src: opt.Src,
+	}
+
+	pm := DeterminePackageManager(ctx)
+	meta["packageManager"] = string(pm)
+
+	version := determinePythonVersion(ctx)
+	meta["pythonVersion"] = version
+
+	DetermineWsgi(ctx)
 
 	framework := DetermineFramework(ctx)
 	if framework != types.PythonFrameworkNone {

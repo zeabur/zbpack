@@ -38,7 +38,26 @@ func TestPackageManager_Pipenv(t *testing.T) {
 
 func TestPackageManager_Poetry(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "pyproject.toml", nil, 0o644)
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+[tool.poetry]
+name = "poetry-demo"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "poetry_demo"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.3.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+`)), 0o644)
 
 	ctx := &pythonPlanContext{
 		Src: fs,
@@ -48,9 +67,54 @@ func TestPackageManager_Poetry(t *testing.T) {
 	assert.Equal(t, types.PythonPackageManagerPoetry, pm)
 }
 
+func TestPackageManager_Pdm(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "flask>=2.3.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+`)), 0o644)
+	_ = afero.WriteFile(fs, "pdm.lock", nil, 0o644)
+
+	ctx := &pythonPlanContext{
+		Src: fs,
+	}
+	pm := DeterminePackageManager(ctx)
+
+	assert.Equal(t, types.PythonPackageManagerPdm, pm)
+}
+
 func TestPackageManager_PoetryWithOldRequirements(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "pyproject.toml", nil, 0o644)
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+[tool.poetry]
+name = "poetry-demo"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "poetry_demo"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.3.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+`)), 0o644)
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
@@ -59,6 +123,34 @@ func TestPackageManager_PoetryWithOldRequirements(t *testing.T) {
 	pm := DeterminePackageManager(ctx)
 
 	assert.Equal(t, types.PythonPackageManagerPoetry, pm)
+}
+
+func TestPackageManager_PdmWithOldRequirements(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "flask>=2.3.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+`)), 0o644)
+	_ = afero.WriteFile(fs, "pdm.lock", nil, 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
+
+	ctx := &pythonPlanContext{
+		Src: fs,
+	}
+	pm := DeterminePackageManager(ctx)
+
+	assert.Equal(t, types.PythonPackageManagerPdm, pm)
 }
 
 func TestPackageManager_PipenvWithOldRequirements(t *testing.T) {
