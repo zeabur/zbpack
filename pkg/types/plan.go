@@ -21,6 +21,7 @@ const (
 	PlanTypeDeno   PlanType = "deno"
 	PlanTypeRust   PlanType = "rust"
 	PlanTypeDotnet PlanType = "dotnet"
+	PlanTypeElixir PlanType = "elixir"
 	PlanTypeStatic PlanType = "static"
 )
 
@@ -158,6 +159,16 @@ const (
 	DotnetFrameworkAspnet     DotnetFramework = "aspnet"
 	DotnetFrameworkBlazorWasm DotnetFramework = "blazorwasm"
 	DotnetFrameworkConsole    DotnetFramework = "console"
+)
+
+//revive:enable:exported
+
+// ElixirFramework represents the framework of a Elixir project.
+type ElixirFramework string
+
+//revive:disable:exported
+const (
+	ElixirFrameworkPhoenix ElixirFramework = "phoenix"
 )
 
 //revive:enable:exported
