@@ -128,6 +128,17 @@ const (
 
 //revive:enable:exported
 
+// PHPApplication represents the application type of a PHP project.
+type PHPApplication string
+
+//revive:disable:exported
+const (
+	PHPApplicationDefault PHPApplication = "default"
+	PHPApplicationAcgFaka PHPApplication = "acg-faka"
+)
+
+//revive:enable:exported
+
 // RubyFramework represents the framework of a Ruby project.
 type RubyFramework string
 
