@@ -74,3 +74,16 @@ func TestDetermineAptDependencies_RequireCurl(t *testing.T) {
 	deps := DetermineAptDependencies(fs)
 	assert.Equal(t, deps, append(baseDep, depMap["ext-curl"]...))
 }
+
+func TestDetermineAptDependencies_RequireGd(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "composer.json", []byte(`{
+		"name": "test",
+		"require": {
+			"ext-gd": "*"
+		}
+	}`), 0o644)
+
+	deps := DetermineAptDependencies(fs)
+	assert.Equal(t, deps, append(baseDep, depMap["ext-gd"]...))
+}

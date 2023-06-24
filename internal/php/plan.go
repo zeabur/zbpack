@@ -92,6 +92,7 @@ var depMap = map[string][]string{
 	"ext-openssl": {"libssl-dev"},
 	"ext-zip":     {"libzip-dev"},
 	"ext-curl":    {"libcurl4-openssl-dev", "libssl-dev"},
+	"ext-gd":      {"libpng-dev"},
 }
 
 var baseDep = []string{"nginx", "libicu-dev", "jq", "pkg-config"}
