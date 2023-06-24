@@ -1,6 +1,8 @@
 package php
 
 import (
+	"strings"
+
 	"github.com/spf13/afero"
 
 	"github.com/zeabur/zbpack/internal/utils"
@@ -26,10 +28,12 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)
+	deps := DetermineAptDependencies(options.Source)
 
 	return types.PlanMeta{
 		"framework":  string(framework),
 		"phpVersion": phpVersion,
+		"deps":       strings.Join(deps, " "),
 	}
 }
 
