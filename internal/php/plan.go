@@ -1,7 +1,6 @@
 package php
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -12,24 +11,20 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// DefaultPHPVersion represents the default PHP version.
+const DefaultPHPVersion = "8.1"
+
 // GetPHPVersion gets the php version of the project.
 func GetPHPVersion(source afero.Fs) string {
-	composerJSONMarshal, err := afero.ReadFile(source, "composer.json")
+	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
-		return ""
-	}
-	composerJSON := struct {
-		Require map[string]string `json:"require"`
-	}{}
-
-	if err := json.Unmarshal(composerJSONMarshal, &composerJSON); err != nil {
-		return "8.0"
-	}
-	if composerJSON.Require["php"] == "" {
-		return "8.0"
+		return DefaultPHPVersion
 	}
 
-	versionRange := composerJSON.Require["php"]
+	versionRange, ok := composerJSON.GetRequire("php")
+	if !ok || versionRange == "" {
+		return DefaultPHPVersion
+	}
 
 	isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
 	if isVersion {
@@ -68,34 +63,25 @@ func GetPHPVersion(source afero.Fs) string {
 		}
 	}
 
-	return "8.1"
+	return DefaultPHPVersion
 }
 
 // DetermineProjectFramework determines the framework of the project.
 func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
-	composerJSONMarshal, err := afero.ReadFile(source, "composer.json")
+	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return types.PHPFrameworkNone
 	}
 
-	composerJSON := struct {
-		Name       string            `json:"name"`
-		Require    map[string]string `json:"require"`
-		Requiredev map[string]string `json:"require-dev"`
-	}{}
-	if err := json.Unmarshal(composerJSONMarshal, &composerJSON); err != nil {
-		return types.PHPFrameworkNone
-	}
-
-	if _, isLaravel := composerJSON.Require["laravel/framework"]; isLaravel {
+	if _, isLaravel := composerJSON.GetRequire("laravel/framework"); isLaravel {
 		return types.PHPFrameworkLaravel
 	}
 
-	if _, isThinkPHP := composerJSON.Require["topthink/framework"]; isThinkPHP {
+	if _, isThinkPHP := composerJSON.GetRequire("topthink/framework"); isThinkPHP {
 		return types.PHPFrameworkThinkphp
 	}
 
-	if _, isCodeIgniter := composerJSON.Require["codeigniter4/framework"]; isCodeIgniter {
+	if _, isCodeIgniter := composerJSON.GetRequire("codeigniter4/framework"); isCodeIgniter {
 		return types.PHPFrameworkCodeigniter
 	}
 
