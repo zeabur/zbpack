@@ -98,3 +98,30 @@ func TestDetermineProjectFramework_Unknown(t *testing.T) {
 	framework := php.DetermineProjectFramework(fs)
 	assert.Equal(t, framework, types.PHPFrameworkNone)
 }
+
+func TestDetermineApplication_NoComposer(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	app := php.DetermineApplication(fs)
+	assert.Equal(t, app, types.PHPApplicationDefault)
+}
+
+func TestDetermineApplication_Unknown(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "composer.json", []byte(`{
+		"name": "test"
+	}`), 0o644)
+
+	app := php.DetermineApplication(fs)
+	assert.Equal(t, app, types.PHPApplicationDefault)
+}
+
+func TestDetermineApplication_AcgFaka(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "composer.json", []byte(`{
+		"name": "lizhipay/acg-faka"
+	}`), 0o644)
+
+	app := php.DetermineApplication(fs)
+	assert.Equal(t, app, types.PHPApplicationAcgFaka)
+}
