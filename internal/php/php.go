@@ -3,6 +3,7 @@ package php
 
 import (
 	_ "embed"
+	"fmt"
 	"strings"
 
 	"github.com/zeabur/zbpack/pkg/packer"
@@ -17,13 +18,13 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
 	getPhpImage := "FROM docker.io/library/php:" + phpVersion + "-fpm\n"
 
-	installCMD := `
+	installCMD := fmt.Sprintf(`
 RUN apt-get update
-RUN apt-get install -y nginx zip libicu-dev jq
+RUN apt-get install -y %s
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-`
+`, meta["deps"])
 
 	nginxConf = strings.ReplaceAll(nginxConf, "\n", "\\n")
 	nginxConf = strings.ReplaceAll(nginxConf, "$", "\\$")
