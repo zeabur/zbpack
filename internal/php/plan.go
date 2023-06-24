@@ -87,3 +87,36 @@ func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
 
 	return types.PHPFrameworkNone
 }
+
+var depMap = map[string][]string{
+	"ext-openssl": {"libssl-dev"},
+	"ext-zip":     {"libzip-dev"},
+	"ext-curl":    {"libcurl4-openssl-dev", "libssl-dev"},
+}
+
+var baseDep = []string{"nginx", "libicu-dev", "jq", "pkg-config"}
+
+// DetermineAptDependencies determines the required apt dependencies of the project.
+func DetermineAptDependencies(source afero.Fs) []string {
+	// deep copy the base dependencies
+	dependencies := append([]string{}, baseDep...)
+
+	composerJSON, err := parseComposerJSON(source)
+	if err != nil {
+		return dependencies
+	}
+
+	if composerJSON.Require == nil {
+		return dependencies
+	}
+
+	// loop through the composer.json dependencies and
+	// check if any dependency need some additional apt dependencies
+	for dep := range *composerJSON.Require {
+		if val, ok := depMap[dep]; ok {
+			dependencies = append(dependencies, val...)
+		}
+	}
+
+	return dependencies
+}
