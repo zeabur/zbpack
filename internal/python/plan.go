@@ -286,15 +286,21 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
+	var deps []string
+
 	if HasDependency(ctx, "mysqlclient") {
-		return []string{"libmariadb-dev", "build-essential"}
+		deps = append(deps, "libmariadb-dev", "build-essential")
 	}
 
 	if HasDependency(ctx, "psycopg2") {
-		return []string{"libpq-dev"}
+		deps = append(deps, "libpq-dev")
 	}
 
-	return []string{}
+	if HasDependency(ctx, "pyzbar") {
+		deps = append(deps, "libzbar0")
+	}
+
+	return deps
 }
 
 func determineStartCmd(ctx *pythonPlanContext) string {
