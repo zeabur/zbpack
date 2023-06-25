@@ -296,6 +296,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "libpq-dev")
 	}
 
+	if HasDependency(ctx, "pyzbar") {
+		deps = append(deps, "libzbar0")
+	}
+
 	return deps
 }
 
