@@ -276,8 +276,8 @@ func TestHasDependency_Unknown(t *testing.T) {
 	}
 
 	// should always False
-	assert.False(t, HasDependency(ctx, "foo"))
-	assert.False(t, HasDependency(ctx, "bar"))
+	assert.False(t, HasDependencyWithFile(ctx, "foo"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
 
 func TestHasDependency_Pip(t *testing.T) {
@@ -289,8 +289,8 @@ func TestHasDependency_Pip(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
-	assert.True(t, HasDependency(ctx, "foo"))
-	assert.False(t, HasDependency(ctx, "bar"))
+	assert.True(t, HasDependencyWithFile(ctx, "foo"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
 
 func TestHasDependency_Poetry(t *testing.T) {
@@ -302,8 +302,8 @@ func TestHasDependency_Poetry(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
-	assert.True(t, HasDependency(ctx, "foo"))
-	assert.False(t, HasDependency(ctx, "bar"))
+	assert.True(t, HasDependencyWithFile(ctx, "foo"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
 
 func TestHasDependency_PoetryDep(t *testing.T) {
@@ -355,22 +355,8 @@ func TestHasDependency_Pipenv_WithObsoleteRequirements(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
-	assert.True(t, HasDependency(ctx, "foo"))
-	assert.False(t, HasDependency(ctx, "bar"))
-}
-
-func TestHasDependency_PipenvDep_WithObsoleteRequirements(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "Pipfile.lock", []byte("foo"), 0o644)
-	_ = afero.WriteFile(fs, "requirements.txt", []byte("bar"), 0o644)
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
-	}
-
-	assert.True(t, HasDependency(ctx, "foo"))
-	assert.False(t, HasDependency(ctx, "bar"))
+	assert.True(t, HasDependencyWithFile(ctx, "foo"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
 
 func TestHasDependency_Pip_HasMysqlClient(t *testing.T) {

@@ -28,7 +28,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	if HasDependency(ctx, "django") {
+	if HasDependencyWithFile(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -38,12 +38,12 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if HasDependency(ctx, "flask") {
+	if HasDependencyWithFile(ctx, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if HasDependency(ctx, "fastapi") {
+	if HasDependencyWithFile(ctx, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
@@ -101,13 +101,13 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
 				return cpm.Unwrap()
 			}
 		} else if depFile.content != "" && depFile.lockFile == "" {
-			if utils.HasFile(src, depFile.filename) && weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) {
+			if utils.HasFile(src, depFile.filename) && weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) {
 				*cpm = optional.Some(depFile.packageManagerID)
 				return cpm.Unwrap()
 			}
 		} else if depFile.content != "" && depFile.lockFile != "" {
 			if utils.HasFile(src, depFile.filename) {
-				if weakHasStringsInFile(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
+				if weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
 					*cpm = optional.Some(depFile.packageManagerID)
 					return cpm.Unwrap()
 				}
@@ -126,20 +126,20 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 
 	switch pm {
 	case types.PythonPackageManagerPip:
-		return weakHasStringsInFile(src, []string{"requirements.txt"}, dependency)
+		return weakHasStringsInFiles(src, []string{"requirements.txt"}, dependency)
 	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFile(src, []string{"pyproject.toml"}, dependency)
+		return weakHasStringsInFiles(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
 	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFile(src, []string{"Pipfile"}, dependency)
+		return weakHasStringsInFiles(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
 	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFile(src, []string{"pyproject.toml"}, dependency)
+		return weakHasStringsInFiles(src, []string{"pyproject.toml", "pdm.lock"}, dependency)
 	}
 
 	return false
 }
 
-// weakHasStringsInFile checks if the specified text are in the listed files.
-func weakHasStringsInFile(src afero.Fs, filelist []string, text string) bool {
+// weakHasStringsInFiles checks if the specified text are in the listed files.
+func weakHasStringsInFiles(src afero.Fs, filelist []string, text string) bool {
 	for _, file := range filelist {
 		file, err := afero.ReadFile(src, file)
 		if err != nil {
@@ -151,6 +151,38 @@ func weakHasStringsInFile(src afero.Fs, filelist []string, text string) bool {
 		}
 	}
 
+	return false
+}
+
+// HasDependencyWithFile checks if the specified dependency is in the file.
+func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
+	src := ctx.Src
+	pm := DeterminePackageManager(ctx)
+
+	switch pm {
+	case types.PythonPackageManagerPip:
+		return weakHasStringsInFile(src, "requirements.txt", dependency)
+	case types.PythonPackageManagerPipenv:
+		return weakHasStringsInFile(src, "Pipfile", dependency)
+	case types.PythonPackageManagerPoetry:
+		return weakHasStringsInFile(src, "pyproject.toml", dependency)
+	case types.PythonPackageManagerPdm:
+		return weakHasStringsInFile(src, "pyproject.toml", dependency)
+	}
+
+	return false
+}
+
+// weakHasStringsInFile checks if the specified text are in the file.
+func weakHasStringsInFile(src afero.Fs, file string, text string) bool {
+	content, err := afero.ReadFile(src, file)
+	if err != nil {
+		return false
+	}
+
+	if utils.WeakContains(string(content), text) {
+		return true
+	}
 	return false
 }
 
