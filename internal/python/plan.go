@@ -128,11 +128,11 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 	case types.PythonPackageManagerPip:
 		return weakHasStringsInFile(src, []string{"requirements.txt"}, dependency)
 	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFile(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
+		return weakHasStringsInFile(src, []string{"pyproject.toml"}, dependency)
 	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFile(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
+		return weakHasStringsInFile(src, []string{"Pipfile"}, dependency)
 	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFile(src, []string{"pyproject.toml", "pdm.lock"}, dependency)
+		return weakHasStringsInFile(src, []string{"pyproject.toml"}, dependency)
 	}
 
 	return false
