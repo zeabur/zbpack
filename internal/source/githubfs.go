@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/go-github/v45/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/spf13/afero"
 	"golang.org/x/oauth2"
 )
