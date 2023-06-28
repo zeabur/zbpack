@@ -276,8 +276,8 @@ func TestHasDependency_Unknown(t *testing.T) {
 	}
 
 	// should always False
-	assert.False(t, HasDependencyWithFile(ctx, "foo"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.False(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
 }
 
 func TestHasDependency_Pip(t *testing.T) {
@@ -289,8 +289,8 @@ func TestHasDependency_Pip(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "foo"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
 }
 
 func TestHasDependency_Poetry(t *testing.T) {
@@ -302,8 +302,8 @@ func TestHasDependency_Poetry(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "foo"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
 }
 
 func TestHasDependency_PoetryDep(t *testing.T) {
@@ -355,8 +355,22 @@ func TestHasDependency_Pipenv_WithObsoleteRequirements(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "foo"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependency_PipenvDep_WithObsoleteRequirements(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile.lock", []byte("foo"), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("bar"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependency(ctx, "foo"))
+	assert.False(t, HasDependency(ctx, "bar"))
 }
 
 func TestHasDependency_Pip_HasMysqlClient(t *testing.T) {
@@ -559,4 +573,107 @@ func TestHasDependency_CaseInsensitive(t *testing.T) {
 
 	assert.True(t, HasDependency(ctx, "foo"))
 	assert.False(t, HasDependency(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Pip(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("foo"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPip),
+	}
+
+	assert.True(t, HasDependencyWithFile(ctx, "foo"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Pipenv(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Pipfile", []byte(`
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+
+
+[dev-packages]
+pytest = "*"`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
+	}
+
+	assert.True(t, HasDependencyWithFile(ctx, "requests"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Poetry(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+[tool.poetry]
+name = "changchun api"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.95.2"
+psycopg2 = "^2.9.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
+	}
+
+	assert.True(t, HasDependencyWithFile(ctx, "fastapi"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Pdm(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "flask>=2.3.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPdm),
+	}
+
+	assert.True(t, HasDependencyWithFile(ctx, "flask"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Unknown(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.False(t, HasDependencyWithFile(ctx, "flask"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
