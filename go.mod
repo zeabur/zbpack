@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/spf13/afero v1.9.5
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
@@ -55,6 +55,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.4.3
 	github.com/google/go-github/v53 v53.2.0
 	github.com/moznion/go-optional v0.10.0
+	github.com/pan93412/envexpander v1.1.0
 	github.com/samber/lo v1.38.1
 	github.com/spf13/cobra v1.7.0
 	golang.org/x/oauth2 v0.8.0
