@@ -11,7 +11,7 @@ module.exports = {
 					if (!scope || typeof scope !== "string") return [true];
 
 					const scopeSegment = scope.split("/");
-					const availableScopes = ["cli", "lib", "planner", "utils", "lint"];
+					const availableScopes = ["cli", "lib", "planner", "utils", "lint", "zbpack"];
 
 					return [
 						availableScopes.includes(scopeSegment[0]),

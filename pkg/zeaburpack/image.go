@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/pan93412/envexpander"
 )
 
 type buildImageOptions struct {
@@ -22,6 +24,9 @@ type buildImageOptions struct {
 }
 
 func buildImage(opt *buildImageOptions) error {
+	// resolve env variable statically and don't depend on Dockerfile's order
+	resolvedVars := envexpander.ResolveEnvVariable(opt.UserVars)
+
 	lines := strings.Split(opt.Dockerfile, "\n")
 	stageLines := []int{}
 	for i, line := range lines {
@@ -30,17 +35,24 @@ func buildImage(opt *buildImageOptions) error {
 		}
 	}
 
-	var userVarsKeys []string
-	for key := range opt.UserVars {
-		userVarsKeys = append(userVarsKeys, key)
+	// sort the resolvedVars by key so we can build
+	// the reproducible dockerfile
+	sortedResolvedVarsKey := make([]string, 0, len(resolvedVars))
+	for key := range resolvedVars {
+		sortedResolvedVarsKey = append(sortedResolvedVarsKey, key)
 	}
-	sort.Strings(userVarsKeys)
+	sort.Strings(sortedResolvedVarsKey)
+
+	// build the dockerfile
 	dockerfileEnv := ""
-	for _, key := range userVarsKeys {
-		value := opt.UserVars[key]
+	for _, key := range sortedResolvedVarsKey {
+		value := resolvedVars[key]
+
+		// skip empty value
 		if len(value) == 0 {
 			continue
 		}
+
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
 
