@@ -10,7 +10,9 @@ import (
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	if meta["framework"] == "hugo" {
-		return `FROM klakegg/hugo as builder
+		return `FROM klakegg/hugo:ubuntu as builder
+WORKDIR /src
+RUN apt-get update && apt-get install -y git
 COPY . .
 RUN hugo --minify
 
