@@ -19,7 +19,7 @@ RUN hugo --minify
 FROM docker.io/library/nginx:alpine as runtime
 WORKDIR /usr/share/nginx/html/static
 COPY --from=builder /src/public .
-RUN echo "server { listen 8080; root /usr/share/nginx/html; }"> /etc/nginx/conf.d/default.conf
+RUN echo "server { listen 8080; root /usr/share/nginx/html/static; }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080`, nil
 	}
 
