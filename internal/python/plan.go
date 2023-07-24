@@ -387,7 +387,7 @@ func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
 
 	content, err := afero.ReadFile(src, "pyproject.toml")
 	if err != nil {
-		return ""
+		return defaultPython3Version
 	}
 
 	compile := regexp.MustCompile(`python_version = "(.*?)"`)
@@ -405,7 +405,7 @@ func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
 
 	content, err := afero.ReadFile(src, "pyproject.toml")
 	if err != nil {
-		return ""
+		return defaultPython3Version
 	}
 
 	compile := regexp.MustCompile(`requires-python = "(.*?)"`)
@@ -423,7 +423,7 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 
 	content, err := afero.ReadFile(src, "pyproject.toml")
 	if err != nil {
-		return ""
+		return defaultPython3Version
 	}
 
 	compile := regexp.MustCompile(`python = "(.*?)"`)
