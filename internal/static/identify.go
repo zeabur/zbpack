@@ -23,10 +23,15 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "index.html")
+	return utils.HasFile(fs, "index.html", "hugo.toml")
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
+
+	if utils.HasFile(options.Source, "hugo.toml") {
+		return types.PlanMeta{"framework": "hugo"}
+	}
+
 	html, err := afero.ReadFile(options.Source, "index.html")
 
 	if err == nil && strings.Contains(string(html), "Hugo") {

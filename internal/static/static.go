@@ -7,7 +7,22 @@ import (
 )
 
 // GenerateDockerfile generates the Dockerfile for static files.
-func GenerateDockerfile(_ types.PlanMeta) (string, error) {
+func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+
+	if meta["framework"] == "hugo" {
+		return `FROM klakegg/hugo:ubuntu as builder
+WORKDIR /src
+RUN apt-get update && apt-get install -y git
+COPY . .
+RUN hugo --minify
+
+FROM docker.io/library/nginx:alpine as runtime
+WORKDIR /usr/share/nginx/html/static
+COPY --from=builder /src/public .
+RUN echo "server { listen 8080; root /usr/share/nginx/html/static; }"> /etc/nginx/conf.d/default.conf
+EXPOSE 8080`, nil
+	}
+
 	dockerfile := `FROM docker.io/library/nginx:alpine as runtime
 WORKDIR /usr/share/nginx/html/static
 COPY . .

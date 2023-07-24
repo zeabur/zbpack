@@ -176,14 +176,6 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
-	// If the dockerfile is using Nginx as a runtime, we will copy the static files to the output directory.
-	if strings.Contains(dockerfile, "nginx:alpine as runtime") {
-		err = extractStaticOutput(*opt.ResultImage, opt)
-		if err != nil {
-			println("Failed to copy static files: " + err.Error())
-		}
-	}
-
 	if opt.Interactive != nil && *opt.Interactive {
 		handleLog("\n\033[32mBuild successful\033[0m\n")
 		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")

@@ -95,7 +95,7 @@ var depMap = map[string][]string{
 	"ext-gd":      {"libpng-dev"},
 }
 
-var baseDep = []string{"nginx", "libicu-dev", "jq", "pkg-config"}
+var baseDep = []string{"nginx", "libicu-dev", "jq", "pkg-config", "unzip", "git"}
 
 // DetermineAptDependencies determines the required apt dependencies of the project.
 func DetermineAptDependencies(source afero.Fs) []string {

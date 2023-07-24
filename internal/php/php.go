@@ -59,7 +59,6 @@ RUN composer install --optimize-autoloader --no-dev
 `
 
 	startCmd := `
-EXPOSE ${PORT}
 CMD nginx; php-fpm
 `
 
