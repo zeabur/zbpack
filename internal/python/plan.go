@@ -372,32 +372,11 @@ func determinePythonVersion(ctx *pythonPlanContext) string {
 	switch pm {
 	case types.PythonPackageManagerPoetry:
 		return determinePythonVersionWithPoetry(ctx)
-
 	case types.PythonPackageManagerPdm:
 		return determinePythonVersionWithPdm(ctx)
-	case types.PythonPackageManagerPipenv:
-		return determinePythonVersionWithPipenv(ctx)
 	default:
 		return defaultPython3Version
 	}
-}
-
-func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
-	src := ctx.Src
-
-	content, err := afero.ReadFile(src, "pyproject.toml")
-	if err != nil {
-		return defaultPython3Version
-	}
-
-	compile := regexp.MustCompile(`python_version = "(.*?)"`)
-	submatchs := compile.FindStringSubmatch(string(content))
-	if len(submatchs) > 1 {
-		version := submatchs[1]
-		return getPython3Version(version)
-	}
-
-	return defaultPython3Version
 }
 
 func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
