@@ -4,11 +4,9 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* .npmrc* ./
+COPY . .
 
 RUN {{ .InstallCmd }}
-
-COPY . .
 
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
