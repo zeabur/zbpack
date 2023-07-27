@@ -332,6 +332,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "libzbar0")
 	}
 
+	if HasDependency(ctx, "hnswlib") {
+		deps = append(deps, "build-essential")
+	}
+
 	return deps
 }
 
