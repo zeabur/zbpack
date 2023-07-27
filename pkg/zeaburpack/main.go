@@ -185,6 +185,8 @@ func Build(opt *BuildOptions) error {
 	return nil
 }
 
+// unused because we are refactoring this part. Ignore this for now.
+// nolint:unused
 func extractStaticOutput(resultImage string, opt *BuildOptions) error {
 	copyFiles := `FROM ` + resultImage + `
 CMD ["cp", "-r", "/usr/share/nginx/html/static", "/out/"]`
