@@ -15,7 +15,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	dockerfile += `WORKDIR /app
 RUN apt-get update
-RUN apt-get install ` + aptDeps + ` gcc -y
+RUN apt-get install -y ` + aptDeps + `
 RUN rm -rf /var/lib/apt/lists/*
 COPY . .
 RUN ` + installCmd + `
