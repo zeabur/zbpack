@@ -318,10 +318,10 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	var deps []string
+	deps := []string{"build-essential"}
 
 	if HasDependency(ctx, "mysqlclient") {
-		deps = append(deps, "libmariadb-dev", "build-essential")
+		deps = append(deps, "libmariadb-dev")
 	}
 
 	if HasDependency(ctx, "psycopg2") {
