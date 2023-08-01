@@ -30,10 +30,12 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	projectType := DetermineProjectType(options.Source)
 	framework := DetermineFramework(projectType, options.Source)
 	jdkVersion := DetermineJDKVersion(projectType, options.Source)
+	targetExt := DetermineTargetExt(options.Source)
 
 	return types.PlanMeta{
 		"type":      string(projectType),
 		"framework": string(framework),
+		"targetExt": targetExt,
 		"jdk":       jdkVersion,
 	}
 }
