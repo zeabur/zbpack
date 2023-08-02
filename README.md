@@ -1,8 +1,12 @@
-# zbpack
+# zbpack 👨‍💻
+
+<p align="center">
+<img src="https://github.com/anshulsoni4/zbpack/assets/74638335/e4eec253-58c6-4a46-8a5e-9abd5ef5054b">
+</p>
 
 `zbpack` (pronounced “Zeabur Pack”) aims to automatically analyze the language, version, and framework used based on the source code and package the service into the most suitable deployment form, such as static resources, cloud functions, containers, or multiple types by one click. It is mainly used in the [Zeabur](https://zeabur.com) platform as the build tool to determine the code type and build the container image automatically (without writing the Dockerfile manually.)
 
-## Components
+## Components 📍
 
 `zbpack` is consist of the following components:
 
@@ -10,15 +14,15 @@
 - `zeaburpack` library: The `zeaburpack` library is the library of `zbpack` that can be used in your platform directly. It is located in the `pkg/zeaburpack` directory.
 - CLI: The CLI is the command-line interface of `zbpack` for testing purpose. It is located in the `cmd/zbpack` directory.
 
-## Usage
+## Usage ⭐️
 
-### Common Part
+Common Part
 
 1. Fork the repository and clone it to your local machine.
 2. Make sure you have Go installed on your machine. You can download it from the official website: <https://golang.org/dl/>
 3. Navigate to the root of the project and run `go mod download` to download the necessary dependencies.
 
-### `zbpack`
+### `zbpack` 
 
 `zbpack` analyzes your projects, constructs the image recipes, and builds the container image automatically.
 
@@ -49,11 +53,11 @@ $ ./zbpack --info ./tests/node-corepack
 
 Get some more usage information by using `-h` or `--help`.
 
-## Contributing
+## Contributing 🌐
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 
-## License
+## License 📃
 
 `zbpack` is licensed under the [Mozilla Public License 2.0](./LICENSE). According to MPL 2.0 (and the summarization of Bing AI), if you want to use, modify or distribute MPL 2.0 software, you have the following rights and obligations:
 
@@ -63,7 +67,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 - You have the right to combine MPL 2.0 source code files with source code files under other licenses in a software, but you cannot change the license of MPL 2.0 source code files.
 - You have the right to choose to provide MPL 2.0 source code files to others under another compatible Copyleft license, such as GNU GPL, LGPL or AGPL.
 
-## Contributors
+## Contributors 🤝
 
 <p align="center">
 <a href="https://github.com/zeabur/zbpack/graphs/contributors">
