@@ -19,6 +19,7 @@ func (i *identify) PlanType() types.PlanType {
 	return types.PlanTypeJava
 }
 
+// Match checks if the given filesystem contains files specific to Java projects.
 func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(
 		fs, "pom.xml", "pom.yml", "pom.yaml", "build.gradle",
@@ -26,12 +27,30 @@ func (i *identify) Match(fs afero.Fs) bool {
 	)
 }
 
+// PlanMeta returns metadata about the identified Java project.
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	projectType := DetermineProjectType(options.Source)
-	framework := DetermineFramework(projectType, options.Source)
-	jdkVersion := DetermineJDKVersion(projectType, options.Source)
+	// Determine the project type
+	projectType, err := DetermineProjectType(options.Source)
+	if err != nil {
+		projectType = "unknown" // Handle error gracefully, set default value
+	}
+
+	// Determine the framework
+	framework, err := DetermineFramework(projectType, options.Source)
+	if err != nil {
+		framework = "unknown" // Handle error gracefully, set default value
+	}
+
+	// Determine JDK version
+	jdkVersion, err := DetermineJDKVersion(projectType, options.Source)
+	if err != nil {
+		jdkVersion = "unknown" // Handle error gracefully, set default value
+	}
+
+	// Determine target extension
 	targetExt := DetermineTargetExt(options.Source)
 
+	// Create and return the PlanMeta
 	return types.PlanMeta{
 		"type":      string(projectType),
 		"framework": string(framework),
