@@ -109,19 +109,15 @@ func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 	return defaultVersion
 }
 
+// DetermineTargetExt determines the target extension of the Java project.
 func DetermineTargetExt(src afero.Fs) string {
-	if utils.HasFile(src, "pom.xml") {
-		pom, err := afero.ReadFile(src, "pom.xml")
-		if err != nil {
-			return "jar"
-		}
-		re := regexp.MustCompile(`<packaging>(.*)</packaging>`)
-		matches := re.FindStringSubmatch(string(pom))
-		if len(matches) > 1 {
-			if matches[1] == "war" {
-				return "war"
-			}
-		}
+	pom, err := afero.ReadFile(src, "pom.xml")
+	if err != nil {
+		return "jar"
+	}
+
+	if strings.Contains(string(pom), "<packaging>war</packaging>") {
+		return "war"
 	}
 
 	return "jar"
