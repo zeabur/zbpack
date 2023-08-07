@@ -56,6 +56,9 @@ func buildImage(opt *buildImageOptions) error {
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
 
+	// Inject CI env so everyone knows that we are a CI.
+	dockerfileEnv += "ENV CI true\n"
+
 	for _, stageLine := range stageLines {
 		lines[stageLine] = lines[stageLine] + "\n" + dockerfileEnv + "\n"
 	}
