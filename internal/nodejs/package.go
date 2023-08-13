@@ -49,3 +49,20 @@ func DeserializePackageJSON(source afero.Fs) (PackageJSON, error) {
 
 	return p, nil
 }
+
+// FindDependency checks if the package.json contains
+// the given dependency in "dependency" and "devDependencies",
+// and returns the version of the dependency.
+func (p PackageJSON) FindDependency(name string) (string, bool) {
+	d, ok := p.Dependencies[name]
+	if ok {
+		return d, true
+	}
+
+	d, ok = p.DevDependencies[name]
+	if ok {
+		return d, true
+	}
+
+	return "", false
+}
