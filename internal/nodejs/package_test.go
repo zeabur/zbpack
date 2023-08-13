@@ -30,11 +30,6 @@ func TestNewPackageJson(t *testing.T) {
 		assert.False(t, ok)
 	})
 
-	// panic!
-	assert.Panics(t, func() {
-		p.Scripts["build"] = "hi"
-	})
-
 	// engines
 	assert.Empty(t, p.Engines.Node)
 
@@ -63,9 +58,9 @@ func TestDeserializePackageJson_EmptyJson(t *testing.T) {
 
 	p, err := nodejs.DeserializePackageJSON(fs)
 	assert.NoError(t, err)
-	assert.Nil(t, p.Dependencies)
-	assert.Nil(t, p.DevDependencies)
-	assert.Nil(t, p.Scripts)
+	assert.Empty(t, p.Dependencies)
+	assert.Empty(t, p.DevDependencies)
+	assert.Empty(t, p.Scripts)
 	assert.Empty(t, p.Engines.Node)
 	assert.Empty(t, p.Main)
 }
