@@ -99,6 +99,21 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isSolid := packageJSON.FindDependency("solid-start"); isSolid {
+		if _, isSolidStatic := packageJSON.FindDependency("solid-start-static"); isSolidStatic {
+			*fw = optional.Some(types.NodeProjectFrameworkSolidStartStatic)
+			return fw.Unwrap()
+		}
+
+		if _, isSolidNode := packageJSON.FindDependency("solid-start-node"); isSolidNode {
+			*fw = optional.Some(types.NodeProjectFrameworkSolidStartNode)
+			return fw.Unwrap()
+		}
+
+		*fw = optional.Some(types.NodeProjectFrameworkSolidStart)
+		return fw.Unwrap()
+	}
+
 	if _, isSliDev := packageJSON.Dependencies["@slidev/cli"]; isSliDev {
 		*fw = optional.Some(types.NodeProjectFrameworkSliDev)
 		return fw.Unwrap()
@@ -416,6 +431,20 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		}
 	}
 
+	// For solid-start projects, when using `solid-start start`
+	// on solid-start-node, we should use the memory-efficient
+	// start script instead.
+	//
+	// For more information, see the discussion in Discord: Solid.js
+	// https://ptb.discord.com/channels/722131463138705510/
+	// 722131463889223772/1140159307648868382
+	if framework == types.NodeProjectFrameworkSolidStartNode {
+		if startScript == "start" {
+			// solid-start-node specific start script
+			startCmd = "node dist/server.js"
+		}
+	}
+
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
@@ -437,15 +466,16 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	framework := DetermineProjectFramework(ctx)
 
 	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
-		types.NodeProjectFrameworkVite:           "dist",
-		types.NodeProjectFrameworkUmi:            "dist",
-		types.NodeProjectFrameworkVueCli:         "dist",
-		types.NodeProjectFrameworkCreateReactApp: "build",
-		types.NodeProjectFrameworkHexo:           "public",
-		types.NodeProjectFrameworkVitepress:      "docs/.vitepress/dist",
-		types.NodeProjectFrameworkAstroStatic:    "dist",
-		types.NodeProjectFrameworkSliDev:         "dist",
-		types.NodeProjectFrameworkDocusaurus:     "build",
+		types.NodeProjectFrameworkVite:             "dist",
+		types.NodeProjectFrameworkUmi:              "dist",
+		types.NodeProjectFrameworkVueCli:           "dist",
+		types.NodeProjectFrameworkCreateReactApp:   "build",
+		types.NodeProjectFrameworkHexo:             "public",
+		types.NodeProjectFrameworkVitepress:        "docs/.vitepress/dist",
+		types.NodeProjectFrameworkAstroStatic:      "dist",
+		types.NodeProjectFrameworkSliDev:           "dist",
+		types.NodeProjectFrameworkDocusaurus:       "build",
+		types.NodeProjectFrameworkSolidStartStatic: "dist/public",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
