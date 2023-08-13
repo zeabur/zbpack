@@ -14,10 +14,10 @@ type PackageJSONEngine struct {
 
 // PackageJSON is the structure of `package.json`.
 type PackageJSON struct {
-	PackageManager  *string           `json:"packageManager"`
-	Dependencies    map[string]string `json:"dependencies"`
-	DevDependencies map[string]string `json:"devDependencies"`
-	Scripts         map[string]string `json:"scripts"`
+	PackageManager  *string           `json:"packageManager,omitempty"`
+	Dependencies    map[string]string `json:"dependencies,omitempty"`
+	DevDependencies map[string]string `json:"devDependencies,omitempty"`
+	Scripts         map[string]string `json:"scripts,omitempty"`
 	Engines         PackageJSONEngine `json:"engines"`
 	Main            string            `json:"main"`
 }
@@ -25,10 +25,11 @@ type PackageJSON struct {
 // NewPackageJSON returns a new instance of PackageJson
 // with some default values.
 func NewPackageJSON() PackageJSON {
-	// we don't need to allocate an map for Dependencies,
-	// DevDependencies and Scripts, since we won't set them
-	// in the null state.
-	return PackageJSON{}
+	return PackageJSON{
+		Dependencies:    make(map[string]string),
+		DevDependencies: make(map[string]string),
+		Scripts:         make(map[string]string),
+	}
 }
 
 // DeserializePackageJSON deserializes a package.json file
