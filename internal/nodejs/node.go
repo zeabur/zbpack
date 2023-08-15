@@ -43,6 +43,7 @@ func isMpaFramework(framework string) bool {
 		types.NodeProjectFrameworkHexo,
 		types.NodeProjectFrameworkVitepress,
 		types.NodeProjectFrameworkAstroStatic,
+		types.NodeProjectFrameworkSolidStartStatic,
 	}
 
 	for _, f := range mpaFrameworks {

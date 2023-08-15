@@ -151,3 +151,54 @@ func TestDeserializePackageJson_WithoutPackageManager(t *testing.T) {
 
 	assert.Nil(t, packageJSON.PackageManager)
 }
+
+func TestContainsDependency(t *testing.T) {
+	p := nodejs.NewPackageJSON()
+	p.Dependencies["solid"] = "0.0.1"
+
+	d, ok := p.FindDependency("solid")
+	assert.True(t, ok)
+	assert.Equal(t, "0.0.1", d)
+}
+
+func TestContainsDependency_Dev(t *testing.T) {
+	p := nodejs.NewPackageJSON()
+	p.DevDependencies["solid-start-node"] = "0.0.2"
+
+	d, ok := p.FindDependency("solid-start-node")
+	assert.True(t, ok)
+	assert.Equal(t, "0.0.2", d)
+}
+
+func TestContainsDependency_NotFound(t *testing.T) {
+	p := nodejs.NewPackageJSON()
+	p.Dependencies["solid"] = "0.0.1"
+
+	_, ok := p.FindDependency("astro")
+	assert.False(t, ok)
+}
+
+func TestContainsDependency_Both(t *testing.T) {
+	p := nodejs.NewPackageJSON()
+	p.Dependencies["solid"] = "0.0.1"
+	p.DevDependencies["solid-start-node"] = "0.0.2"
+
+	d, ok := p.FindDependency("solid")
+	assert.True(t, ok)
+	assert.Equal(t, "0.0.1", d)
+
+	d, ok = p.FindDependency("solid-start-node")
+	assert.True(t, ok)
+	assert.Equal(t, "0.0.2", d)
+}
+
+func TestContainsDependency_Conflict(t *testing.T) {
+	p := nodejs.NewPackageJSON()
+	p.Dependencies["solid"] = "0.0.1"
+	p.DevDependencies["solid"] = "0.0.2"
+
+	// not stable behavior
+	d, ok := p.FindDependency("solid")
+	assert.True(t, ok)
+	assert.Equal(t, "0.0.1", d)
+}
