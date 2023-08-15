@@ -26,7 +26,7 @@ EXPOSE 8080`, nil
 	dockerfile := `FROM docker.io/library/nginx:alpine as runtime
 WORKDIR /usr/share/nginx/html/static
 COPY . .
-RUN echo "server { listen 8080; root /usr/share/nginx/html/static; absolute_redirect off; }"> /etc/nginx/conf.d/default.conf
+RUN echo "server { listen 8080; root /usr/share/nginx/html/static; absolute_redirect off; location / { add_header 'Access-Control-Allow-Origin' '*'; if (\$request_method = 'OPTIONS') { return 204; } } }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080`
 
 	return dockerfile, nil
