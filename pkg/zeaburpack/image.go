@@ -45,6 +45,12 @@ func buildImage(opt *buildImageOptions) error {
 
 	// build the dockerfile
 	dockerfileEnv := ""
+
+	// Inject CI env so everyone knows that we are a CI.
+	if _, ok := resolvedVars["CI"]; !ok {
+		dockerfileEnv += "ENV CI true\n"
+	}
+
 	for _, key := range sortedResolvedVarsKey {
 		value := resolvedVars[key]
 
@@ -55,9 +61,6 @@ func buildImage(opt *buildImageOptions) error {
 
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
-
-	// Inject CI env so everyone knows that we are a CI.
-	dockerfileEnv += "ENV CI true\n"
 
 	for _, stageLine := range stageLines {
 		lines[stageLine] = lines[stageLine] + "\n" + dockerfileEnv + "\n"
