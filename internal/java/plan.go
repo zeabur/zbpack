@@ -99,6 +99,9 @@ func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 					if matches[1] == "1.8" {
 						return "8"
 					}
+					if strings.HasPrefix(matches[1], "JavaVersion.VERSION_") {
+						return strings.ReplaceAll(matches[1], "JavaVersion.VERSION_", "")
+					}
 					return strings.ReplaceAll(matches[1], "'", "")
 				}
 			}
