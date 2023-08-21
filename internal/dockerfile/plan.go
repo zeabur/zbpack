@@ -87,6 +87,7 @@ func GetExposePort(ctx *dockerfilePlanContext) string {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := strings.ToUpper(scanner.Text())
+		line = strings.TrimSpace(line)
 
 		port, found := strings.CutPrefix(line, exposePrefix)
 		if !found {
