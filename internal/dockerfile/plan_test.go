@@ -94,6 +94,30 @@ func TestGetExposePort_WithLowercaseDockerfileSpecified(t *testing.T) {
 	assert.Equal(t, "1145", port)
 }
 
+func TestGetExposePort_WithSpaceAfterExpose(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine\nEXPOSE 1145 "), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src: fs,
+	}
+	port := GetExposePort(&ctx)
+
+	assert.Equal(t, "1145", port)
+}
+
+func TestGetExposePort_WithLowercaseExpose(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine\nexpose 1145"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src: fs,
+	}
+	port := GetExposePort(&ctx)
+
+	assert.Equal(t, "1145", port)
+}
+
 func TestGetMeta_Content(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
