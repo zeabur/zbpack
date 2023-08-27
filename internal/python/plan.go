@@ -332,6 +332,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "libzbar0")
 	}
 
+	if HasDependency(ctx, "chromadb") {
+		deps = append(deps, "g++-7")
+	}
+
 	return deps
 }
 
