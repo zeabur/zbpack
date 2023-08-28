@@ -2,11 +2,8 @@ package zeaburpack
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
-	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -182,60 +179,14 @@ func Build(opt *BuildOptions) error {
 		handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
 	}
 
-	return nil
-}
-
-// unused because we are refactoring this part. Ignore this for now.
-// nolint:unused
-func extractStaticOutput(resultImage string, opt *BuildOptions) error {
-	copyFiles := `FROM ` + resultImage + `
-CMD ["cp", "-r", "/usr/share/nginx/html/static", "/out/"]`
-
-	tempDir := os.TempDir()
-	buildID := strconv.Itoa(rand.Int())
-
-	err := os.MkdirAll(path.Join(tempDir, buildID), 0o755)
+	hasOutput, err := copyZeaburOutputToHost(*opt.ResultImage, *opt.Path)
 	if err != nil {
+		handleBuildFailed(err)
 		return err
 	}
 
-	defer func() {
-		err = os.RemoveAll(path.Join(tempDir, buildID))
-		if err != nil {
-			println("\033[31m" + "Failed to remove temp directory" + "\033[0m")
-			println("\033[31m" + err.Error() + "\033[0m")
-		}
-	}()
-
-	dfPath := path.Join(tempDir, buildID, "Dockerfile")
-	if err := os.WriteFile(dfPath, []byte(copyFiles), 0o644); err != nil {
-		return err
-	}
-
-	args := []string{"build", "-t", "copy", "-f", dfPath, *opt.Path}
-	err = exec.Command("docker", args...).Run()
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		cmd := exec.Command("docker", "rmi", "copy")
-		err = cmd.Run()
-		if err != nil {
-			println("\033[31m" + "Failed to remove copy image" + "\033[0m")
-			println("\033[31m" + err.Error() + "\033[0m")
-		}
-	}()
-
-	hostPath := *opt.Path + "/.zeabur/output"
-	containerPath := "/out"
-	v := hostPath + ":" + containerPath
-
-	println("docker", "run", "--rm", "-v", v, "copy")
-	err = exec.Command("docker", "run", "--rm", "-v", v, "copy").Run()
-	if err != nil {
-		println("\033[31m" + "Failed to copy files to .zeabur/output/static" + "\033[0m")
-		println("\033[31m" + err.Error() + "\033[0m")
+	if hasOutput {
+		handleLog("\n\u001B[32mThe .zeabur/output directory found! This service will be deployed in a serverless way on Zeabur 😎")
 	}
 
 	return nil
