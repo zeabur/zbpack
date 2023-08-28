@@ -1,12 +1,8 @@
 package zbpack
 
 import (
-	"context"
-	"fmt"
 	"path/filepath"
 	"strings"
-
-	"github.com/docker/docker/client"
 )
 
 var usageTemplate = `Usage:{{if .Runnable}}
@@ -52,27 +48,4 @@ func GetSubmoduleName(path string) (submoduleName string, err error) {
 	submoduleName = filepath.Base(absPath)
 
 	return submoduleName, err
-}
-
-// CheckDockerDaemonStatus is used to check Docker daemon status.
-// If Docker daemon is not running, it will return an error.
-func CheckDockerDaemonStatus() error {
-	c, err := client.NewClientWithOpts(client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
-	_, err = c.Ping(context.Background())
-	if err != nil {
-		return fmt.Errorf("please make sure the Docker daemon is running")
-	}
-
-	defer func(c *client.Client) {
-		err := c.Close()
-		if err != nil {
-			println("Failed to close Docker client: " + err.Error())
-		}
-	}(c)
-
-	return nil
 }

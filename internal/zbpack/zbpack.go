@@ -56,10 +56,6 @@ func run(args []string) error {
 
 // build is used to build Docker image and show build plan.
 func build(path string) error {
-	if err := CheckDockerDaemonStatus(); err != nil {
-		return err
-	}
-
 	// TODO support online repositories
 	if strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://") {
 		return fmt.Errorf("zbpack does not support building from online repositories yet")
