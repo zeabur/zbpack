@@ -2,6 +2,7 @@ package zeaburpack
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -20,15 +21,21 @@ func copyZeaburOutputToHost(resultImage, targetDir string) (bool, error) {
 	defer func() {
 		removeCmd := exec.Command("docker", "rm", "-f", strings.TrimSpace(string(output)))
 		removeCmd.Stderr = os.Stderr
-		removeCmd.Run()
+		if err := removeCmd.Run(); err != nil {
+			log.Println(err)
+		}
 	}()
 
 	containerID := strings.TrimSpace(string(output))
 
-	if stat, _ := os.Stat(path.Join(targetDir, ".zeabur")); stat != nil {
-		os.RemoveAll(path.Join(targetDir, ".zeabur"))
+	if err := os.RemoveAll(path.Join(targetDir, ".zeabur")); err != nil {
+		log.Printf("failed to delete .zeabur directory: %s", err)
 	}
-	os.MkdirAll(path.Join(targetDir, ".zeabur"), 0755)
+
+	if err := os.MkdirAll(path.Join(targetDir, ".zeabur"), 0o755); err != nil {
+		log.Printf("failed to create .zeabur directory: %s", err)
+	}
+
 	copyCmd := exec.Command("docker", "cp", containerID+":/src/.zeabur/output/.", path.Join(targetDir, ".zeabur/output"))
 	var stderr strings.Builder
 	copyCmd.Stderr = &stderr
