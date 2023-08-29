@@ -25,8 +25,11 @@ func copyZeaburOutputToHost(resultImage, targetDir string) (bool, error) {
 
 	containerID := strings.TrimSpace(string(output))
 
-	dir := path.Join(targetDir, ".zeabur")
-	copyCmd := exec.Command("docker", "cp", containerID+":/src/.zeabur/output", dir)
+	if stat, _ := os.Stat(path.Join(targetDir, ".zeabur")); stat != nil {
+		os.RemoveAll(path.Join(targetDir, ".zeabur"))
+	}
+	os.MkdirAll(path.Join(targetDir, ".zeabur"), 0755)
+	copyCmd := exec.Command("docker", "cp", containerID+":/src/.zeabur/output/.", path.Join(targetDir, ".zeabur/output"))
 	var stderr strings.Builder
 	copyCmd.Stderr = &stderr
 	err = copyCmd.Run()
