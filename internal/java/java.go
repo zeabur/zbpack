@@ -25,6 +25,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	case string(types.JavaProjectTypeMaven):
 		dockerfile += `FROM ` + baseImage + `
 RUN apt-get update && apt-get install -y maven
+RUN apt-get install -y ca-certificates-java
 WORKDIR /src
 COPY . .
 RUN mvn clean dependency:list install
