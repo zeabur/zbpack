@@ -1,10 +1,11 @@
 package ruby
 
 import (
-	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/pkg/types"
 	"regexp"
 	"strings"
+
+	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // DetermineRubyVersion determines the version of Ruby used in the project.

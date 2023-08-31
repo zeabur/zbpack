@@ -1,3 +1,4 @@
+// Package ruby is the build planner for Ruby projects.
 package ruby
 
 import (
