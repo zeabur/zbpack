@@ -31,6 +31,7 @@ RUN bundle install
 	// copy source to workdir
 	copySource := `
 COPY . /myapp
+RUN bundle exec rake assets:precompile
 `
 	startCmd := `
 EXPOSE ${PORT}
