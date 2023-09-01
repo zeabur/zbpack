@@ -318,7 +318,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	deps := []string{"build-essential", "nginx"}
+	deps := []string{"build-essential"}
+	wsgi := DetermineWsgi(ctx)
+	if wsgi != "" {
+		deps = append(deps, "nginx")
+	}
 
 	if HasDependency(ctx, "mysqlclient") {
 		deps = append(deps, "libmariadb-dev")
@@ -344,7 +348,11 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
 	var commandSegment []string
-	commandSegment = append(commandSegment, "/usr/sbin/nginx && ")
+
+	if wsgi != "" {
+		commandSegment = append(commandSegment, "/usr/sbin/nginx &&")
+	}
+
 	switch pm {
 	case types.PythonPackageManagerPipenv:
 		commandSegment = append(commandSegment, "pipenv run")
