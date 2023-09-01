@@ -318,7 +318,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	deps := []string{"build-essential"}
+	deps := []string{"build-essential", "nginx"}
 
 	if HasDependency(ctx, "mysqlclient") {
 		deps = append(deps, "libmariadb-dev")
@@ -344,7 +344,7 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
 	var commandSegment []string
-
+	commandSegment = append(commandSegment, "/usr/sbin/nginx && ")
 	switch pm {
 	case types.PythonPackageManagerPipenv:
 		commandSegment = append(commandSegment, "pipenv run")
@@ -356,9 +356,9 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 
 	if wsgi != "" {
 		if framework == types.PythonFrameworkFastapi {
-			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port 8080")
+			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port 8000")
 		} else {
-			commandSegment = append(commandSegment, "gunicorn", "--bind :8080", wsgi)
+			commandSegment = append(commandSegment, "gunicorn", "--bind :8000", wsgi)
 		}
 	} else {
 		entry := DetermineEntry(ctx)
@@ -438,7 +438,8 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	version := determinePythonVersion(ctx)
 	meta["pythonVersion"] = version
 
-	DetermineWsgi(ctx)
+	wsgi := DetermineWsgi(ctx)
+	meta["wsgi"] = wsgi
 
 	framework := DetermineFramework(ctx)
 	if framework != types.PythonFrameworkNone {
