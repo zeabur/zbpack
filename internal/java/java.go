@@ -28,14 +28,14 @@ RUN apt-get update && apt-get install -y maven
 RUN apt-get install -y ca-certificates-java
 WORKDIR /src
 COPY . .
-RUN mvn clean dependency:list install
+RUN mvn clean dependency:list install -Dmaven.test.skip=true
 `
 	case string(types.JavaProjectTypeGradle):
 		baseImage = "docker.io/library/gradle:8.1.0-jdk" + jdkVersion + "-alpine"
 		dockerfile += `FROM ` + baseImage + `
 WORKDIR /src
 COPY . .
-RUN gradle build
+RUN gradle build -x test
 `
 	}
 
