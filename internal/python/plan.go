@@ -2,6 +2,10 @@
 package python
 
 import (
+	"errors"
+	"fmt"
+	"log"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -17,6 +21,7 @@ type pythonPlanContext struct {
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
+	Static         optional.Option[StaticInfo]
 }
 
 // DetermineFramework determines the framework of the Python project.
@@ -259,10 +264,127 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 	return ""
 }
 
+// getDjangoSettings finds and reads the Django settings module
+// of a Python project.
+func getDjangoSettings(fs afero.Fs) ([]byte, error) {
+	djangoSettingModule := regexp.MustCompile(`['"]DJANGO_SETTINGS_MODULE['"],\s*['"](.+)\.settings['"]`)
+
+	// According to https://github.com/django/django/blob/bcd80de8b5264d8c
+	// 853bbd38bfeb02279a9b3799/django/conf/__init__.py#L61, it reads
+	// the "DJANGO_SETTINGS_MODULE" environment variable to determine
+	// where the settings module is.
+
+	// Generally, the "DJANGO_SETTINGS_MODULE" environment variable
+	// is defined in the "manage.py" file. So we read the manage.py first.
+	managePy, err := afero.ReadFile(fs, "manage.py")
+	if err != nil {
+		return nil, fmt.Errorf("read manage.py: %w", err)
+	}
+
+	// We try to find the line defining the "DJANGO_SETTINGS_MODULE"
+	// environment variable. The line is usually like:
+	//
+	//		os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproject.settings")
+	//
+	// We try to find the "myproject" substring here.
+	match := djangoSettingModule.FindSubmatch(managePy)
+	if len(match) != 2 {
+		// We should only have one match.
+		return nil, errors.New("no DJANGO_SETTINGS_MODULE defined")
+	}
+
+	// We try to read the settings.py file declaring in the
+	// "DJANGO_SETTINGS_MODULE" environment variable.
+	settingsFile, err := afero.ReadFile(fs, filepath.Join(string(match[1]), "settings.py"))
+	if err != nil {
+		return nil, fmt.Errorf("read settings.py: %w", err)
+	}
+
+	// Found!
+	return settingsFile, nil
+}
+
+// DetermineStaticInfo determines the static path for Nginx to host.
+// If this returns "", it means that we don't need to host static files
+// with Nginx; otherwise, it returns the path to the static files.
+func DetermineStaticInfo(ctx *pythonPlanContext) StaticInfo {
+	var (
+		staticURLRegex       = regexp.MustCompile(`STATIC_URL\s*=\s*['"]([^'"]*)['"]`)
+		staticURLCheckRegex  = regexp.MustCompile(`STATIC_URL\s*=`)
+		staticRootCheckRegex = regexp.MustCompile(`STATIC_ROOT\s*=`)
+	)
+
+	const defaultStaticURL = "/static/"
+	const defaultDjangoStaticHostDir = "/app/staticfiles/"
+
+	src := ctx.Src
+	sp := &ctx.Static
+
+	if staticInfo, err := sp.Take(); err == nil {
+		return staticInfo
+	}
+
+	framework := DetermineFramework(ctx)
+
+	if framework == types.PythonFrameworkDjango {
+		settings, err := getDjangoSettings(src)
+		if err != nil {
+			// Assuming this project does not enable static file.
+			log.Println("getDjangoSettings:", err)
+
+			*sp = optional.Some(StaticInfo{})
+			return sp.Unwrap()
+		}
+
+		if staticRootCheckRegex.Match(settings) && staticURLCheckRegex.Match(settings) {
+			// We don't need to start an additional nginx server if user
+			// has specified "whitenoise.middleware.WhiteNoiseMiddleware"
+			// middleware. FIXME: we don't check if the middleware is
+			// actually enabled (for example, commented out.)
+			if strings.Contains(string(settings), "whitenoise.middleware.WhiteNoiseMiddleware") {
+				*sp = optional.Some(StaticInfo{
+					Flag: StaticModeDjango,
+				})
+				return sp.Unwrap()
+			}
+
+			// Add "/" prefix to the static url path if it doesn't have one.
+			staticURLPath := defaultStaticURL
+			if match := staticURLRegex.FindSubmatch(settings); len(match) > 1 {
+				staticURLPath = string(match[1])
+
+				if !strings.HasPrefix(staticURLPath, "/") {
+					staticURLPath = "/" + staticURLPath
+				}
+			}
+
+			// Otherwise, we need to host static files with Nginx.
+			// FIXME: read STATIC_ROOT from settings.py.
+			*sp = optional.Some(StaticInfo{
+				Flag:          StaticModeDjango | StaticModeNginx,
+				StaticURLPath: staticURLPath,
+				StaticHostDir: defaultDjangoStaticHostDir,
+			})
+			return sp.Unwrap()
+		}
+
+		// For any other configuration of Django (including none),
+		// we assume that we don't need to host static files.
+		*sp = optional.Some(StaticInfo{})
+		return sp.Unwrap()
+	}
+
+	// For any other framework (including none), we assume that we don't
+	// need to host static files.
+	*sp = optional.Some(StaticInfo{})
+	return sp.Unwrap()
+}
+
 func determineInstallCmd(ctx *pythonPlanContext) string {
 	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
+	staticInfo := DetermineStaticInfo(ctx)
 
 	// Will be joined with `&&`
 	andCommands := []string{}
@@ -310,6 +432,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 		}
 	}
 
+	if staticInfo.DjangoEnabled() {
+		// We need to collect static files if we are using Django.
+		andCommands = append(andCommands, "python manage.py collectstatic --noinput")
+	}
+
 	command := strings.Join(andCommands, " && ")
 	if command != "" {
 		return command
@@ -319,8 +446,10 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
 	deps := []string{"build-essential"}
-	wsgi := DetermineWsgi(ctx)
-	if wsgi != "" {
+
+	// If we need to host static files, we need nginx.
+	staticPath := DetermineStaticInfo(ctx)
+	if staticPath.NginxEnabled() {
 		deps = append(deps, "nginx")
 	}
 
@@ -347,9 +476,12 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
+	staticPath := DetermineStaticInfo(ctx)
+
 	var commandSegment []string
 
-	if wsgi != "" {
+	// We need Nginx server if we need to host static files.
+	if staticPath.NginxEnabled() {
 		commandSegment = append(commandSegment, "/usr/sbin/nginx &&")
 	}
 
@@ -363,10 +495,20 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	}
 
 	if wsgi != "" {
+		wsgilistenedPort := "8080"
+
+		// The WSGI application should listen at 8000
+		// for reverse proxying by Nginx if we need to
+		// host static files with Nginx. The "8000" is
+		// configured by our nginx.conf in `python.go`.
+		if staticPath.NginxEnabled() {
+			wsgilistenedPort = "8000"
+		}
+
 		if framework == types.PythonFrameworkFastapi {
-			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port 8000")
+			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
 		} else {
-			commandSegment = append(commandSegment, "gunicorn", "--bind :8000", wsgi)
+			commandSegment = append(commandSegment, "gunicorn", "--bind :"+wsgilistenedPort, wsgi)
 		}
 	} else {
 		entry := DetermineEntry(ctx)
@@ -446,8 +588,10 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	version := determinePythonVersion(ctx)
 	meta["pythonVersion"] = version
 
-	wsgi := DetermineWsgi(ctx)
-	meta["wsgi"] = wsgi
+	staticPath := DetermineStaticInfo(ctx)
+	for k, v := range staticPath.Meta() {
+		meta[k] = v
+	}
 
 	framework := DetermineFramework(ctx)
 	if framework != types.PythonFrameworkNone {
