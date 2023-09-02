@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<h1>Django static and media files</h1>
+
+{% if form %}
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">upload</button>
+  </form>
+{% endif %}
+
+{% if profile %}
+  <img src="{{ profile.image.url }}" height="200px" alt="profile">
+{% endif %}
+
+{% endblock content %}
