@@ -284,7 +284,7 @@ func GetStartScript(ctx *nodePlanContext) string {
 	return ss.Unwrap()
 }
 
-const defaultNodeVersion = "16"
+const defaultNodeVersion = "18"
 
 func getNodeVersion(versionRange string, versionsList []*semver.Version) string {
 	if versionRange == "" {
