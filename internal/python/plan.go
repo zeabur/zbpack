@@ -315,7 +315,7 @@ func DetermineStaticInfo(ctx *pythonPlanContext) StaticInfo {
 	)
 
 	const defaultStaticURL = "/static/"
-	const defaultDjangoStaticHostDir = "/app/staticfiles/"
+	const defaultDjangoStaticHostDir = "/app/static/"
 
 	src := ctx.Src
 	sp := &ctx.Static
