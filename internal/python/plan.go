@@ -309,13 +309,23 @@ func getDjangoSettings(fs afero.Fs) ([]byte, error) {
 // with Nginx; otherwise, it returns the path to the static files.
 func DetermineStaticInfo(ctx *pythonPlanContext) StaticInfo {
 	var (
-		staticURLRegex       = regexp.MustCompile(`STATIC_URL\s*=\s*['"]([^'"]*)['"]`)
+		// staticURLRegex matches the following:
+		//
+		//    STATIC_URL = '</static/>' ($2)
+		//    STATIC_URL="</staticexample>" ($2)
+		staticURLRegex = regexp.MustCompile(`STATIC_URL\s*=\s*['"]([^'"]*)['"]`)
+		// staticRootRegex matches the following:
+		//
+		//   STATIC_ROOT = os.path.join(BASE_DIR, "<staticfiles>") ($2)
+		//   STATIC_ROOT = BASE_DIR / "<staticfiles>" ($3)
+		staticRootRegex      = regexp.MustCompile(`STATIC_ROOT\s*=\s*(?:os.path.join\(BASE_DIR,\s*["'](.+)["']\)|BASE_DIR\s*/\s*["'](.+)["'])`)
 		staticURLCheckRegex  = regexp.MustCompile(`STATIC_URL\s*=`)
 		staticRootCheckRegex = regexp.MustCompile(`STATIC_ROOT\s*=`)
 	)
 
 	const defaultStaticURL = "/static/"
-	const defaultDjangoStaticHostDir = "/app/staticfiles/"
+	const defaultDjangoBaseDir = "/app/"
+	const defaultDjangoStaticHostDir = defaultDjangoBaseDir + "staticfiles/"
 
 	src := ctx.Src
 	sp := &ctx.Static
@@ -358,12 +368,27 @@ func DetermineStaticInfo(ctx *pythonPlanContext) StaticInfo {
 				}
 			}
 
+			// Find the static root
+			staticRootPath := defaultDjangoStaticHostDir
+			if match := staticRootRegex.FindSubmatch(settings); len(match) > 1 {
+				// find the first non-empty match
+				for _, m := range match[1:] {
+					if len(m) > 0 {
+						staticRootPath = defaultDjangoBaseDir + string(m)
+					}
+				}
+
+				// add "/" suffix to the static root if it doesn't have one
+				if !strings.HasSuffix(staticRootPath, "/") {
+					staticRootPath = staticRootPath + "/"
+				}
+			}
+
 			// Otherwise, we need to host static files with Nginx.
-			// FIXME: read STATIC_ROOT from settings.py.
 			*sp = optional.Some(StaticInfo{
 				Flag:          StaticModeDjango | StaticModeNginx,
 				StaticURLPath: staticURLPath,
-				StaticHostDir: defaultDjangoStaticHostDir,
+				StaticHostDir: staticRootPath,
 			})
 			return sp.Unwrap()
 		}
