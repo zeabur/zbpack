@@ -3,6 +3,7 @@ package ruby
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -14,37 +15,36 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	getRubyImage := fmt.Sprintf("FROM docker.io/library/ruby:%s\n", rubyVersion)
 
-	// ROR framework requires nodejs and postgresql-client
-	installCMD := `
-RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
-`
-	workDir := `
-WORKDIR /myapp
-`
-	// copy gemfile for install package
-	copyGemfile := `
-COPY Gemfile /myapp/Gemfile
-COPY Gemfile.lock /myapp/Gemfile.lock
-`
-	bundlerInstallCmd := `
-RUN bundle install
-`
-	// copy source to workdir
-	copySource := `
-COPY . /myapp
-RUN bundle exec rake assets:precompile
-`
-	startCmd := `
-EXPOSE ${PORT}
-CMD ["rails", "server", "-b", "0.0.0.0","-p","8080"]
-`
-	dockerFile := getRubyImage +
-		installCMD +
-		workDir +
-		copyGemfile +
-		bundlerInstallCmd +
-		copySource +
-		startCmd
+	installSysDepCmd := []string{"RUN apt-get update -qq && apt-get install -y postgresql-client"}
+	workDir := "WORKDIR /myapp"
+	copySource := "COPY . /myapp"
+	installDepCmd := []string{"RUN bundle install"}
+	precompileCmd := "RUN bundle exec rake assets:precompile"
+	startCmd := `CMD ["rails", "server", "-b", "0.0.0.0","-p","8080"]`
+
+	needNode := meta["needNode"] == "true"
+	if needNode {
+		installSysDepCmd = append(installSysDepCmd, "RUN apt-get install -y nodejs npm")
+
+		switch meta["nodePackageManager"] {
+		case "yarn":
+			installSysDepCmd = append(installSysDepCmd, "RUN npm install -g yarn")
+			installDepCmd = append(installDepCmd, "RUN yarn install")
+		case "pnpm":
+			installSysDepCmd = append(installSysDepCmd, "RUN npm install -g pnpm")
+			installDepCmd = append(installDepCmd, "RUN pnpm install")
+		default:
+			installDepCmd = append(installDepCmd, "RUN npm install")
+		}
+	}
+
+	dockerFile := getRubyImage + `
+` + strings.Join(installSysDepCmd, "\n") + `
+` + workDir + `
+` + copySource + `
+` + strings.Join(installDepCmd, "\n") + `
+` + precompileCmd + `
+` + startCmd
 
 	return dockerFile, nil
 }

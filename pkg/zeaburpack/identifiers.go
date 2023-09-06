@@ -22,10 +22,10 @@ func SupportedIdentifiers() []plan.Identifier {
 	return []plan.Identifier{
 		dockerfilePkg.NewIdentifier(),
 		php.NewIdentifier(),
+		ruby.NewIdentifier(),
 		nodejs.NewIdentifier(),
 		golang.NewIdentifier(),
 		python.NewIdentifier(),
-		ruby.NewIdentifier(),
 		java.NewIdentifier(),
 		deno.NewIdentifier(),
 		rust.NewIdentifier(),
