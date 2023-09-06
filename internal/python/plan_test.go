@@ -184,9 +184,12 @@ func TestPackageManager_PipenvWithOldRequirements_FixedOrder(t *testing.T) {
 
 func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 	const (
-		WithWsgi    = "with-wsgi"
-		WithFastapi = "with-fastapi"
-		None        = "none"
+		WithWsgi              = "with-wsgi"
+		WithFastapi           = "with-fastapi"
+		WithStaticDjango      = "with-static-django"
+		WithStaticNginx       = "with-static-nginx"
+		WithStaticNginxDjango = "with-static-nginx-django"
+		None                  = "none"
 	)
 
 	for _, pm := range []types.PackageManager{
@@ -196,7 +199,14 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		types.PythonPackageManagerUnknown,
 	} {
 		pm := pm
-		for _, mode := range []string{WithWsgi, WithFastapi, None} {
+		for _, mode := range []string{
+			WithWsgi,
+			WithFastapi,
+			WithStaticNginx,
+			WithStaticDjango,
+			WithStaticNginxDjango,
+			None,
+		} {
 			mode := mode
 			t.Run(string(pm)+"-"+mode, func(t *testing.T) {
 				t.Parallel()
@@ -217,6 +227,35 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 					ctx.Framework = optional.Some(types.PythonFrameworkNone)
 				}
 
+				if mode == WithStaticNginx {
+					ctx.Wsgi = optional.Some("wsgi.py")
+					ctx.Static = optional.Some(StaticInfo{
+						Flag:          StaticModeNginx,
+						StaticURLPath: "/static",
+						StaticHostDir: "/app/static",
+					})
+				}
+
+				if mode == WithStaticDjango {
+					ctx.Wsgi = optional.Some("wsgi.py")
+					ctx.Framework = optional.Some(types.PythonFrameworkDjango)
+					ctx.Static = optional.Some(StaticInfo{
+						Flag:          StaticModeDjango,
+						StaticURLPath: "/static",
+						StaticHostDir: "/app/static",
+					})
+				}
+
+				if mode == WithStaticNginxDjango {
+					ctx.Wsgi = optional.Some("wsgi.py")
+					ctx.Framework = optional.Some(types.PythonFrameworkDjango)
+					ctx.Static = optional.Some(StaticInfo{
+						Flag:          StaticModeNginx | StaticModeDjango,
+						StaticURLPath: "/static",
+						StaticHostDir: "/app/static",
+					})
+				}
+
 				ic := determineInstallCmd(&ctx)
 				snaps.MatchSnapshot(t, ic)
 			})
@@ -228,6 +267,7 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 	const (
 		WithWsgi    = "with-wsgi"
 		WithFastapi = "with-fastapi"
+		WithStatic  = "with-static"
 		None        = "none"
 	)
 
@@ -238,7 +278,7 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 		types.PythonPackageManagerUnknown,
 	} {
 		pm := pm
-		for _, mode := range []string{WithWsgi, WithFastapi, None} {
+		for _, mode := range []string{WithWsgi, WithFastapi, WithStatic, None} {
 			mode := mode
 			t.Run(string(pm)+"-"+mode, func(t *testing.T) {
 				t.Parallel()
@@ -252,6 +292,15 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 					ctx.Wsgi = optional.Some("wsgi.py")
 				} else {
 					ctx.Wsgi = optional.Some("") // fake cache
+				}
+
+				if mode == WithStatic {
+					ctx.Wsgi = optional.Some("wsgi.py")
+					ctx.Static = optional.Some(StaticInfo{
+						Flag:          StaticModeNginx,
+						StaticURLPath: "/static",
+						StaticHostDir: "/app/static",
+					})
 				}
 
 				if mode == WithFastapi {
