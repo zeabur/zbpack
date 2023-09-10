@@ -92,3 +92,16 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 	assert.NoError(t, err)
 	snaps.MatchSnapshot(t, result)
 }
+
+func TestTemplate_BuildCmd_Bun(t *testing.T) {
+	ctx := nodejs.TemplateContext{
+		Bun:         true,
+		NodeVersion: "18",
+		InstallCmd:  "bun install",
+		StartCmd:    "bun start main.ts",
+	}
+
+	result, err := ctx.Execute()
+	assert.NoError(t, err)
+	snaps.MatchSnapshot(t, result)
+}
