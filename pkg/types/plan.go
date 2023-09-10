@@ -35,6 +35,7 @@ const (
 	NodePackageManagerYarn    NodePackageManager = "yarn"
 	NodePackageManagerPnpm    NodePackageManager = "pnpm"
 	NodePackageManagerNpm     NodePackageManager = "npm"
+	NodePackageManagerBun     NodePackageManager = "bun"
 	NodePackageManagerUnknown NodePackageManager = "unknown"
 )
 
