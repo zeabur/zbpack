@@ -136,3 +136,30 @@ EXPOSE 8080
 
 
 ---
+
+[TestTemplate_BuildCmd_Bun - 1]
+# Install bun if we need it
+FROM oven/bun:1.0 as bun-runtime
+FROM node:18 as build
+
+ENV PORT=8080
+WORKDIR /src
+# Copy the bun binary from the bun-runtime stage directly.
+# A bit hacky but it works.
+COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
+COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
+
+RUN corepack enable && corepack prepare --all
+COPY . .
+
+RUN bun install
+
+# Build if we can build it
+
+
+
+EXPOSE 8080
+CMD bun start main.ts
+
+
+---
