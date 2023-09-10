@@ -22,6 +22,7 @@ const (
 	PlanTypeRust   PlanType = "rust"
 	PlanTypeDotnet PlanType = "dotnet"
 	PlanTypeElixir PlanType = "elixir"
+	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
 )
 
