@@ -20,6 +20,7 @@ type TemplateContext struct {
 
 	OutputDir string
 	SPA       bool
+	Bun       bool
 }
 
 //go:embed templates
@@ -68,6 +69,9 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		StartCmd:    meta["startCmd"],
 		OutputDir:   "",
 		SPA:         true,
+
+		// The flag specific to planner/bun.
+		Bun: meta["bun"] == "true",
 	}
 
 	if outputDir, ok := meta["outputDir"]; ok {

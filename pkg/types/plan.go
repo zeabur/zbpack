@@ -22,6 +22,7 @@ const (
 	PlanTypeRust   PlanType = "rust"
 	PlanTypeDotnet PlanType = "dotnet"
 	PlanTypeElixir PlanType = "elixir"
+	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
 )
 
@@ -35,6 +36,7 @@ const (
 	NodePackageManagerYarn    NodePackageManager = "yarn"
 	NodePackageManagerPnpm    NodePackageManager = "pnpm"
 	NodePackageManagerNpm     NodePackageManager = "npm"
+	NodePackageManagerBun     NodePackageManager = "bun"
 	NodePackageManagerUnknown NodePackageManager = "unknown"
 )
 

@@ -20,6 +20,7 @@ type PackageJSON struct {
 	Scripts         map[string]string `json:"scripts,omitempty"`
 	Engines         PackageJSONEngine `json:"engines"`
 	Main            string            `json:"main"`
+	Module          string            `json:"module"`
 }
 
 // NewPackageJSON returns a new instance of PackageJson
