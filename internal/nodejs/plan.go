@@ -15,6 +15,7 @@ import (
 type nodePlanContext struct {
 	PackageJSON PackageJSON
 	Src         afero.Fs
+	Bun         bool
 
 	PackageManager  optional.Option[types.NodePackageManager]
 	Framework       optional.Option[types.NodeProjectFramework]
@@ -36,6 +37,11 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
+	}
+
+	if ctx.Bun {
+		*pm = optional.Some(types.NodePackageManagerBun)
+		return pm.Unwrap()
 	}
 
 	if ctx.PackageJSON.PackageManager != nil {
@@ -280,6 +286,36 @@ func GetStartScript(ctx *nodePlanContext) string {
 		return ss.Unwrap()
 	}
 
+	// If this is a Bun project, the entrypoint is usually
+	// the value of `"module"`. Bun allows users to start the
+	// application with `bun run <entrypoint>`.
+	if ctx.Bun {
+		if entrypoint := packageJSON.Module; entrypoint != "" {
+			// The module path usually represents the artifact path
+			// instead of the path where the source code is located.
+			// We need to guess the correct extension of this entrypoint.
+
+			// Remove the original trailing extension.
+			finalDot := strings.LastIndex(entrypoint, ".")
+			if finalDot != -1 {
+				entrypoint = entrypoint[:finalDot]
+			}
+
+			// Find the possible entrypoint.
+			for _, ext := range []string{
+				".js", ".ts", ".tsx", ".jsx", ".mjs",
+				".mts", ".cjs", ".cts",
+			} {
+				possibleEntrypoint := entrypoint + ext
+
+				if utils.HasFile(ctx.Src, possibleEntrypoint) {
+					*ss = optional.Some(possibleEntrypoint)
+					return ss.Unwrap()
+				}
+			}
+		}
+	}
+
 	*ss = optional.Some("")
 	return ss.Unwrap()
 }
@@ -345,6 +381,8 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		installCmd = "npm install"
 	case types.NodePackageManagerPnpm:
 		installCmd = "pnpm install"
+	case types.NodePackageManagerBun:
+		installCmd = "bun install"
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -377,6 +415,8 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		buildCmd = "pnpm run " + buildScript
 	case types.NodePackageManagerNpm:
 		buildCmd = "npm run " + buildScript
+	case types.NodePackageManagerBun:
+		buildCmd = "bun run " + buildScript
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -415,6 +455,8 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		startCmd = "pnpm " + startScript
 	case types.NodePackageManagerNpm:
 		startCmd = "npm run " + startScript
+	case types.NodePackageManagerBun:
+		startCmd = "bun run " + startScript
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -489,10 +531,13 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src            afero.Fs
+	Src afero.Fs
+
 	CustomBuildCmd *string
 	CustomStartCmd *string
 	OutputDir      *string
+
+	Bun bool
 }
 
 // GetMeta gets the metadata of the Node.js project.
@@ -506,9 +551,12 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := &nodePlanContext{
 		PackageJSON: packageJSON,
 		Src:         opt.Src,
+		Bun:         opt.Bun,
 	}
 
-	meta := types.PlanMeta{}
+	meta := types.PlanMeta{
+		"bun": strconv.FormatBool(opt.Bun),
+	}
 
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)

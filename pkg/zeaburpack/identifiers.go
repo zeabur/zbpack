@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"github.com/zeabur/zbpack/internal/bun"
 	"github.com/zeabur/zbpack/internal/deno"
 	dockerfilePkg "github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/dotnet"
@@ -23,6 +24,7 @@ func SupportedIdentifiers() []plan.Identifier {
 		dockerfilePkg.NewIdentifier(),
 		php.NewIdentifier(),
 		ruby.NewIdentifier(),
+		bun.NewIdentifier(),
 		nodejs.NewIdentifier(),
 		golang.NewIdentifier(),
 		python.NewIdentifier(),
