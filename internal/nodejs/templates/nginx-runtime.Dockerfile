@@ -13,4 +13,5 @@ RUN echo "\
 {{ end }}        } \
     }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
+{{ if .ZeaburConfig }}RUN echo '{{ .ZeaburConfig }}' > /src/.zeabur/output/config.json{{ end }}
 {{end}}
