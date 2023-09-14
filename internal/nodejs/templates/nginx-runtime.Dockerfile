@@ -1,11 +1,11 @@
 {{define "nginx-runtime"}}
 FROM nginx:alpine as runtime
 
-COPY --from=build /src/{{.OutputDir}} /usr/share/nginx/html/static
+COPY --from=build /src/{{.OutputDir}} /src/.zeabur/output/static
 RUN echo "\
     server { \
         listen 8080; \
-        root /usr/share/nginx/html/static; \
+        root /src/.zeabur/output/static; \
         absolute_redirect off; \
         location / { \
 {{ if .SPA }}            try_files \$uri /index.html; \

@@ -179,14 +179,10 @@ func Build(opt *BuildOptions) error {
 		handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
 	}
 
-	hasOutput, err := copyZeaburOutputToHost(*opt.ResultImage, *opt.Path)
+	_, err = copyZeaburOutputToHost(*opt.ResultImage, *opt.Path)
 	if err != nil {
-		handleBuildFailed(err)
+		handleBuildFailed(fmt.Errorf("failed to copy zeabur output: %w", err))
 		return err
-	}
-
-	if hasOutput {
-		handleLog("\n\u001B[32mThe .zeabur/output directory found! This service will be deployed in a serverless way on Zeabur 😎")
 	}
 
 	return nil
