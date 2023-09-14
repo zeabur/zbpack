@@ -4,7 +4,6 @@ package nodejs
 import (
 	"bytes"
 	"embed"
-	"encoding/json"
 	"text/template"
 
 	"github.com/zeabur/zbpack/pkg/packer"
@@ -19,12 +18,7 @@ type TemplateContext struct {
 	BuildCmd   string
 	StartCmd   string
 
-	OutputDir string
-	SPA       bool
-	Bun       bool
-
-	// ZeaburConfig is the content of .zeabur/output/config.json
-	ZeaburConfig string
+	Bun bool
 }
 
 //go:embed templates
@@ -43,71 +37,16 @@ func (c TemplateContext) Execute() (string, error) {
 	return writer.String(), err
 }
 
-func isMpaFramework(framework string) bool {
-	mpaFrameworks := []types.NodeProjectFramework{
-		types.NodeProjectFrameworkHexo,
-		types.NodeProjectFrameworkVitepress,
-		types.NodeProjectFrameworkAstroStatic,
-		types.NodeProjectFrameworkSolidStartStatic,
-	}
-
-	for _, f := range mpaFrameworks {
-		if framework == string(f) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// isNotMpaFramework is `!isMpaFramework()`, but it's easier to read
-func isNotMpaFramework(framework string) bool {
-	return !isMpaFramework(framework)
-}
-
 func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	context := TemplateContext{
 		NodeVersion: meta["nodeVersion"],
 		InstallCmd:  meta["installCmd"],
 		BuildCmd:    meta["buildCmd"],
 		StartCmd:    meta["startCmd"],
-		OutputDir:   "",
-		SPA:         true,
 
 		// The flag specific to planner/bun.
 		Bun: meta["bun"] == "true",
 	}
-
-	if outputDir, ok := meta["outputDir"]; ok {
-		context.OutputDir = outputDir
-		context.SPA = isNotMpaFramework(meta["framework"])
-	}
-
-	type ZeaburConfigRoute struct {
-		Src  string `json:"src"`
-		Dest string `json:"dest"`
-	}
-
-	type ZeaburConfig struct {
-		Routes        []ZeaburConfigRoute `json:"routes"`
-		Containerized bool                `json:"containerized"`
-	}
-
-	cfg := ZeaburConfig{
-		Routes:        []ZeaburConfigRoute{},
-		Containerized: true,
-	}
-
-	if context.OutputDir != "" {
-		cfg.Containerized = false
-	}
-
-	if context.SPA {
-		cfg.Routes = []ZeaburConfigRoute{{Src: ".*", Dest: "/index.html"}}
-	}
-
-	configStr, _ := json.Marshal(cfg)
-	context.ZeaburConfig = string(configStr)
 
 	return context
 }

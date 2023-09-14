@@ -2,6 +2,7 @@ package nodejs
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -28,6 +29,7 @@ type nodePlanContext struct {
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
+	Serverless      optional.Option[bool]
 }
 
 // DeterminePackageManager determines the package manager of the Node.js project.
@@ -535,6 +537,34 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	return dir.Unwrap()
 }
 
+func GetServerless(ctx *nodePlanContext) bool {
+	expEnv := os.Getenv("EXPERIMENTAL_SERVERLESS")
+	if expEnv != "true" && expEnv != "1" {
+		return false
+	}
+
+	sl := &ctx.Serverless
+
+	if serverless, err := sl.Take(); err == nil {
+		return serverless
+	}
+
+	framework := DetermineProjectFramework(ctx)
+
+	defaultServerless := map[types.NodeProjectFramework]bool{
+		types.NodeProjectFrameworkNextJs: true,
+		types.NodeProjectFrameworkNuxtJs: true,
+	}
+
+	if serverless, ok := defaultServerless[framework]; ok {
+		*sl = optional.Some(serverless)
+		return sl.Unwrap()
+	}
+
+	*sl = optional.Some(false)
+	return sl.Unwrap()
+}
+
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
@@ -601,6 +631,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		startCmd = *opt.CustomStartCmd
 	}
 	meta["startCmd"] = startCmd
+
+	serverless := GetServerless(ctx)
+	if serverless {
+		meta["serverless"] = strconv.FormatBool(serverless)
+	}
 
 	return meta
 }
