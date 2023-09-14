@@ -4,6 +4,7 @@ package nodejs
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"text/template"
 
 	"github.com/zeabur/zbpack/pkg/packer"
@@ -21,6 +22,9 @@ type TemplateContext struct {
 	OutputDir string
 	SPA       bool
 	Bun       bool
+
+	// ZeaburConfig is the content of .zeabur/output/config.json
+	ZeaburConfig string
 }
 
 //go:embed templates
@@ -78,6 +82,32 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		context.OutputDir = outputDir
 		context.SPA = isNotMpaFramework(meta["framework"])
 	}
+
+	type ZeaburConfigRoute struct {
+		Src  string `json:"src"`
+		Dest string `json:"dest"`
+	}
+
+	type ZeaburConfig struct {
+		Routes        []ZeaburConfigRoute `json:"routes"`
+		Containerized bool                `json:"containerized"`
+	}
+
+	cfg := ZeaburConfig{
+		Routes:        []ZeaburConfigRoute{},
+		Containerized: true,
+	}
+
+	if context.OutputDir != "" {
+		cfg.Containerized = false
+	}
+
+	if context.SPA {
+		cfg.Routes = []ZeaburConfigRoute{{Src: ".*", Dest: "/index.html"}}
+	}
+
+	configStr, _ := json.Marshal(cfg)
+	context.ZeaburConfig = string(configStr)
 
 	return context
 }
