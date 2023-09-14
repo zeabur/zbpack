@@ -2,6 +2,8 @@ package zeaburpack
 
 import (
 	"fmt"
+	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
+	"github.com/zeabur/zbpack/internal/static"
 	"os"
 	"path"
 	"strings"
@@ -173,16 +175,36 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
+	_ = os.RemoveAll(".zeabur")
+
+	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err = nextjs.TransformServerless(*opt.ResultImage, *opt.Path)
+		if err != nil {
+			println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+		println("Transforming build output to serverless format ...")
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
+		if err != nil {
+			println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
 	if opt.Interactive != nil && *opt.Interactive {
 		handleLog("\n\033[32mBuild successful\033[0m\n")
 		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
-		handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
-	}
-
-	_, err = copyZeaburOutputToHost(*opt.ResultImage, *opt.Path)
-	if err != nil {
-		handleBuildFailed(fmt.Errorf("failed to copy zeabur output: %w", err))
-		return err
+		if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+			handleLog("npx serve .zeabur/output/static")
+		} else {
+			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+		}
 	}
 
 	return nil
