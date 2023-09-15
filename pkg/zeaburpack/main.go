@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/static"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -181,7 +182,7 @@ func Build(opt *BuildOptions) error {
 		println("Transforming build output to serverless format ...")
 		err = nextjs.TransformServerless(*opt.ResultImage, *opt.Path)
 		if err != nil {
-			println("Failed to transform serverless: " + err.Error())
+			log.Println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
 			return err
 		}
