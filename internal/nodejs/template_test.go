@@ -15,9 +15,6 @@ func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
 		InstallCmd: "yarn install",
 		BuildCmd:   "",
 		StartCmd:   "yarn start",
-
-		OutputDir: "",
-		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -32,9 +29,6 @@ func TestTemplate_NBuildCmd_OutputDir_NSPA(t *testing.T) {
 		InstallCmd: "yarn install",
 		BuildCmd:   "",
 		StartCmd:   "yarn start",
-
-		OutputDir: "dist",
-		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -49,9 +43,6 @@ func TestTemplate_NBuildCmd_OutputDir_SPA(t *testing.T) {
 		InstallCmd: "yarn install",
 		BuildCmd:   "",
 		StartCmd:   "yarn start",
-
-		OutputDir: "dist",
-		SPA:       true,
 	}
 
 	result, err := ctx.Execute()
@@ -66,9 +57,6 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 		InstallCmd: "yarn install",
 		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
-
-		OutputDir: "",
-		SPA:       false,
 	}
 
 	result, err := ctx.Execute()
@@ -83,9 +71,6 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 		InstallCmd: "yarn install",
 		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
-
-		OutputDir: "dist",
-		SPA:       true,
 	}
 
 	result, err := ctx.Execute()
