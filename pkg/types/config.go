@@ -11,6 +11,7 @@ type ZeaburOutputConfigRoute struct {
 	Dest string `json:"dest"`
 }
 
+// ZeaburOutputConfig is the output config of Zeabur
 type ZeaburOutputConfig struct {
 	// Routes is a list of routes to override the default route
 	Routes []ZeaburOutputConfigRoute `json:"routes"`
