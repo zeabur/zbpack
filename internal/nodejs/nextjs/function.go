@@ -49,14 +49,14 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage string) error {
 	var deps []string
 	err = filepath.Walk(".next", func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".nft.json") {
-			type nftJson struct {
+			type nftJSON struct {
 				Files []string `json:"files"`
 			}
 			b, err := os.ReadFile(path)
 			if err != nil {
 				return fmt.Errorf("read nft.json: %w", err)
 			}
-			var nft nftJson
+			var nft nftJSON
 			err = json.Unmarshal(b, &nft)
 			if err != nil {
 				return fmt.Errorf("unmarshal nft.json: %w", err)

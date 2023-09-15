@@ -537,7 +537,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	return dir.Unwrap()
 }
 
-func GetServerless(ctx *nodePlanContext) bool {
+func getServerless(ctx *nodePlanContext) bool {
 	expEnv := os.Getenv("EXPERIMENTAL_SERVERLESS")
 	if expEnv != "true" && expEnv != "1" {
 		return false
@@ -632,7 +632,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 	meta["startCmd"] = startCmd
 
-	serverless := GetServerless(ctx)
+	serverless := getServerless(ctx)
 	if serverless {
 		meta["serverless"] = strconv.FormatBool(serverless)
 	}

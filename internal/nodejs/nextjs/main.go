@@ -1,7 +1,7 @@
+// Package nextjs is used to transform build output of Next.js app to the serverless build output format of Zeabur
 package nextjs
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
