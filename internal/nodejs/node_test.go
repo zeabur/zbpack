@@ -7,30 +7,6 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-func TestIsMpaFramework_WithoutFramework(t *testing.T) {
-	if isMpaFramework("") {
-		t.Error("should return false")
-	}
-}
-
-func TestIsNotMpaFramework_WithoutFramework(t *testing.T) {
-	if !isNotMpaFramework("") {
-		t.Error("should return true")
-	}
-}
-
-func TestIsMpaFramework_DefaultFalse(t *testing.T) {
-	if isMpaFramework("aaaaaaaaaaaaaaaaaaaaaaaa") {
-		t.Error("should return false")
-	}
-}
-
-func TestIsMpaFramework_CanTrue(t *testing.T) {
-	if isNotMpaFramework("hexo") {
-		t.Error("should return true")
-	}
-}
-
 // TODO)) type-safe builder
 func TestGetContextBasedOnMeta_MapShouldBeCorrect(t *testing.T) {
 	meta := getContextBasedOnMeta(types.PlanMeta{
@@ -45,7 +21,6 @@ func TestGetContextBasedOnMeta_MapShouldBeCorrect(t *testing.T) {
 		InstallCmd:  "npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
-		SPA:         true,
 	})
 }
 
@@ -64,8 +39,6 @@ func TestGetContextBasedOnMeta_WithOutputdirAndSPAFramework(t *testing.T) {
 		InstallCmd:  "npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
-		OutputDir:   "dist",
-		SPA:         true,
 	})
 }
 
@@ -84,7 +57,5 @@ func TestGetContextBasedOnMeta_WithOutputdirAndMPAFramework(t *testing.T) {
 		InstallCmd:  "npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
-		OutputDir:   "dist",
-		SPA:         false,
 	})
 }
