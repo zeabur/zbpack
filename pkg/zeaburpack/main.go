@@ -2,12 +2,13 @@ package zeaburpack
 
 import (
 	"fmt"
-	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
-	"github.com/zeabur/zbpack/internal/static"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
+	"github.com/zeabur/zbpack/internal/static"
 
 	"github.com/spf13/afero"
 
