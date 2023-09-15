@@ -3,11 +3,12 @@ package nextjs
 import (
 	"encoding/json"
 	"fmt"
-	cp "github.com/otiai10/copy"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	cp "github.com/otiai10/copy"
 )
 
 // constructNextFunction will construct the first function page, used as symlinks for other function pages

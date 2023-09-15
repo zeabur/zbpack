@@ -2,10 +2,11 @@ package static
 
 import (
 	"encoding/json"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/types"
 	"os"
 	"path"
+
+	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // TransformServerless copies the static files from output to .zeabur/output/static and creates a config.json file for SPA

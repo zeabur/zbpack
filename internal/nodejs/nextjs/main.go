@@ -4,14 +4,15 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	cp "github.com/otiai10/copy"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/types"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	cp "github.com/otiai10/copy"
+	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // TransformServerless will transform build output of Next.js app to the serverless build output format of Zeabur
