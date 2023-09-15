@@ -135,5 +135,9 @@ func TransformServerless(image, workdir string) error {
 	}
 
 	err = os.WriteFile(path.Join(zeaburOutputDir, "config.json"), cfgBytes, 0644)
+	if err != nil {
+		return fmt.Errorf("write config: %w", err)
+	}
+
 	return nil
 }
