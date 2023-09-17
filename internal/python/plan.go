@@ -494,6 +494,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "g++-7")
 	}
 
+	if HasDependency(ctx, "flask_sqlalchemy") {
+		deps = append(deps, "pkg-config")
+	}
+
 	return deps
 }
 
