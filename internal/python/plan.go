@@ -470,7 +470,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	deps := []string{"build-essential"}
+	deps := []string{"build-essential", "pkg-config"}
 
 	// If we need to host static files, we need nginx.
 	staticPath := DetermineStaticInfo(ctx)
@@ -492,10 +492,6 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 
 	if HasDependency(ctx, "chromadb") {
 		deps = append(deps, "g++-7")
-	}
-
-	if HasDependency(ctx, "flask_sqlalchemy") {
-		deps = append(deps, "pkg-config")
 	}
 
 	return deps
