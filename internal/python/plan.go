@@ -470,7 +470,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	deps := []string{"build-essential"}
+	deps := []string{"build-essential", "pkg-config"}
 
 	// If we need to host static files, we need nginx.
 	staticPath := DetermineStaticInfo(ctx)
