@@ -97,6 +97,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return framework
 	}
 
+	if _, isNuejs := packageJSON.Dependencies["nuejs-core"]; isNuejs {
+		*fw = optional.Some(types.NodeProjectFrameworkNueJs)
+		return fw.Unwrap()
+	}
+
 	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
 		if _, isAstroSSR := packageJSON.Dependencies["@astrojs/node"]; isAstroSSR {
 			*fw = optional.Some(types.NodeProjectFrameworkAstroSSR)
