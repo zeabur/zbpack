@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 	"text/template"
 )
@@ -13,8 +14,8 @@ import (
 var launcherTemplate string
 
 // getNextConfig read .next/required-server-files.json and return the config string that will be injected into launcher
-func getNextConfig() (string, error) {
-	rsf, err := os.ReadFile(".next/required-server-files.json")
+func getNextConfig(tmpDir string) (string, error) {
+	rsf, err := os.ReadFile(path.Join(tmpDir, ".next/required-server-files.json"))
 	if err != nil {
 		return "", fmt.Errorf("read required-server-files.json: %w", err)
 	}
@@ -43,8 +44,8 @@ func getNextConfig() (string, error) {
 }
 
 // renderLauncher will render the launcher.js template which used as the entrypoint of the serverless function
-func renderLauncher() (string, error) {
-	nextConfig, err := getNextConfig()
+func renderLauncher(tmpDir string) (string, error) {
+	nextConfig, err := getNextConfig(tmpDir)
 	if err != nil {
 		return "", fmt.Errorf("get next config: %w", err)
 	}

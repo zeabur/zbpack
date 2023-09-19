@@ -86,7 +86,7 @@ func TransformServerless(image, workdir string) error {
 		return fmt.Errorf("copy public dir: %w", err)
 	}
 
-	nextConfig, err := getNextConfig()
+	nextConfig, err := getNextConfig(tmpDir)
 	if err != nil {
 		return fmt.Errorf("get next config: %w", err)
 	}
