@@ -44,6 +44,11 @@ func TransformServerless(image, workdir string) error {
 		return err
 	}
 
+	err = utils.CopyFromImage(image, "/src/package.json", tmpDir)
+	if err != nil {
+		return err
+	}
+
 	_ = os.RemoveAll(path.Join(workdir, ".zeabur"))
 
 	var serverlessFunctionPages []string
