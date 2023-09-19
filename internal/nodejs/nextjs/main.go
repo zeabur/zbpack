@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -18,13 +19,27 @@ import (
 // TransformServerless will transform build output of Next.js app to the serverless build output format of Zeabur
 // It is trying to implement the same logic as build function of https://github.com/vercel/vercel/tree/main/packages/next/src/index.ts
 func TransformServerless(image, workdir string) error {
-	nextOutputDir := path.Join(workdir, ".next")
+
+	// create a tmpDir to store the build output of Next.js app
+	uuid := uuid2.New().String()
+	tmpDir := path.Join(os.TempDir(), uuid)
+	defer os.RemoveAll(tmpDir)
+
+	// /tmpDir/uuid/.next
+	nextOutputDir := path.Join(tmpDir, ".next")
+
+	// /tmpDir/uuid/.next/server/pages
 	nextOutputServerPagesDir := path.Join(nextOutputDir, "server/pages")
+
+	// /workDir/.zeabur/output
 	zeaburOutputDir := path.Join(workdir, ".zeabur/output")
 
-	_ = os.RemoveAll(nextOutputDir)
+	err := utils.CopyFromImage(image, "/src/.next", tmpDir)
+	if err != nil {
+		return err
+	}
 
-	err := utils.CopyFromImage(image, "/src/.next/.", nextOutputDir)
+	err = utils.CopyFromImage(image, "/src/node_modules", tmpDir)
 	if err != nil {
 		return err
 	}
@@ -95,7 +110,7 @@ func TransformServerless(image, workdir string) error {
 	if len(serverlessFunctionPages) > 0 {
 
 		// create the first function page
-		err = constructNextFunction(zeaburOutputDir, serverlessFunctionPages[0])
+		err = constructNextFunction(zeaburOutputDir, serverlessFunctionPages[0], tmpDir)
 		if err != nil {
 			return fmt.Errorf("construct next function: %w", err)
 		}

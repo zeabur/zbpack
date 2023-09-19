@@ -12,7 +12,7 @@ import (
 )
 
 // constructNextFunction will construct the first function page, used as symlinks for other function pages
-func constructNextFunction(zeaburOutputDir, firstFuncPage string) error {
+func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error {
 	p := path.Join(zeaburOutputDir, "functions", firstFuncPage+".func")
 
 	err := os.MkdirAll(p, 0755)
@@ -47,7 +47,7 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage string) error {
 	}
 
 	var deps []string
-	err = filepath.Walk(".next", func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(path.Join(tmpDir, ".next"), func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".nft.json") {
 			type nftJSON struct {
 				Files []string `json:"files"`
@@ -76,7 +76,7 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage string) error {
 	}
 
 	for _, dep := range deps {
-		err = cp.Copy(dep, path.Join(p, dep))
+		err = cp.Copy(path.Join(tmpDir, dep), path.Join(p, dep))
 		if err != nil {
 			return fmt.Errorf("copy dep: %w", err)
 		}
