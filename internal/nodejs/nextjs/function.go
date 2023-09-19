@@ -20,7 +20,7 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 		return fmt.Errorf("create function dir: %w", err)
 	}
 
-	launcher, err := renderLauncher()
+	launcher, err := renderLauncher(tmpDir)
 	if err != nil {
 		return fmt.Errorf("render launcher: %w", err)
 	}
@@ -30,7 +30,7 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 		return fmt.Errorf("write launcher: %w", err)
 	}
 
-	err = cp.Copy(".next", path.Join(p, ".next"))
+	err = cp.Copy(path.Join(tmpDir, ".next"), path.Join(p, ".next"))
 	if err != nil {
 		return fmt.Errorf("copy .next: %w", err)
 	}
