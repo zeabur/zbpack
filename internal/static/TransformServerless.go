@@ -18,7 +18,7 @@ func TransformServerless(image, workdir string, meta types.PlanMeta) error {
 
 	config := types.ZeaburOutputConfig{Containerized: false, Routes: make([]types.ZeaburOutputConfigRoute, 0)}
 	if isNotMpaFramework(meta["framework"]) {
-		config.Routes = []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/index.html"}}
+		config.Routes = []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/"}}
 	}
 
 	configBytes, err := json.Marshal(config)
