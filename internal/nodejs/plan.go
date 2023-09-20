@@ -354,10 +354,20 @@ func getNodeVersion(versionRange string, versionsList []*semver.Version) string 
 
 // GetNodeVersion gets the Node.js version of the project.
 func GetNodeVersion(ctx *nodePlanContext) string {
+	src := ctx.Src
 	packageJSON := ctx.PackageJSON
+	projectNodeVersion := packageJSON.Engines.Node
 
-	// nodeVersions is generated on compile time
-	return getNodeVersion(packageJSON.Engines.Node, nodeVersions)
+	// If there are ".node-version" or ".nvmrc" file, we pick
+	// the version from them.
+	if content, err := afero.ReadFile(src, ".node-version"); err == nil {
+		projectNodeVersion = strings.TrimSpace(string(content))
+	}
+	if content, err := afero.ReadFile(src, ".nvmrc"); err == nil {
+		projectNodeVersion = strings.TrimSpace(string(content))
+	}
+
+	return getNodeVersion(projectNodeVersion, nodeVersions)
 }
 
 // GetEntry gets the entry file of the Node.js project.
