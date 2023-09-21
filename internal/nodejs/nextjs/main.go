@@ -23,7 +23,9 @@ func TransformServerless(image, workdir string) error {
 	// create a tmpDir to store the build output of Next.js app
 	uuid := uuid2.New().String()
 	tmpDir := path.Join(os.TempDir(), uuid)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
 
 	// /tmpDir/uuid/.next
 	nextOutputDir := path.Join(tmpDir, ".next")
@@ -70,6 +72,9 @@ func TransformServerless(image, workdir string) error {
 	var staticPages []string
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
+			if _, err := os.Stat(strings.TrimSuffix(path, ".html") + ".js"); err == nil {
+				return nil
+			}
 			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
 			staticPages = append(staticPages, filePath)
 		}
@@ -111,6 +116,33 @@ func TransformServerless(image, workdir string) error {
 		return fmt.Errorf("render launcher template: %w", err)
 	}
 
+	file, err := os.ReadFile(path.Join(nextOutputDir, "prerender-manifest.json"))
+	if err != nil {
+		return fmt.Errorf("read prerender manifest: %w", err)
+	}
+
+	type prerenderManifestRoute struct {
+		SrcRoute                 *string         `json:"srcRoute"`
+		DataRoute                string          `json:"dataRoute"`
+		InitialRevalidateSeconds utils.IntOrBool `json:"initialRevalidateSeconds"`
+	}
+
+	type prerenderManifest struct {
+		Routes map[string]prerenderManifestRoute `json:"routes"`
+	}
+
+	var pm prerenderManifest
+	err = json.Unmarshal(file, &pm)
+	if err != nil {
+		return fmt.Errorf("unmarshal prerender manifest: %w", err)
+	}
+
+	for route, config := range pm.Routes {
+		if config.InitialRevalidateSeconds.IsInt && config.SrcRoute != nil {
+			serverlessFunctionPages = append(serverlessFunctionPages, route)
+		}
+	}
+
 	// if there is any serverless function page, create the first function page and symlinks for other function pages
 	if len(serverlessFunctionPages) > 0 {
 
@@ -136,6 +168,24 @@ func TransformServerless(image, workdir string) error {
 			err = os.Symlink(path.Join(zeaburOutputDir, "functions", serverlessFunctionPages[0]+".func"), funcPath)
 			if err != nil {
 				return fmt.Errorf("create symlink: %w", err)
+			}
+		}
+	}
+
+	for route, config := range pm.Routes {
+		if config.InitialRevalidateSeconds.IsInt {
+			r := route
+			if config.SrcRoute != nil {
+				r = *config.SrcRoute
+			}
+			pcPath := path.Join(zeaburOutputDir, "functions", r+".prerender-config.json")
+			err = os.MkdirAll(path.Dir(pcPath), 0755)
+			if err != nil {
+				return fmt.Errorf("create prerender config dir: %w", err)
+			}
+			err = os.WriteFile(pcPath, []byte("{\"type\": \"Prerender\"}"), 0644)
+			if err != nil {
+				return fmt.Errorf("write prerender config: %w", err)
 			}
 		}
 	}
