@@ -4,6 +4,7 @@ package nextjs
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,7 +25,10 @@ func TransformServerless(image, workdir string) error {
 	uuid := uuid2.New().String()
 	tmpDir := path.Join(os.TempDir(), uuid)
 	defer func() {
-		_ = os.RemoveAll(tmpDir)
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("remove tmp dir: %s\n", err)
+		}
 	}()
 
 	// /tmpDir/uuid/.next
