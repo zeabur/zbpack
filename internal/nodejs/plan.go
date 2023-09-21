@@ -358,12 +358,12 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 	packageJSON := ctx.PackageJSON
 	projectNodeVersion := packageJSON.Engines.Node
 
-	// If there are ".node-version" or ".node-version" file, we pick
+	// If there are ".node-version" or ".nvmrc" file, we pick
 	// the version from them.
 	if content, err := afero.ReadFile(src, ".node-version"); err == nil {
 		projectNodeVersion = strings.TrimSpace(string(content))
 	}
-	if content, err := afero.ReadFile(src, ".node-version"); err == nil {
+	if content, err := afero.ReadFile(src, ".nvmrc"); err == nil {
 		projectNodeVersion = strings.TrimSpace(string(content))
 	}
 
