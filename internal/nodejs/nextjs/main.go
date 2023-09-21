@@ -76,9 +76,6 @@ func TransformServerless(image, workdir string) error {
 	var staticPages []string
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
-			if _, err := os.Stat(strings.TrimSuffix(path, ".html") + ".js"); err == nil {
-				return nil
-			}
 			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
 			staticPages = append(staticPages, filePath)
 		}
