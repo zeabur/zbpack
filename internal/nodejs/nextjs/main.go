@@ -73,6 +73,8 @@ func TransformServerless(image, workdir string) error {
 		return nil
 	})
 
+	serverlessFunctionPages = append(serverlessFunctionPages, "/_next/image")
+
 	var staticPages []string
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
@@ -179,7 +181,11 @@ func TransformServerless(image, workdir string) error {
 			if config.SrcRoute != nil {
 				r = *config.SrcRoute
 			}
-			pcPath := path.Join(zeaburOutputDir, "functions", r+".prerender-config.json")
+			prerenderConfigFilename := r + ".prerender-config.json"
+			if r == "/" {
+				prerenderConfigFilename = "index.prerender-config.json"
+			}
+			pcPath := path.Join(zeaburOutputDir, "functions", prerenderConfigFilename)
 			err = os.MkdirAll(path.Dir(pcPath), 0755)
 			if err != nil {
 				return fmt.Errorf("create prerender config dir: %w", err)
