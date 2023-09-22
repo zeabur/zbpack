@@ -1,0 +1,84 @@
+package zeaburpack
+
+import (
+	"log"
+	"strings"
+
+	"github.com/docker/distribution/reference"
+)
+
+// referenceConstructor constructs the standardized image references
+// for the image builder. It also provides the ability to prepend
+// a proxy registry to the image reference.
+type referenceConstructor struct {
+	// proxyRegistry indicates the registry to be used for the image.
+	// It is designed for Harbor's Proxy Cache (ref 1).
+	//
+	// It will be prepended to any image in zeaburpack. If an image
+	// contains domain in the image name, the proxy registry will not
+	// be applied to the image (however, if the domain is `docker.io`,
+	// it will be still replaced).
+	//
+	// (ref 1) https://goharbor.io/docs/2.1.0/administration/configure-proxy-cache/
+	proxyRegistry *string
+}
+
+func newReferenceConstructor(proxyRegistry *string) referenceConstructor {
+	// Add `/` suffix to the proxy registry if it is not empty.
+	if proxyRegistry != nil {
+		cleanedProxyRegistry := strings.TrimSuffix(*proxyRegistry, "/") + "/"
+		return referenceConstructor{proxyRegistry: &cleanedProxyRegistry}
+	}
+
+	return referenceConstructor{
+		proxyRegistry: proxyRegistry,
+	}
+}
+
+// Construct constructs a new image reference from the given raw
+func (rc referenceConstructor) Construct(rawRefString string) string {
+	proxyRegistryPtr := rc.proxyRegistry
+
+	// If the proxy registry is not set, we don't need to do anything.
+	if proxyRegistryPtr == nil || len(*proxyRegistryPtr) == 0 {
+		return rawRefString
+	}
+
+	// Safety: ptr != nil.
+	proxyRegistry := *proxyRegistryPtr
+
+	// Parse the user-provided reference.
+	ref, err := reference.ParseAnyReference(rawRefString)
+	if err != nil {
+		log.Println("failed to parse image reference:", err.Error())
+		return rawRefString
+	}
+
+	// If the image reference contains domain, we don't need to
+	// apply the proxy registry (unless the domain is `docker.io`).
+	imageRef, ok := ref.(reference.Named)
+	if !ok {
+		return rawRefString
+	}
+
+	domain := reference.Domain(imageRef)
+	// If the domain is not `docker.io`, we leave it as it is.
+	if domain != "docker.io" {
+		return rawRefString
+	}
+
+	// Construct a new reference with the proxy registry.
+	path := reference.Path(imageRef)
+	switch ref := imageRef.(type) {
+	case reference.NamedTagged:
+		tag := ref.Tag()
+
+		return proxyRegistry + path + ":" + tag
+	case reference.Canonical:
+		digest := ref.Digest()
+
+		return proxyRegistry + path + "@" + digest.String()
+	default:
+		return proxyRegistry + path
+	}
+}
