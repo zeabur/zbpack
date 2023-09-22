@@ -58,6 +58,10 @@ type BuildOptions struct {
 	OutputDir *string
 
 	CacheFrom *string
+
+	// ProxyRegistry is the registry to be used for the image.
+	// See referenceConstructor for more details.
+	ProxyRegistry *string
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -169,6 +173,7 @@ func Build(opt *BuildOptions) error {
 			HandleLog:           buildImageHandleLog,
 			PlainDockerProgress: opt.Interactive == nil || !*opt.Interactive,
 			CacheFrom:           opt.CacheFrom,
+			ProxyRegistry:       opt.ProxyRegistry,
 		},
 	)
 	if err != nil {
