@@ -196,5 +196,6 @@ type BunFramework string
 //revive:enable:exported
 const (
 	BunFrameworkElysia BunFramework = "elysia"
+	BunFrameworkBaojs  BunFramework = "baojs"
 	BunFrameworkNone   BunFramework = "none"
 )
