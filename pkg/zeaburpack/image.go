@@ -21,18 +21,36 @@ type buildImageOptions struct {
 	HandleLog           *func(log string)
 	PlainDockerProgress bool
 	CacheFrom           *string
+
+	// ProxyRegistry is the registry to be used for the image.
+	// See referenceConstructor for more details.
+	ProxyRegistry *string
 }
 
 func buildImage(opt *buildImageOptions) error {
 	// resolve env variable statically and don't depend on Dockerfile's order
 	resolvedVars := envexpander.ResolveEnvVariable(opt.UserVars)
 
+	refConstructor := newReferenceConstructor(opt.ProxyRegistry)
 	lines := strings.Split(opt.Dockerfile, "\n")
-	stageLines := []int{}
+	stageLines := make([]int, 0)
+
 	for i, line := range lines {
-		if strings.HasPrefix(line, "FROM") {
-			stageLines = append(stageLines, i)
+		instruction, imageRefString, found := strings.Cut(line, " ")
+
+		// We only care about FROM instructions.
+		if !found || strings.ToLower(instruction) != "from" {
+			continue
 		}
+
+		// Construct the reference.
+		newRef := refConstructor.Construct(imageRefString)
+
+		// Replace this FROM line.
+		lines[i] = instruction + " " + newRef
+
+		// Mark this FROM line as a stage.
+		stageLines = append(stageLines, i)
 	}
 
 	// sort the resolvedVars by key so we can build
