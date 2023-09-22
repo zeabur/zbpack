@@ -59,6 +59,11 @@ func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isBagel := packageJSON.Dependencies["@kakengloh/bagel"]; isBagel {
+		*fw = optional.Some(types.BunFrameworkBagel)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.BunFrameworkNone)
 	return fw.Unwrap()
 }

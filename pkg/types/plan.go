@@ -197,5 +197,6 @@ type BunFramework string
 const (
 	BunFrameworkElysia BunFramework = "elysia"
 	BunFrameworkBaojs  BunFramework = "baojs"
+	BunFrameworkBagel  BunFramework = "bagel"
 	BunFrameworkNone   BunFramework = "none"
 )
