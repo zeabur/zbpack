@@ -54,6 +54,11 @@ func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isBaojs := packageJSON.Dependencies["baojs"]; isBaojs {
+		*fw = optional.Some(types.BunFrameworkBaojs)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.BunFrameworkNone)
 	return fw.Unwrap()
 }
