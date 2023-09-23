@@ -102,18 +102,20 @@ func TestDetermineProjectFramework_Unknown(t *testing.T) {
 func TestDetermineApplication_NoComposer(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	app := php.DetermineApplication(fs)
+	app, kind := php.DetermineApplication(fs)
 	assert.Equal(t, app, types.PHPApplicationDefault)
+	assert.Equal(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
 }
 
-func TestDetermineApplication_Unknown(t *testing.T) {
+func TestDetermineApplication_UnknownWithComposer(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "composer.json", []byte(`{
 		"name": "test"
 	}`), 0o644)
 
-	app := php.DetermineApplication(fs)
+	app, kind := php.DetermineApplication(fs)
 	assert.Equal(t, app, types.PHPApplicationDefault)
+	assert.NotEqual(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
 }
 
 func TestDetermineApplication_AcgFaka(t *testing.T) {
@@ -122,6 +124,7 @@ func TestDetermineApplication_AcgFaka(t *testing.T) {
 		"name": "lizhipay/acg-faka"
 	}`), 0o644)
 
-	app := php.DetermineApplication(fs)
+	app, kind := php.DetermineApplication(fs)
 	assert.Equal(t, app, types.PHPApplicationAcgFaka)
+	assert.NotEqual(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
 }
