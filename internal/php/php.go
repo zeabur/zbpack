@@ -21,12 +21,15 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	}
 
 	installCMD := fmt.Sprintf(`
-RUN apt-get update
-RUN apt-get install -y %s
+RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
+`, meta["deps"])
+	if projectProperty&types.PHPPropertyComposer != 0 {
+		installCMD += `\
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-`, meta["deps"])
+`
+	}
 
 	// copy source code to /var/www/public, which is Nginx root directory
 	copyCommand := `
