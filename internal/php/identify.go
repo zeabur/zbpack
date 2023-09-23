@@ -29,13 +29,14 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)
 	deps := DetermineAptDependencies(options.Source)
-	app := DetermineApplication(options.Source)
+	app, property := DetermineApplication(options.Source)
 
 	return types.PlanMeta{
 		"framework":  string(framework),
 		"phpVersion": phpVersion,
 		"deps":       strings.Join(deps, " "),
 		"app":        string(app),
+		"property":   PropertyToString(property),
 	}
 }
 
