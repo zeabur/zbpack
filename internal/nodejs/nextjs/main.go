@@ -131,7 +131,8 @@ func TransformServerless(image, workdir string) error {
 	}
 
 	type prerenderManifest struct {
-		Routes map[string]prerenderManifestRoute `json:"routes"`
+		Routes        map[string]prerenderManifestRoute `json:"routes"`
+		DynamicRoutes map[string]prerenderManifestRoute `json:"dynamicRoutes"`
 	}
 
 	var pm prerenderManifest
@@ -142,8 +143,12 @@ func TransformServerless(image, workdir string) error {
 
 	for route, config := range pm.Routes {
 		if config.InitialRevalidateSeconds.IsInt && config.SrcRoute != nil {
-			serverlessFunctionPages = append(serverlessFunctionPages, route)
+			serverlessFunctionPages = append(serverlessFunctionPages, route, config.DataRoute)
 		}
+	}
+
+	for _, config := range pm.DynamicRoutes {
+		serverlessFunctionPages = append(serverlessFunctionPages, config.DataRoute)
 	}
 
 	// if there is any serverless function page, create the first function page and symlinks for other function pages
