@@ -18,6 +18,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -38,6 +39,7 @@ require (
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/gkampitakis/go-snaps v0.4.3
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.1.2
