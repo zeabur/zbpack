@@ -125,15 +125,15 @@ func DetermineAptDependencies(source afero.Fs) []string {
 
 // DetermineApplication determines what application the project is using.
 // Therefore, we can apply some custom fixes such as the nginx configuration.
-func DetermineApplication(source afero.Fs) types.PHPApplication {
+func DetermineApplication(source afero.Fs) (types.PHPApplication, types.PHPProperty) {
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
-		return types.PHPApplicationDefault
+		return types.PHPApplicationDefault, types.PHPPropertyNone
 	}
 
 	if composerJSON.Name == "lizhipay/acg-faka" {
-		return types.PHPApplicationAcgFaka
+		return types.PHPApplicationAcgFaka, types.PHPPropertyComposer
 	}
 
-	return types.PHPApplicationDefault
+	return types.PHPApplicationDefault, types.PHPPropertyComposer
 }
