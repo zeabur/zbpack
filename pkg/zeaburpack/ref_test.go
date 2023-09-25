@@ -23,6 +23,7 @@ func TestReferenceConstructor_Construct(t *testing.T) {
 		"other.io/library/alpine:latest":    "other.io/library/alpine:latest",
 		"other.io/library/alpine:3.12":      "other.io/library/alpine:3.12",
 		"other.io:1234/library/alpine:3.12": "other.io:1234/library/alpine:3.12",
+		"scratch":                           "scratch",
 	}
 
 	ref := newReferenceConstructor(&proxy)
