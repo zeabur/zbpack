@@ -44,6 +44,11 @@ func (rc referenceConstructor) Construct(rawRefString string) string {
 		return rawRefString
 	}
 
+	// If ref is `scratch`, we skip.
+	if rawRefString == "scratch" {
+		return rawRefString
+	}
+
 	// Safety: ptr != nil.
 	proxyRegistry := *proxyRegistryPtr
 
