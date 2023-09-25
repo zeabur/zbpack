@@ -36,20 +36,22 @@ func buildImage(opt *buildImageOptions) error {
 	stageLines := make([]int, 0)
 
 	for i, line := range lines {
-		instruction, imageRefString, found := strings.Cut(line, " ")
-
-		// We only care about FROM instructions.
-		if !found || strings.ToLower(instruction) != "from" {
+		fromStatement, isFromStatement := ParseFrom(line)
+		if !isFromStatement {
 			continue
 		}
 
 		// Construct the reference.
-		newRef := refConstructor.Construct(imageRefString)
+		newRef := refConstructor.Construct(fromStatement.Source)
 
 		// Replace this FROM line.
-		lines[i] = instruction + " " + newRef
+		fromStatement.Source = newRef
+		lines[i] = fromStatement.String()
 
 		// Mark this FROM line as a stage.
+		if stage, ok := fromStatement.Stage.Get(); ok {
+			refConstructor.AddStage(stage)
+		}
 		stageLines = append(stageLines, i)
 	}
 
