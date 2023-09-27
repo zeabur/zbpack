@@ -411,6 +411,14 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		installCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && ` + installCmd
 	}
 
+	needPuppeteer := DetermineNeedPuppeteer(ctx)
+	if needPuppeteer {
+		installCmd = `apt-get update
+RUN apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
+ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer
+RUN ` + installCmd
+	}
+
 	*cmd = optional.Some(installCmd)
 	return cmd.Unwrap()
 }
@@ -442,17 +450,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 
 	if buildScript == "" {
 		buildCmd = ""
-	}
-
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		aptCmd := `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer
-USER puppeteer`
-		if buildCmd != "" {
-			buildCmd = aptCmd + "\nRUN" + buildCmd
-		} else {
-			buildCmd = aptCmd
-		}
 	}
 
 	*cmd = optional.Some(buildCmd)
@@ -508,11 +505,6 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			// solid-start-node specific start script
 			startCmd = "node dist/server.js"
 		}
-	}
-
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
 	}
 
 	*cmd = optional.Some(startCmd)
