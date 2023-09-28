@@ -3,6 +3,7 @@ package zeaburpack
 import (
 	"testing"
 
+	"github.com/samber/mo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,5 +37,37 @@ func TestReferenceConstructor_Construct(t *testing.T) {
 
 			assert.Equal(t, v, ref.Construct(k))
 		})
+	}
+}
+
+func TestReferenceConstructor_Construct_Stage(t *testing.T) {
+	t.Parallel()
+
+	proxy := "zeabur.tld/proxyowo/"
+	st := []FromStatement{
+		{
+			Source: "alpine",
+			Stage:  mo.Some("builder"),
+		},
+		{
+			Source: "builder",
+			Stage:  mo.None[string](),
+		},
+	}
+
+	expectedRef := []string{
+		"zeabur.tld/proxyowo/library/alpine",
+		"builder",
+	}
+
+	ref := newReferenceConstructor(&proxy)
+	for i, v := range st {
+		i := i
+		v := v
+
+		assert.Equal(t, expectedRef[i], ref.Construct(v.Source))
+		if stage, ok := v.Stage.Get(); ok {
+			ref.AddStage(stage)
+		}
 	}
 }
