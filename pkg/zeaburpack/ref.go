@@ -21,6 +21,9 @@ type referenceConstructor struct {
 	//
 	// (ref 1) https://goharbor.io/docs/2.1.0/administration/configure-proxy-cache/
 	proxyRegistry *string
+
+	// stage is a special image reference that will not be extended
+	stage map[string]struct{}
 }
 
 func newReferenceConstructor(proxyRegistry *string) referenceConstructor {
@@ -36,7 +39,7 @@ func newReferenceConstructor(proxyRegistry *string) referenceConstructor {
 }
 
 // Construct constructs a new image reference from the given raw
-func (rc referenceConstructor) Construct(rawRefString string) string {
+func (rc *referenceConstructor) Construct(rawRefString string) string {
 	proxyRegistryPtr := rc.proxyRegistry
 
 	// If the proxy registry is not set, we don't need to do anything.
@@ -46,6 +49,11 @@ func (rc referenceConstructor) Construct(rawRefString string) string {
 
 	// If ref is `scratch`, we skip.
 	if rawRefString == "scratch" {
+		return rawRefString
+	}
+
+	// If ref is a stage, we skip.
+	if _, ok := rc.stage[rawRefString]; ok {
 		return rawRefString
 	}
 
@@ -86,4 +94,16 @@ func (rc referenceConstructor) Construct(rawRefString string) string {
 	default:
 		return proxyRegistry + path
 	}
+}
+
+// AddStage marks the given image reference as a stage, so we won't
+// extend such a special stage as a dependency.
+//
+// It is not thread-safe.
+func (rc *referenceConstructor) AddStage(stage string) {
+	if rc.stage == nil {
+		rc.stage = make(map[string]struct{})
+	}
+
+	rc.stage[stage] = struct{}{}
 }
