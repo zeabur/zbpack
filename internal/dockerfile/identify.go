@@ -26,7 +26,8 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(
 		GetMetaOptions{
-			Src: options.Source,
+			Src:           options.Source,
+			SubmoduleName: options.SubmoduleName,
 		},
 	)
 }
