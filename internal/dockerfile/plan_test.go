@@ -76,6 +76,36 @@ func TestFindDockerfile_CaseInsensitiveSubmodule(t *testing.T) {
 	assert.Equal(t, "dOckErFIle.SUbM", path)
 }
 
+func TestFindDockerfile_WithSubmodulePrefixed(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "Subm.Dockerfile", []byte("FROM ubuntu"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src:           fs,
+		submoduleName: "Subm",
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Subm.Dockerfile", path)
+}
+
+func TestFindDockerfile_PrefixedCaseInsensitiveSubmodule(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "sUbM.dOckErFIle", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src:           fs,
+		submoduleName: "Subm",
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "sUbM.dOckErFIle", path)
+}
+
 func TestFindDockerfile_NoSuchSubmodule(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
