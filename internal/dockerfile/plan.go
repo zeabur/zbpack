@@ -25,7 +25,8 @@ type dockerfilePlanContext struct {
 
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src afero.Fs
+	Src           afero.Fs
+	SubmoduleName string
 }
 
 // FindDockerfile finds the Dockerfile in the project.
