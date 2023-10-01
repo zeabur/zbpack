@@ -75,11 +75,17 @@ func findDockerfile(fs afero.Fs, submoduleName string) (string, error) {
 		}
 	}
 
-	// Check if there is a Dockerfile.[submoduleName] in the directory.
+	// Check if there is a Dockerfile.[submoduleName] or
+	// [submoduleName].Dockerfile in the directory.
 	// If there is, return it.
 	if submoduleName != "" {
 		expectedFoldedFilename := "dockerfile." + foldedSubmoduleName
 		if originalFilename, ok := filesMap[expectedFoldedFilename]; ok {
+			return originalFilename, nil
+		}
+
+		anotherExpectedFoldedFilename := foldedSubmoduleName + ".dockerfile"
+		if originalFilename, ok := filesMap[anotherExpectedFoldedFilename]; ok {
 			return originalFilename, nil
 		}
 	}
