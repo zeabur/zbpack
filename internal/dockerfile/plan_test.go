@@ -46,6 +46,51 @@ func TestFindDockerfile_WithRandomcase(t *testing.T) {
 	assert.Equal(t, "dOckErFIle", path)
 }
 
+func TestFindDockerfile_WithSubmodule(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "Dockerfile.Subm", []byte("FROM ubuntu"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src:           fs,
+		submoduleName: "Subm",
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Dockerfile.Subm", path)
+}
+
+func TestFindDockerfile_CaseInsensitiveSubmodule(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "dOckErFIle.SUbM", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src:           fs,
+		submoduleName: "Subm",
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "dOckErFIle.SUbM", path)
+}
+
+func TestFindDockerfile_NoSuchSubmodule(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "dOckErFIle.SUbM", []byte("FROM alpine"), 0o644)
+
+	ctx := dockerfilePlanContext{
+		src:           fs,
+		submoduleName: "Subm2",
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "dOckErFIle", path)
+}
+
 func TestGetExposePort_WithExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine\nEXPOSE 1145"), 0o644)
