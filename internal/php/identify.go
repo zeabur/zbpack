@@ -28,9 +28,11 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	config := options.Config
 
+	server := config.GetString(ConfigLaravelOctaneServer)
+
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)
-	deps := DetermineAptDependencies(options.Source)
+	deps := DetermineAptDependencies(options.Source, server)
 	app, property := DetermineApplication(options.Source)
 
 	// Some meta will be added to the plan dynamically later.
@@ -42,10 +44,8 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		"property":   PropertyToString(property),
 	}
 
-	if framework == types.PHPFrameworkLaravel {
-		if runner := config.GetString("laravel.octane.server"); runner != "" {
-			meta["octaneServer"] = runner
-		}
+	if framework == types.PHPFrameworkLaravel && server != "" {
+		meta["octaneServer"] = server
 	}
 
 	return meta
