@@ -96,12 +96,21 @@ var depMap = map[string][]string{
 	"ext-gmp":     {"libgmp-dev"},
 }
 
-var baseDep = []string{"nginx", "libicu-dev", "jq", "pkg-config", "unzip", "git"}
+var baseDep = []string{"libicu-dev", "jq", "pkg-config", "unzip", "git"}
 
 // DetermineAptDependencies determines the required apt dependencies of the project.
-func DetermineAptDependencies(source afero.Fs) []string {
+//
+// We install Nginx server unless server is "swoole".
+func DetermineAptDependencies(source afero.Fs, server string) []string {
 	// deep copy the base dependencies
 	dependencies := append([]string{}, baseDep...)
+
+	// If Octane Server is not "swoole", we should install Nginx.
+	//
+	// TODO: support RoadRunner
+	if server != "swoole" {
+		dependencies = append(dependencies, "nginx")
+	}
 
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
