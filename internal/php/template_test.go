@@ -10,6 +10,8 @@ import (
 )
 
 func TestTemplate(t *testing.T) {
+	t.Parallel()
+
 	phpVersion := []string{
 		"8.1",
 		"8.2",
@@ -35,6 +37,8 @@ func TestTemplate(t *testing.T) {
 			for _, f := range framework {
 				for _, p := range property {
 					t.Run(v+"-"+f+"-"+d+"-"+p, func(t *testing.T) {
+						t.Parallel()
+
 						dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
 							"phpVersion": v,
 							"framework":  f,
@@ -53,6 +57,8 @@ func TestTemplate(t *testing.T) {
 }
 
 func TestTemplate_AcgFaka(t *testing.T) {
+	t.Parallel()
+
 	dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
 		"phpVersion": "8.2",
 		"framework":  string(types.PHPFrameworkLaravel),
