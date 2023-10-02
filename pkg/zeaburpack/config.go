@@ -31,6 +31,7 @@ type ImmutableProjectConfiguration interface {
 	GetUint16(key string) uint16
 	GetUint32(key string) uint32
 	GetUint64(key string) uint64
+	IsSet(key string) bool
 }
 
 // ProjectConfiguration declares the common interface for project configuration.
