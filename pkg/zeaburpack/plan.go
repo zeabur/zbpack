@@ -50,6 +50,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
+			Config:             NewProjectConfigurationFromFs(src),
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,
