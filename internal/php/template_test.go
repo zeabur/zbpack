@@ -31,6 +31,11 @@ func TestTemplate(t *testing.T) {
 		php.PropertyToString(types.PHPPropertyNone),
 		php.PropertyToString(types.PHPPropertyComposer),
 	}
+	octaneServer := []string{
+		"",
+		"roadrunner",
+		"swoole",
+	}
 
 	for _, v := range phpVersion {
 		for _, d := range deps {
@@ -50,6 +55,26 @@ func TestTemplate(t *testing.T) {
 						assert.NoError(t, err)
 						snaps.MatchSnapshot(t, dockerfile)
 					})
+
+					if f == string(types.PHPFrameworkLaravel) {
+						for _, o := range octaneServer {
+							t.Run(v+"-"+f+"-"+d+"-"+p+"+os-"+o, func(t *testing.T) {
+								t.Parallel()
+
+								dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
+									"phpVersion":   v,
+									"framework":    f,
+									"deps":         d,
+									"app":          string(types.PHPApplicationDefault),
+									"property":     p,
+									"octaneServer": o,
+								})
+
+								assert.NoError(t, err)
+								snaps.MatchSnapshot(t, dockerfile)
+							})
+						}
+					}
 				}
 			}
 		}
