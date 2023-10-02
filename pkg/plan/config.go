@@ -47,10 +47,11 @@ type ViperProjectConfiguration struct {
 
 // NewProjectConfiguration creates a new ViperProjectConfiguration.
 func NewProjectConfiguration() ProjectConfiguration {
-	viper.SetConfigType("toml")
+	viperInstance := viper.New()
+	viperInstance.SetConfigType("toml")
 
 	return &ViperProjectConfiguration{
-		Viper: viper.New(),
+		Viper: viperInstance,
 	}
 }
 
