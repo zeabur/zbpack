@@ -131,7 +131,7 @@ func Build(opt *BuildOptions) error {
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
-			Config:             NewProjectConfigurationFromFs(src),
+			Config:             plan.NewProjectConfigurationFromFs(src),
 			SubmoduleName:      *opt.SubmoduleName,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
