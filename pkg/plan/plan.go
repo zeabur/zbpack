@@ -3,6 +3,7 @@ package plan
 
 import (
 	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/pkg/zeaburpack"
 
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -21,6 +22,7 @@ type planner struct {
 // NewPlannerOptions is the options for NewPlanner.
 type NewPlannerOptions struct {
 	Source             afero.Fs
+	Config             zeaburpack.ImmutableProjectConfiguration
 	SubmoduleName      string
 	CustomBuildCommand *string
 	CustomStartCommand *string
