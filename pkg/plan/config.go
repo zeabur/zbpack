@@ -1,4 +1,4 @@
-package zeaburpack
+package plan
 
 import (
 	"fmt"
