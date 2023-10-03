@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
@@ -84,4 +85,32 @@ func (vpc *ViperProjectConfiguration) ReadFromFs(fs afero.Fs) error {
 	}(file)
 
 	return vpc.ReadConfig(file)
+}
+
+// GetProjectConfigValue returns the project-specific configuration of the specified key.
+//
+// The format of project-specific configuration is like:
+//
+//	    [project]            # global
+//	    key = "value"
+//
+//		[project.submodule]  # submoduleName specific
+//	    key = "value"        # overrides global
+//
+// If no such key is found in config, it returns None.
+func GetProjectConfigValue(config ProjectConfiguration, submoduleName string, key string) optional.Option[string] {
+	submoduleKey := "project." + submoduleName + "."
+	globalKey := "project."
+
+	if config.IsSet(submoduleKey + key) {
+		value := config.GetString(submoduleKey + key)
+		return optional.Some(value)
+	}
+
+	if config.IsSet(globalKey + key) {
+		value := config.GetString(globalKey + key)
+		return optional.Some(value)
+	}
+
+	return optional.None[string]()
 }
