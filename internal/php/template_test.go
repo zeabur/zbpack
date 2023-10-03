@@ -38,9 +38,13 @@ func TestTemplate(t *testing.T) {
 	}
 
 	for _, v := range phpVersion {
+		v := v
 		for _, d := range deps {
+			d := d
 			for _, f := range framework {
+				f := f
 				for _, p := range property {
+					p := p
 					t.Run(v+"-"+f+"-"+d+"-"+p, func(t *testing.T) {
 						t.Parallel()
 
@@ -58,6 +62,8 @@ func TestTemplate(t *testing.T) {
 
 					if f == string(types.PHPFrameworkLaravel) {
 						for _, o := range octaneServer {
+							o := o
+
 							t.Run(v+"-"+f+"-"+d+"-"+p+"+os-"+o, func(t *testing.T) {
 								t.Parallel()
 
