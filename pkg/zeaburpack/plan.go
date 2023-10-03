@@ -47,6 +47,43 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	}
 
+	config := plan.NewProjectConfigurationFromFs(src)
+
+	// You can specify customBuildCommand, customStartCommand, and
+	// outputDir in the project configuration file, with the following
+	// form:
+	//
+	//     [project]
+	//     build_command = "..."
+	//     start_command = "..."
+	//     output_dir = "..."
+	//
+	//     [project.submodule]
+	//     build_command = "..."
+	//     start_command = "..."
+	//     output_dir = "..."
+	//
+	// The submodule-specific configuration overrides the project
+	// configuration if defined.
+	if opt.CustomBuildCommand == nil {
+		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "build_command").Take()
+		if err == nil {
+			opt.CustomBuildCommand = &value
+		}
+	}
+	if opt.CustomStartCommand == nil {
+		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "start_command").Take()
+		if err == nil {
+			opt.CustomStartCommand = &value
+		}
+	}
+	if opt.OutputDir == nil {
+		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "output_dir").Take()
+		if err == nil {
+			opt.OutputDir = &value
+		}
+	}
+
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
