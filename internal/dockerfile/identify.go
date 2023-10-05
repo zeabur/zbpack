@@ -1,9 +1,12 @@
 package dockerfile
 
 import (
-	"github.com/spf13/afero"
+	"log"
+	"strings"
 
-	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/spf13/afero"
+	"golang.org/x/text/cases"
+
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -20,7 +23,30 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "Dockerfile", "dockerfile")
+	fileInfo, err := afero.ReadDir(fs, ".")
+	if err != nil {
+		log.Println("dockerfile: read dir:", err)
+		return false
+	}
+
+	converter := cases.Fold()
+
+	for _, file := range fileInfo {
+		if file.IsDir() {
+			continue
+		}
+
+		foldedFilename := converter.String(file.Name())
+
+		// We only care about {*.,}dockerfile{.*,}.
+		if foldedFilename == "dockerfile" ||
+			strings.HasPrefix(foldedFilename, "dockerfile.") ||
+			strings.HasSuffix(foldedFilename, ".dockerfile") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
