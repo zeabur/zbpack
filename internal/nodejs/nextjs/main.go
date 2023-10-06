@@ -58,6 +58,9 @@ func TransformServerless(image, workdir string) error {
 	_ = os.RemoveAll(path.Join(workdir, ".zeabur"))
 
 	var serverlessFunctionPages []string
+	var prerenderPaths []string
+	var staticPages []string
+
 	internalPages := []string{"_app.js", "_document.js", "_error.js"}
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".js") {
@@ -73,9 +76,6 @@ func TransformServerless(image, workdir string) error {
 		return nil
 	})
 
-	serverlessFunctionPages = append(serverlessFunctionPages, "/_next/image")
-
-	var staticPages []string
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
 			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
@@ -149,6 +149,7 @@ func TransformServerless(image, workdir string) error {
 
 	for _, config := range pm.DynamicRoutes {
 		serverlessFunctionPages = append(serverlessFunctionPages, config.DataRoute)
+		prerenderPaths = append(prerenderPaths, config.DataRoute)
 	}
 
 	// if there is any serverless function page, create the first function page and symlinks for other function pages
@@ -194,29 +195,14 @@ func TransformServerless(image, workdir string) error {
 			if config.SrcRoute != nil {
 				r = *config.SrcRoute
 			}
-			prerenderConfigFilename := r + ".prerender-config.json"
-			if r == "/" {
-				prerenderConfigFilename = "index.prerender-config.json"
-			}
-			pcPath := path.Join(zeaburOutputDir, "functions", prerenderConfigFilename)
-			err = os.MkdirAll(path.Dir(pcPath), 0755)
-			if err != nil {
-				return fmt.Errorf("create prerender config dir: %w", err)
-			}
-			err = os.WriteFile(pcPath, []byte("{\"type\": \"Prerender\"}"), 0644)
-			if err != nil {
-				return fmt.Errorf("write prerender config: %w", err)
-			}
+			prerenderPaths = append(prerenderPaths, r, config.DataRoute)
+		}
+	}
 
-			dataRoutePrerenderConfigFilename := path.Join(zeaburOutputDir, "functions", config.DataRoute+".prerender-config.json")
-			err = os.MkdirAll(path.Dir(dataRoutePrerenderConfigFilename), 0755)
-			if err != nil {
-				return fmt.Errorf("create prerender config dir: %w", err)
-			}
-			err = os.WriteFile(dataRoutePrerenderConfigFilename, []byte("{\"type\": \"Prerender\"}"), 0644)
-			if err != nil {
-				return fmt.Errorf("write prerender config: %w", err)
-			}
+	for _, r := range prerenderPaths {
+		err = writePrerenderConfig(zeaburOutputDir, r)
+		if err != nil {
+			return fmt.Errorf("write prerender config: %w", err)
 		}
 	}
 
@@ -237,6 +223,27 @@ func TransformServerless(image, workdir string) error {
 	err = os.WriteFile(path.Join(zeaburOutputDir, "config.json"), cfgBytes, 0644)
 	if err != nil {
 		return fmt.Errorf("write config: %w", err)
+	}
+
+	return nil
+}
+
+func writePrerenderConfig(zeaburOutputDir, r string) error {
+	prerenderConfigFilename := r + ".prerender-config.json"
+	if r == "/" {
+		prerenderConfigFilename = "index.prerender-config.json"
+	}
+
+	pcPath := path.Join(zeaburOutputDir, "functions", prerenderConfigFilename)
+
+	err := os.MkdirAll(path.Dir(pcPath), 0755)
+	if err != nil {
+		return fmt.Errorf("create prerender config dir: %w", err)
+	}
+
+	err = os.WriteFile(pcPath, []byte("{\"type\": \"Prerender\"}"), 0644)
+	if err != nil {
+		return fmt.Errorf("write prerender config: %w", err)
 	}
 
 	return nil
