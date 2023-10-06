@@ -84,6 +84,8 @@ func TransformServerless(image, workdir string) error {
 		return nil
 	})
 
+	serverlessFunctionPages = append(serverlessFunctionPages, "/_next/image")
+
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0755)
 	if err != nil {
 		return fmt.Errorf("create static dir: %w", err)
