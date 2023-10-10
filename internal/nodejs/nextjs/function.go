@@ -81,7 +81,8 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 	for _, dep := range deps {
 		err = cp.Copy(path.Join(tmpDir, dep), path.Join(p, dep))
 		if err != nil {
-			return fmt.Errorf("copy dep: %w", err)
+			println("warning: failed to copy", dep, "to", path.Join(p, dep), ":", err.Error())
+			continue
 		}
 	}
 

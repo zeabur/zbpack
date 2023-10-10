@@ -47,6 +47,7 @@ require (
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/deckarep/golang-set v1.8.0
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/gkampitakis/go-snaps v0.4.3
 	github.com/google/go-github/v53 v53.2.0

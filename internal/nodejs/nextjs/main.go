@@ -11,6 +11,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/deckarep/golang-set"
 	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/internal/utils"
@@ -37,6 +38,9 @@ func TransformServerless(image, workdir string) error {
 	// /tmpDir/uuid/.next/server/pages
 	nextOutputServerPagesDir := path.Join(nextOutputDir, "server/pages")
 
+	// /tmpDir/uuid/.next/server/app
+	nextOutputServerAppDir := path.Join(nextOutputDir, "server/app")
+
 	// /workDir/.zeabur/output
 	zeaburOutputDir := path.Join(workdir, ".zeabur/output")
 
@@ -57,9 +61,9 @@ func TransformServerless(image, workdir string) error {
 
 	_ = os.RemoveAll(path.Join(workdir, ".zeabur"))
 
-	var serverlessFunctionPages []string
-	var prerenderPaths []string
-	var staticPages []string
+	serverlessFunctionPages := mapset.NewSet()
+	prerenderPaths := mapset.NewSet()
+	staticPages := mapset.NewSet()
 
 	internalPages := []string{"_app.js", "_document.js", "_error.js"}
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
@@ -71,20 +75,38 @@ func TransformServerless(image, workdir string) error {
 			}
 			funcPath := strings.TrimPrefix(path, nextOutputServerPagesDir)
 			funcPath = strings.TrimSuffix(funcPath, ".js")
-			serverlessFunctionPages = append(serverlessFunctionPages, funcPath)
+			serverlessFunctionPages.Add(funcPath)
 		}
+		return nil
+	})
+
+	_ = filepath.Walk(nextOutputServerAppDir, func(p string, info os.FileInfo, err error) error {
+
+		// if we found any page.js or route.js inside .next/server/app, this is a serverless function
+		if strings.HasSuffix(p, "page.js") || strings.HasSuffix(p, "route.js") {
+			funcPath := strings.TrimPrefix(p, nextOutputServerAppDir)
+			funcPath = path.Dir(funcPath)
+			serverlessFunctionPages.Add(funcPath)
+		}
+
+		// if we found any .rsc file inside .next/server/app, this is a serverless function
+		if strings.HasSuffix(p, ".rsc") {
+			funcPath := strings.TrimPrefix(p, nextOutputServerAppDir)
+			serverlessFunctionPages.Add(funcPath)
+		}
+
 		return nil
 	})
 
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
 			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
-			staticPages = append(staticPages, filePath)
+			staticPages.Add(filePath)
 		}
 		return nil
 	})
 
-	serverlessFunctionPages = append(serverlessFunctionPages, "/_next/image")
+	serverlessFunctionPages.Add("/_next/image")
 
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0755)
 	if err != nil {
@@ -145,30 +167,29 @@ func TransformServerless(image, workdir string) error {
 
 	for route, config := range pm.Routes {
 		if config.InitialRevalidateSeconds.IsInt {
-			serverlessFunctionPages = append(serverlessFunctionPages, route, config.DataRoute)
+			serverlessFunctionPages.Add(route)
+			serverlessFunctionPages.Add(config.DataRoute)
 		}
 	}
 
 	for _, config := range pm.DynamicRoutes {
-		serverlessFunctionPages = append(serverlessFunctionPages, config.DataRoute)
-		prerenderPaths = append(prerenderPaths, config.DataRoute)
+		serverlessFunctionPages.Add(config.DataRoute)
+		prerenderPaths.Add(config.DataRoute)
 	}
 
 	// if there is any serverless function page, create the first function page and symlinks for other function pages
-	if len(serverlessFunctionPages) > 0 {
+	if serverlessFunctionPages.Cardinality() > 0 {
 
 		// create the first function page
-		err = constructNextFunction(zeaburOutputDir, serverlessFunctionPages[0], tmpDir)
+		firstFuncPage := serverlessFunctionPages.Pop().(string)
+		err = constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir)
 		if err != nil {
 			return fmt.Errorf("construct next function: %w", err)
 		}
 
 		// create symlinks for other function pages
-		for i, p := range serverlessFunctionPages {
-			if i == 0 {
-				continue
-			}
-
+		for i := range serverlessFunctionPages.Iter() {
+			p := i.(string)
 			funcPath := path.Join(zeaburOutputDir, "functions", p+".func")
 			if p == "/" {
 				funcPath = path.Join(zeaburOutputDir, "functions", "index.func")
@@ -179,8 +200,8 @@ func TransformServerless(image, workdir string) error {
 				return fmt.Errorf("create function dir: %w", err)
 			}
 
-			target := path.Join(zeaburOutputDir, "functions", serverlessFunctionPages[0]+".func")
-			if serverlessFunctionPages[0] == "/" {
+			target := path.Join(zeaburOutputDir, "functions", firstFuncPage+".func")
+			if firstFuncPage == "/" {
 				target = path.Join(zeaburOutputDir, "functions", "index.func")
 			}
 
@@ -197,19 +218,21 @@ func TransformServerless(image, workdir string) error {
 			if config.SrcRoute != nil {
 				r = *config.SrcRoute
 			}
-			prerenderPaths = append(prerenderPaths, r, config.DataRoute)
+			prerenderPaths.Add(r)
+			prerenderPaths.Add(config.DataRoute)
 		}
 	}
 
-	for _, r := range prerenderPaths {
-		err = writePrerenderConfig(zeaburOutputDir, r)
+	for r := range prerenderPaths.Iter() {
+		err = writePrerenderConfig(zeaburOutputDir, r.(string))
 		if err != nil {
 			return fmt.Errorf("write prerender config: %w", err)
 		}
 	}
 
 	// copy static pages which is rendered by Next.js at build time, so they will be served as static files
-	for _, p := range staticPages {
+	for i := range staticPages.Iter() {
+		p := i.(string)
 		err = cp.Copy(path.Join(nextOutputDir, "server/pages", p), path.Join(zeaburOutputDir, "static", p))
 		if err != nil {
 			return fmt.Errorf("copy static page: %w", err)
