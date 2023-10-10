@@ -64,6 +64,7 @@ func TransformServerless(image, workdir string) error {
 	serverlessFunctionPages := mapset.NewSet()
 	prerenderPaths := mapset.NewSet()
 	staticPages := mapset.NewSet()
+	staticAppPages := mapset.NewSet()
 
 	internalPages := []string{"_app.js", "_document.js", "_error.js"}
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
@@ -109,7 +110,7 @@ func TransformServerless(image, workdir string) error {
 	_ = filepath.Walk(nextOutputServerAppDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
 			filePath := strings.TrimPrefix(path, nextOutputServerAppDir)
-			staticPages.Add(filePath)
+			staticAppPages.Add(filePath)
 		}
 		return nil
 	})
@@ -242,6 +243,14 @@ func TransformServerless(image, workdir string) error {
 	for i := range staticPages.Iter() {
 		p := i.(string)
 		err = cp.Copy(path.Join(nextOutputDir, "server/pages", p), path.Join(zeaburOutputDir, "static", p))
+		if err != nil {
+			return fmt.Errorf("copy static page: %w", err)
+		}
+	}
+
+	for i := range staticAppPages.Iter() {
+		p := i.(string)
+		err = cp.Copy(path.Join(nextOutputDir, "server/app", p), path.Join(zeaburOutputDir, "static", p))
 		if err != nil {
 			return fmt.Errorf("copy static page: %w", err)
 		}
