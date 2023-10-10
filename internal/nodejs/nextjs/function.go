@@ -79,10 +79,18 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 	}
 
 	for _, dep := range deps {
-		err = cp.Copy(path.Join(tmpDir, dep), path.Join(p, dep))
+		from := path.Join(tmpDir, dep)
+		if info, err := os.Lstat(from); err == nil && info.Mode()&os.ModeSymlink != 0 {
+			alias, err := os.Readlink(from)
+			if err != nil {
+				return fmt.Errorf("read symlink: %w", err)
+			}
+			from = path.Join(path.Dir(from), alias)
+		}
+		to := path.Join(p, dep)
+		err = cp.Copy(from, to)
 		if err != nil {
-			println("warning: failed to copy", dep, "to", path.Join(p, dep), ":", err.Error())
-			continue
+			return fmt.Errorf("copy deps: %w", err)
 		}
 	}
 
