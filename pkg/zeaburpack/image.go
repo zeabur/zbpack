@@ -2,6 +2,7 @@ package zeaburpack
 
 import (
 	"bufio"
+	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -96,10 +97,16 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	dockerfilePath := path.Join(tempDir, buildID, "Dockerfile")
-	if err := os.WriteFile(
-		dockerfilePath, []byte(newDockerfile), 0o644,
-	); err != nil {
-		return err
+	err = os.WriteFile(dockerfilePath, []byte(newDockerfile), 0o644)
+	if err != nil {
+		return fmt.Errorf("write Dockerfile: %w", err)
+	}
+
+	dockerIgnore := []string{".next", "node_modules"}
+	dockerIgnorePath := path.Join(tempDir, buildID, ".dockerignore")
+	err = os.WriteFile(dockerIgnorePath, []byte(strings.Join(dockerIgnore, "\n")), 0o644)
+	if err != nil {
+		return fmt.Errorf("write .dockerignore: %w", err)
 	}
 
 	dockerCmd := []string{

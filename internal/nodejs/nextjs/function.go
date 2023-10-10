@@ -50,12 +50,12 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 	}
 
 	var deps []string
-	err = filepath.Walk(path.Join(tmpDir, ".next"), func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".nft.json") {
+	err = filepath.Walk(path.Join(tmpDir, ".next"), func(p string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(p, ".nft.json") {
 			type nftJSON struct {
 				Files []string `json:"files"`
 			}
-			b, err := os.ReadFile(path)
+			b, err := os.ReadFile(p)
 			if err != nil {
 				return fmt.Errorf("read nft.json: %w", err)
 			}
@@ -68,8 +68,10 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 				if !strings.Contains(file, "node_modules") {
 					continue
 				}
-				file = file[strings.Index(file, "node_modules"):]
-				deps = append(deps, file)
+				resolved := path.Join(path.Dir(p), file)
+				if strings.HasPrefix(resolved, path.Join(tmpDir, "node_modules")) {
+					deps = append(deps, resolved)
+				}
 			}
 		}
 		return nil
@@ -79,18 +81,42 @@ func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error 
 	}
 
 	for _, dep := range deps {
-		from := path.Join(tmpDir, dep)
-		if info, err := os.Lstat(from); err == nil && info.Mode()&os.ModeSymlink != 0 {
-			alias, err := os.Readlink(from)
+		to := strings.Replace(dep, tmpDir, p, 1)
+
+		err = os.MkdirAll(path.Dir(to), 0755)
+		if err != nil {
+			return fmt.Errorf("mkdirall: %w", err)
+		}
+
+		stat, err := os.Lstat(dep)
+		if err != nil {
+			return fmt.Errorf("lstat: %w", err)
+		}
+
+		if stat.Mode()&os.ModeSymlink == os.ModeSymlink {
+
+			alias, err := os.Readlink(dep)
 			if err != nil {
 				return fmt.Errorf("read symlink: %w", err)
 			}
-			from = path.Join(path.Dir(from), alias)
-		}
-		to := path.Join(p, dep)
-		err = cp.Copy(from, to)
-		if err != nil {
-			return fmt.Errorf("copy deps: %w", err)
+
+			err = os.Symlink(alias, to)
+			if err != nil && !os.IsExist(err) {
+				return fmt.Errorf("write symlink: %w", err)
+			}
+
+		} else {
+
+			read, err := os.ReadFile(dep)
+			if err != nil {
+				return fmt.Errorf("read file: %w", err)
+			}
+
+			err = os.WriteFile(to, read, 0644)
+			if err != nil {
+				return fmt.Errorf("write file: %w", err)
+			}
+
 		}
 	}
 
