@@ -106,6 +106,14 @@ func TransformServerless(image, workdir string) error {
 		return nil
 	})
 
+	_ = filepath.Walk(nextOutputServerAppDir, func(path string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(path, ".html") {
+			filePath := strings.TrimPrefix(path, nextOutputServerAppDir)
+			staticPages.Add(filePath)
+		}
+		return nil
+	})
+
 	serverlessFunctionPages.Add("/_next/image")
 
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0755)
