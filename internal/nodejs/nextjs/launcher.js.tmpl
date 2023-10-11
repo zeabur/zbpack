@@ -9,6 +9,8 @@ const nextServer = new NextServer({
 	dir: '.',
 	minimalMode: true,
 	customServer: false,
+	port: 80,
+	hostname: 'localhost'
 });
 const requestHandler = nextServer.getRequestHandler();
 module.exports = async (req, res) => {
