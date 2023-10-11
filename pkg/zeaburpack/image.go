@@ -21,7 +21,9 @@ type buildImageOptions struct {
 	ResultImage         string
 	HandleLog           *func(log string)
 	PlainDockerProgress bool
-	CacheFrom           *string
+
+	CacheFrom *string
+	CacheTo   *string
 
 	// ProxyRegistry is the registry to be used for the image.
 	// See referenceConstructor for more details.
@@ -123,12 +125,11 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
-		// if cacheFrom contains tag, we need to remove it
-		if strings.Contains(*opt.CacheFrom, ":") {
-			*opt.CacheFrom = strings.Split(*opt.CacheFrom, ":")[0]
-		}
 		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
-		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheFrom)
+	}
+
+	if opt.CacheTo != nil && len(*opt.CacheTo) > 0 {
+		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheTo)
 	}
 
 	dockerCmd = append(dockerCmd, opt.AbsPath)
