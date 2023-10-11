@@ -110,6 +110,7 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	dockerCmd := []string{
+		"buildx",
 		"build",
 		"-t", opt.ResultImage,
 		"-f", dockerfilePath,
