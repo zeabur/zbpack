@@ -409,60 +409,63 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
-	staticInfo := DetermineStaticInfo(ctx)
 
-	// Will be joined with `&&`
-	andCommands := []string{}
+	// will be joined by newline
+	var commands []string
 
 	switch pm {
 	case types.PythonPackageManagerPipenv:
-		andCommands = append(andCommands, "pip install pipenv", "pipenv install")
+		commands = append(commands, "RUN pip install pipenv")
 
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
-				andCommands = append(andCommands, "pipenv install uvicorn")
+				commands = append(commands, "RUN pipenv install uvicorn")
 			} else {
-				andCommands = append(andCommands, "pipenv install gunicorn")
+				commands = append(commands, "RUN pipenv install gunicorn")
 			}
 		}
+		commands = append(commands, "COPY Pipfile* .", "RUN pipenv install")
 	case types.PythonPackageManagerPoetry:
-		andCommands = append(andCommands, "pip install poetry", "poetry install")
+		commands = append(commands, "RUN pip install poetry")
 
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
-				andCommands = append(andCommands, "poetry add uvicorn")
+				commands = append(commands, "RUN poetry add uvicorn")
 			} else {
-				andCommands = append(andCommands, "poetry add gunicorn")
+				commands = append(commands, "RUN poetry add gunicorn")
 			}
 		}
+		commands = append(commands, "COPY poetry.lock* pyproject.toml* .", "RUN poetry install")
 	case types.PythonPackageManagerPdm:
-		andCommands = append(andCommands, "pip install pdm", "pdm install")
+		commands = append(commands, "COPY pdm.lock* pyproject.toml* .", "RUN pip install pdm")
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
-				andCommands = append(andCommands, "pdm add uvicorn")
+				commands = append(commands, "RUN pdm add uvicorn")
 			} else {
-				andCommands = append(andCommands, "pdm add gunicorn")
+				commands = append(commands, "RUN pdm add gunicorn")
 			}
 		}
+		commands = append(commands, "RUN pdm install")
 	case types.PythonPackageManagerPip:
-		andCommands = append(andCommands, "pip install -r requirements.txt")
-		fallthrough
+		if wsgi != "" {
+			if framework == types.PythonFrameworkFastapi {
+				commands = append(commands, "RUN pip install uvicorn")
+			} else {
+				commands = append(commands, "RUN pip install gunicorn")
+			}
+		}
+		commands = append(commands, "COPY requirements.txt* .", "RUN pip install -r requirements.txt")
 	default:
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
-				andCommands = append(andCommands, "pip install uvicorn")
+				commands = append(commands, "RUN pip install uvicorn")
 			} else {
-				andCommands = append(andCommands, "pip install gunicorn")
+				commands = append(commands, "RUN pip install gunicorn")
 			}
 		}
 	}
 
-	if staticInfo.DjangoEnabled() {
-		// We need to collect static files if we are using Django.
-		andCommands = append(andCommands, "python manage.py collectstatic --noinput")
-	}
-
-	command := strings.Join(andCommands, " && ")
+	command := strings.Join(commands, "\n")
 	if command != "" {
 		return command
 	}
@@ -594,6 +597,17 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 	return defaultPython3Version
 }
 
+func determineBuildCmd(ctx *pythonPlanContext) string {
+	staticInfo := DetermineStaticInfo(ctx)
+
+	if staticInfo.DjangoEnabled() {
+		// We need to collect static files if we are using Django.
+		return "RUN python manage.py collectstatic --noinput"
+	}
+
+	return ""
+}
+
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src afero.Fs
@@ -625,6 +639,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	installCmd := determineInstallCmd(ctx)
 	meta["install"] = installCmd
+
+	buildCmd := determineBuildCmd(ctx)
+	if buildCmd != "" {
+		meta["build"] = buildCmd
+	}
 
 	startCmd := determineStartCmd(ctx)
 	meta["start"] = startCmd
