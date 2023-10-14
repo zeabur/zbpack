@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/deckarep/golang-set"
+	esbuild "github.com/evanw/esbuild/pkg/api"
 	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/internal/utils"
@@ -44,6 +45,8 @@ func TransformServerless(image, workdir string) error {
 	// /workDir/.zeabur/output
 	zeaburOutputDir := path.Join(workdir, ".zeabur/output")
 
+	fmt.Println("=> Copying build output from image")
+
 	err := utils.CopyFromImage(image, "/src/.next", tmpDir)
 	if err != nil {
 		return err
@@ -65,6 +68,8 @@ func TransformServerless(image, workdir string) error {
 	prerenderPaths := mapset.NewSet()
 	staticPages := mapset.NewSet()
 	staticAppPages := mapset.NewSet()
+
+	fmt.Println("=> Collect serverless function pages")
 
 	internalPages := []string{"_app.js", "_document.js", "_error.js"}
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
@@ -99,6 +104,8 @@ func TransformServerless(image, workdir string) error {
 		return nil
 	})
 
+	fmt.Println("=> Collect SSG pages")
+
 	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".html") {
 			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
@@ -117,6 +124,8 @@ func TransformServerless(image, workdir string) error {
 
 	serverlessFunctionPages.Add("/_next/image")
 
+	fmt.Println("=> Copying static asset files")
+
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0755)
 	if err != nil {
 		return fmt.Errorf("create static dir: %w", err)
@@ -131,6 +140,8 @@ func TransformServerless(image, workdir string) error {
 	if err != nil {
 		return fmt.Errorf("copy public dir: %w", err)
 	}
+
+	fmt.Println("=> Constructing Next.js serverless function")
 
 	nextConfig, err := getNextConfig(tmpDir)
 	if err != nil {
@@ -185,6 +196,8 @@ func TransformServerless(image, workdir string) error {
 		serverlessFunctionPages.Add(config.DataRoute)
 		prerenderPaths.Add(config.DataRoute)
 	}
+
+	fmt.Println("=> Creating serverless function symlinks")
 
 	// if there is any serverless function page, create the first function page and symlinks for other function pages
 	if serverlessFunctionPages.Cardinality() > 0 {
@@ -267,6 +280,13 @@ func TransformServerless(image, workdir string) error {
 		return fmt.Errorf("write config: %w", err)
 	}
 
+	fmt.Println("=> Building edge middleware")
+
+	err = buildMiddleware(workdir)
+	if err != nil {
+		return fmt.Errorf("build middleware: %w", err)
+	}
+
 	return nil
 }
 
@@ -286,6 +306,41 @@ func writePrerenderConfig(zeaburOutputDir, r string) error {
 	err = os.WriteFile(pcPath, []byte("{\"type\": \"Prerender\"}"), 0644)
 	if err != nil {
 		return fmt.Errorf("write prerender config: %w", err)
+	}
+
+	return nil
+}
+
+func buildMiddleware(workdir string) error {
+	files := []string{"middleware.js", "middleware.ts", "src/middleware.js", "src/middleware.ts"}
+	var middlewareFile string
+	for _, file := range files {
+		if _, err := os.Stat(path.Join(workdir, file)); err == nil {
+			middlewareFile = file
+			break
+		}
+	}
+
+	if middlewareFile == "" {
+		return nil
+	}
+
+	res := esbuild.Build(esbuild.BuildOptions{
+		EntryPoints: []string{path.Join(workdir, middlewareFile)},
+		Bundle:      true,
+		Platform:    esbuild.PlatformNode,
+		Loader:      map[string]esbuild.Loader{".wasm": esbuild.LoaderBinary},
+	})
+	if res.Errors != nil && len(res.Errors) > 0 {
+		println(res.Errors[0].Text)
+		return fmt.Errorf("esbuild run failed")
+	}
+
+	wp := path.Join(workdir, ".zeabur/output/functions/_middleware.func/index.js")
+	_ = os.MkdirAll(path.Dir(wp), 0755)
+	err := os.WriteFile(wp, res.OutputFiles[0].Contents, 0644)
+	if err != nil {
+		return fmt.Errorf("write middleware: %w", err)
 	}
 
 	return nil

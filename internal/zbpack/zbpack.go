@@ -71,7 +71,7 @@ func build(path string) error {
 	handlePlanDetermined := func(planType types.PlanType, planMeta types.PlanMeta) {
 		zeaburpack.PrintPlanAndMeta(
 			planType, planMeta, func(info string) {
-				log.Println(info)
+				fmt.Println(info)
 			},
 		)
 	}
