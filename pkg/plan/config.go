@@ -3,6 +3,7 @@ package plan
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/moznion/go-optional"
@@ -64,6 +65,12 @@ func NewProjectConfigurationFromFs(fs afero.Fs) ProjectConfiguration {
 	vpc := NewProjectConfiguration().(*ViperProjectConfiguration)
 	err := vpc.ReadFromFs(fs)
 	if err != nil {
+
+		// If no configuration file, return a default configuration.
+		if strings.Contains(err.Error(), "no such file or directory") {
+			return NewProjectConfiguration()
+		}
+
 		log.Println("read config from fs:", err)
 		return NewProjectConfiguration()
 	}
