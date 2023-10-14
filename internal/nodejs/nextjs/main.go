@@ -287,7 +287,7 @@ func TransformServerless(image, workdir string) error {
 
 	fmt.Println("=> Building edge middleware")
 
-	err = buildMiddleware(tmpDir)
+	err = buildMiddleware(tmpDir, zeaburOutputDir)
 	if err != nil {
 		return fmt.Errorf("build middleware: %w", err)
 	}
@@ -316,7 +316,7 @@ func writePrerenderConfig(zeaburOutputDir, r string) error {
 	return nil
 }
 
-func buildMiddleware(workdir string) error {
+func buildMiddleware(workdir, zeaburOutputDir string) error {
 	files := []string{"middleware.js", "middleware.ts", "src/middleware.js", "src/middleware.ts"}
 	var middlewareFile string
 	for _, file := range files {
@@ -342,7 +342,7 @@ func buildMiddleware(workdir string) error {
 		return fmt.Errorf("esbuild run failed")
 	}
 
-	wp := path.Join(workdir, ".zeabur/output/functions/_middleware.func/index.js")
+	wp := path.Join(zeaburOutputDir, "functions/_middleware.func/index.js")
 	_ = os.MkdirAll(path.Dir(wp), 0755)
 	err := os.WriteFile(wp, res.OutputFiles[0].Contents, 0644)
 	if err != nil {
