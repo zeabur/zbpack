@@ -47,7 +47,12 @@ func TransformServerless(image, workdir string) error {
 
 	fmt.Println("=> Copying build output from image")
 
-	err := utils.CopyFromImage(image, "/src/.next", tmpDir)
+	err := cp.Copy(workdir, tmpDir)
+	if err != nil {
+		return err
+	}
+
+	err = utils.CopyFromImage(image, "/src/.next", tmpDir)
 	if err != nil {
 		return err
 	}
@@ -282,7 +287,7 @@ func TransformServerless(image, workdir string) error {
 
 	fmt.Println("=> Building edge middleware")
 
-	err = buildMiddleware(workdir)
+	err = buildMiddleware(tmpDir)
 	if err != nil {
 		return fmt.Errorf("build middleware: %w", err)
 	}
@@ -326,10 +331,11 @@ func buildMiddleware(workdir string) error {
 	}
 
 	res := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints: []string{path.Join(workdir, middlewareFile)},
-		Bundle:      true,
-		Platform:    esbuild.PlatformNode,
-		Loader:      map[string]esbuild.Loader{".wasm": esbuild.LoaderBinary},
+		EntryPoints:   []string{path.Join(workdir, middlewareFile)},
+		Bundle:        true,
+		Platform:      esbuild.PlatformNode,
+		Loader:        map[string]esbuild.Loader{".wasm": esbuild.LoaderBinary},
+		AbsWorkingDir: workdir,
 	})
 	if res.Errors != nil && len(res.Errors) > 0 {
 		println(res.Errors[0].Text)
