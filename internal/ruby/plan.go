@@ -10,7 +10,7 @@ import (
 
 // DetermineRubyVersion determines the version of Ruby used in the project.
 func DetermineRubyVersion(source afero.Fs) string {
-	reg := regexp.MustCompile(`ruby "(\d+\.\d+\.\d+)"`)
+	reg := regexp.MustCompile(`ruby ["'](\d+\.\d+\.\d+)["']`)
 	sourceFile, err := afero.ReadFile(source, "Gemfile")
 	if err != nil {
 		return ""
