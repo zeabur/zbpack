@@ -277,7 +277,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 
 		match := re.FindStringSubmatch(string(content))
 		if len(match) > 1 {
-			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
+			entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
 			*wa = optional.Some(entryWithoutExt + ":" + match[1])
 			return wa.Unwrap()
 		}
