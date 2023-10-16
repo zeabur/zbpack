@@ -558,6 +558,10 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 
 		if framework == types.PythonFrameworkFastapi {
 			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
+		}
+		if framework == types.PythonFrameworkSanic {
+			commandSegment = append(commandSegment, "sanic", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
+
 		} else {
 			commandSegment = append(commandSegment, "gunicorn", "--bind :"+wsgilistenedPort, wsgi)
 		}
