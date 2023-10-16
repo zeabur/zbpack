@@ -3,6 +3,7 @@ package nodejs
 import (
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -328,23 +329,69 @@ func GetStartScript(ctx *nodePlanContext) string {
 }
 
 const defaultNodeVersion = "18"
+const minNodeVersion uint64 = 4
+const maxNodeVersion uint64 = 20
+const maxLtsNodeVersion uint64 = 18
 
-func getNodeVersion(versionRange string, versionsList []*semver.Version) string {
-	if versionRange == "" {
+func getNodeVersion(versionConstraint string) string {
+	if versionConstraint == "" {
 		return defaultNodeVersion
 	}
 
-	// create a version constraint from versionRange
-	constraint, err := semver.NewConstraint(versionRange)
+	// .nvmrc extensions
+	if versionConstraint == "node" {
+		return strconv.FormatUint(maxNodeVersion, 10)
+	}
+	if versionConstraint == "lts/*" {
+		return strconv.FormatUint(maxLtsNodeVersion, 10)
+	}
+
+	// Use regex to find a version if the constraint
+	// has only one version condition and only limited
+	// in a major version.
+	var versionRegex = regexp.MustCompile(`^(?P<op>[~=^]?)(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*|\*)\.(?P<patch>0|[1-9]\d*|\*)$`)
+	if matched := versionRegex.FindStringSubmatch(versionConstraint); matched != nil {
+		op := matched[1]
+		major := matched[2]
+		minor := matched[3]
+		patch := matched[4]
+
+		switch op {
+		case "", "=":
+			// Exact: Return MAJOR.MINOR.PATCH.
+			if patch != "*" {
+				return major + "." + minor + "." + patch
+			}
+
+			fallthrough
+		case "~":
+			// Tilde: Return MAJOR.MINOR.
+			if minor != "*" {
+				return major + "." + minor
+			}
+
+			fallthrough
+		case "^":
+			// Caret: Return MAJOR.
+			return major
+		}
+	}
+
+	/* Fallback: Use semver to find a version. Not reliable in tilde case. */
+
+	// create a version constraint from versionConstraint
+	constraint, err := semver.NewConstraint(versionConstraint)
 	if err != nil {
 		log.Println("invalid node version constraint", err)
 		return defaultNodeVersion
 	}
 
 	// find the latest version which satisfies the constraint
-	for _, version := range versionsList {
-		if constraint.Check(version) {
-			return strconv.FormatUint(version.Major(), 10)
+	for ver := maxNodeVersion; ver >= minNodeVersion; ver-- {
+		upperVersion := semver.New(ver, 99, 99, "", "")
+
+		if constraint.Check(upperVersion) {
+			return strconv.FormatUint(ver, 10) // We only return the major version
 		}
 	}
 
@@ -367,7 +414,7 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 		projectNodeVersion = strings.TrimSpace(string(content))
 	}
 
-	return getNodeVersion(projectNodeVersion, nodeVersions)
+	return getNodeVersion(projectNodeVersion)
 }
 
 // GetEntry gets the entry file of the Node.js project.
