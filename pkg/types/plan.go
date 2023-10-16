@@ -80,6 +80,7 @@ const (
 	PythonFrameworkFlask   PythonFramework = "flask"
 	PythonFrameworkDjango  PythonFramework = "django"
 	PythonFrameworkFastapi PythonFramework = "fastapi"
+	PythonFrameworkSanic   PythonFramework = "sanic"
 	PythonFrameworkNone    PythonFramework = "none"
 )
 
