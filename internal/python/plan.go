@@ -561,7 +561,6 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		}
 		if framework == types.PythonFrameworkSanic {
 			commandSegment = append(commandSegment, "sanic", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
-
 		} else {
 			commandSegment = append(commandSegment, "gunicorn", "--bind :"+wsgilistenedPort, wsgi)
 		}
