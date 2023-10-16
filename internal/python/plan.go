@@ -53,6 +53,11 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
+	if HasDependencyWithFile(ctx, "sanic") {
+		*fw = optional.Some(types.PythonFrameworkSanic)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.PythonFrameworkNone)
 	return fw.Unwrap()
 }
@@ -66,7 +71,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 		return entry
 	}
 
-	for _, file := range []string{"main.py", "app.py", "manage.py"} {
+	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py"} {
 		if utils.HasFile(src, file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
@@ -258,6 +263,24 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 			return wa.Unwrap()
 		}
 
+		return ""
+	}
+
+	if framework == types.PythonFrameworkSanic {
+		entryFile := DetermineEntry(ctx)
+
+		re := regexp.MustCompile(`(\w+)\s*=\s*Sanic\([^)]*\)`)
+		content, err := afero.ReadFile(src, entryFile)
+		if err != nil {
+			return ""
+		}
+
+		match := re.FindStringSubmatch(string(content))
+		if len(match) > 1 {
+			entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
+			*wa = optional.Some(entryWithoutExt + ":" + match[1])
+			return wa.Unwrap()
+		}
 		return ""
 	}
 
@@ -535,6 +558,8 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 
 		if framework == types.PythonFrameworkFastapi {
 			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
+		} else if framework == types.PythonFrameworkSanic {
+			commandSegment = append(commandSegment, "sanic", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
 		} else {
 			commandSegment = append(commandSegment, "gunicorn", "--bind :"+wsgilistenedPort, wsgi)
 		}
