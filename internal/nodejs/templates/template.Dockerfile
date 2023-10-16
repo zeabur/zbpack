@@ -15,9 +15,10 @@ COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 {{- end }}
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
-RUN {{ .InstallCmd }}
+{{ .InstallCmd }}
+
+COPY . .
 
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
