@@ -1,6 +1,7 @@
 package nodejs
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,4 +65,14 @@ func TestGetNodeVersion_ExactWithWildcard(t *testing.T) {
 func TestGetNodeVersion_TildeWithWildcard(t *testing.T) {
 	v := getNodeVersion("~16.*")
 	assert.Equal(t, "16", v)
+}
+
+func TestGetNodeVersion_NvmRcLts(t *testing.T) {
+	v := getNodeVersion("lts/*")
+	assert.Equal(t, strconv.FormatUint(maxLtsNodeVersion, 10), v)
+}
+
+func TestGetNodeVersion_NvmRcLatest(t *testing.T) {
+	v := getNodeVersion("node")
+	assert.Equal(t, strconv.FormatUint(maxNodeVersion, 10), v)
 }
