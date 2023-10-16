@@ -331,10 +331,19 @@ func GetStartScript(ctx *nodePlanContext) string {
 const defaultNodeVersion = "18"
 const minNodeVersion uint64 = 4
 const maxNodeVersion uint64 = 20
+const maxLtsNodeVersion uint64 = 18
 
 func getNodeVersion(versionConstraint string) string {
 	if versionConstraint == "" {
 		return defaultNodeVersion
+	}
+
+	// .nvmrc extensions
+	if versionConstraint == "node" {
+		return strconv.FormatUint(maxNodeVersion, 10)
+	}
+	if versionConstraint == "lts/*" {
+		return strconv.FormatUint(maxLtsNodeVersion, 10)
 	}
 
 	// Use regex to find a version if the constraint
