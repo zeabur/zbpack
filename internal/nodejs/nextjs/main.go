@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
