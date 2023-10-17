@@ -399,7 +399,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	case types.NodePackageManagerPnpm:
 		cmds = append(cmds, "COPY pnpm-lock.yaml* .", "RUN pnpm install")
 	case types.NodePackageManagerBun:
-		cmds = append(cmds, "COPY bun.lock* .", "RUN bun install")
+		cmds = append(cmds, "COPY bun.lockb* .", "RUN bun install")
 	case types.NodePackageManagerYarn:
 		cmds = append(cmds, "COPY yarn.lock* .", "RUN yarn install")
 	default:
