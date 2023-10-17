@@ -409,16 +409,14 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	needPlaywright := DetermineNeedPlaywright(ctx)
 	if needPlaywright {
 		cmds = append([]string{
-			"RUN apt-get update",
-			"RUN apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2",
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2",
 		}, cmds...)
 	}
 
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		cmds = append([]string{
-			"RUN apt-get update",
-			"RUN apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1",
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1",
 			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
 		}, cmds...)
 	}
