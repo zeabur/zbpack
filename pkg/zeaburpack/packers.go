@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"github.com/zeabur/zbpack/internal/bun"
 	"github.com/zeabur/zbpack/internal/deno"
 	"github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/dotnet"
@@ -21,6 +22,7 @@ func SupportedPackers() []packer.Packer {
 	return []packer.Packer{
 		dockerfile.NewPacker(),
 		php.NewPacker(),
+		bun.NewPacker(),
 		nodejs.NewPacker(),
 		golang.NewPacker(),
 		python.NewPacker(),

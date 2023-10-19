@@ -18,8 +18,7 @@ type TemplateContext struct {
 	BuildCmd   string
 	StartCmd   string
 
-	OutputDir string
-	SPA       bool
+	Bun bool
 }
 
 //go:embed templates
@@ -38,41 +37,15 @@ func (c TemplateContext) Execute() (string, error) {
 	return writer.String(), err
 }
 
-func isMpaFramework(framework string) bool {
-	mpaFrameworks := []types.NodeProjectFramework{
-		types.NodeProjectFrameworkHexo,
-		types.NodeProjectFrameworkVitepress,
-		types.NodeProjectFrameworkAstroStatic,
-		types.NodeProjectFrameworkSolidStartStatic,
-	}
-
-	for _, f := range mpaFrameworks {
-		if framework == string(f) {
-			return true
-		}
-	}
-
-	return false
-}
-
-// isNotMpaFramework is `!isMpaFramework()`, but it's easier to read
-func isNotMpaFramework(framework string) bool {
-	return !isMpaFramework(framework)
-}
-
 func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	context := TemplateContext{
 		NodeVersion: meta["nodeVersion"],
 		InstallCmd:  meta["installCmd"],
 		BuildCmd:    meta["buildCmd"],
 		StartCmd:    meta["startCmd"],
-		OutputDir:   "",
-		SPA:         true,
-	}
 
-	if outputDir, ok := meta["outputDir"]; ok {
-		context.OutputDir = outputDir
-		context.SPA = isNotMpaFramework(meta["framework"])
+		// The flag specific to planner/bun.
+		Bun: meta["bun"] == "true",
 	}
 
 	return context

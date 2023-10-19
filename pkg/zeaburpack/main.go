@@ -2,9 +2,13 @@ package zeaburpack
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
+	"github.com/zeabur/zbpack/internal/static"
 
 	"github.com/spf13/afero"
 
@@ -54,6 +58,11 @@ type BuildOptions struct {
 	OutputDir *string
 
 	CacheFrom *string
+	CacheTo   *string
+
+	// ProxyRegistry is the registry to be used for the image.
+	// See referenceConstructor for more details.
+	ProxyRegistry *string
 }
 
 // Build will analyze the project, determine the plan and build the image.
@@ -123,6 +132,7 @@ func Build(opt *BuildOptions) error {
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
+			Config:             plan.NewProjectConfigurationFromFs(src),
 			SubmoduleName:      *opt.SubmoduleName,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
@@ -165,6 +175,8 @@ func Build(opt *BuildOptions) error {
 			HandleLog:           buildImageHandleLog,
 			PlainDockerProgress: opt.Interactive == nil || !*opt.Interactive,
 			CacheFrom:           opt.CacheFrom,
+			CacheTo:             opt.CacheTo,
+			ProxyRegistry:       opt.ProxyRegistry,
 		},
 	)
 	if err != nil {
@@ -173,20 +185,36 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
+	_ = os.RemoveAll(".zeabur")
+
+	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err = nextjs.TransformServerless(*opt.ResultImage, *opt.Path)
+		if err != nil {
+			log.Println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+		println("Transforming build output to serverless format ...")
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
+		if err != nil {
+			println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
 	if opt.Interactive != nil && *opt.Interactive {
 		handleLog("\n\033[32mBuild successful\033[0m\n")
 		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
-		handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
-	}
-
-	hasOutput, err := copyZeaburOutputToHost(*opt.ResultImage, *opt.Path)
-	if err != nil {
-		handleBuildFailed(err)
-		return err
-	}
-
-	if hasOutput {
-		handleLog("\n\u001B[32mThe .zeabur/output directory found! This service will be deployed in a serverless way on Zeabur 😎")
+		if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+			handleLog("npx serve .zeabur/output/static")
+		} else {
+			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+		}
 	}
 
 	return nil

@@ -11,20 +11,31 @@ import (
 // GenerateDockerfile generates the Dockerfile for PHP projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	phpVersion := meta["phpVersion"]
+	projectProperty := PropertyFromString(meta["property"])
+	serverMode := "fpm"
+
 	getPhpImage := "FROM docker.io/library/php:" + phpVersion + "-fpm\n"
 
-	nginxConf, err := RetrieveNginxConf(meta["app"])
-	if err != nil {
-		return "", fmt.Errorf("retrieve nginx conf: %w", err)
+	// Custom server for Laravel Octane
+	switch meta["octaneServer"] {
+	case "": // ignore
+	case "roadrunner": // unimplemented
+	case "swoole":
+		getPhpImage = "FROM docker.io/phpswoole/swoole:php" + phpVersion + "\n" +
+			"RUN docker-php-ext-install pcntl\n"
+		serverMode = "swoole"
 	}
 
 	installCMD := fmt.Sprintf(`
-RUN apt-get update
-RUN apt-get install -y %s
+RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
+`, meta["deps"])
+	if projectProperty&types.PHPPropertyComposer != 0 {
+		installCMD += `
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-`, meta["deps"])
+`
+	}
 
 	// copy source code to /var/www/public, which is Nginx root directory
 	copyCommand := `
@@ -39,14 +50,23 @@ WORKDIR /var/www
 `
 	}
 
-	// generate Nginx config to let it pass the request to php-fpm
-	copyCommand += `
+	if serverMode == "fpm" {
+		// generate Nginx config to let it pass the request to php-fpm
+		nginxConf, err := RetrieveNginxConf(meta["app"])
+		if err != nil {
+			return "", fmt.Errorf("retrieve nginx conf: %w", err)
+		}
+
+		copyCommand += `
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 `
+	}
 
 	// install dependencies with composer
-	composerInstallCmd := `
+	composerInstallCmd := "\n"
+	if projectProperty&types.PHPPropertyComposer != 0 {
+		composerInstallCmd = `
 RUN  echo '#!/bin/sh\n\
 extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
 for ext in $extensions; do\n\
@@ -57,10 +77,17 @@ done' > /usr/local/bin/install_php_extensions.sh \
     && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 `
+	}
 
 	startCmd := `
 CMD nginx; php-fpm
 `
+	// Custom server for Laravel Octane
+	if serverMode == "swoole" {
+		startCmd = `
+CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
+`
+	}
 
 	dockerFile := getPhpImage +
 		installCMD +

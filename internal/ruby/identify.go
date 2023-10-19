@@ -23,14 +23,42 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "Gemfile")
 }
 
+// DetermineNeedNode determines if the project needs Node.js to build assets.
+// This is a dirty hack because this should handle in Node.js provider.
+func (i *identify) DetermineNeedNode(fs afero.Fs) bool {
+	return utils.HasFile(fs, "package.json")
+}
+
+// DetermineNodePackageManager determines the Node.js package manager.
+// This is a dirty hack because this should handle in Node.js provider.
+func (i *identify) DetermineNodePackageManager(fs afero.Fs) types.NodePackageManager {
+	if utils.HasFile(fs, "yarn.lock") {
+		return types.NodePackageManagerYarn
+	}
+
+	if utils.HasFile(fs, "pnpm-lock.yaml") {
+		return types.NodePackageManagerPnpm
+	}
+
+	return types.NodePackageManagerNpm
+}
+
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	rubyVersion := DetermineRubyVersion(options.Source)
 	framework := DetermineRubyFramework(options.Source)
 
-	return types.PlanMeta{
+	meta := types.PlanMeta{
 		"rubyVersion": rubyVersion,
 		"framework":   string(framework),
 	}
+
+	needNode := i.DetermineNeedNode(options.Source)
+	if needNode {
+		meta["needNode"] = "true"
+		meta["nodePackageManager"] = string(i.DetermineNodePackageManager(options.Source))
+	}
+
+	return meta
 }
 
 var _ plan.Identifier = (*identify)(nil)

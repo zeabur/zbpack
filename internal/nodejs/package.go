@@ -20,6 +20,7 @@ type PackageJSON struct {
 	Scripts         map[string]string `json:"scripts,omitempty"`
 	Engines         PackageJSONEngine `json:"engines"`
 	Main            string            `json:"main"`
+	Module          string            `json:"module"`
 }
 
 // NewPackageJSON returns a new instance of PackageJson
@@ -33,7 +34,7 @@ func NewPackageJSON() PackageJSON {
 }
 
 // DeserializePackageJSON deserializes a package.json file
-// from source. When the deserialize failed, it returns an
+// from source. When the deserialization failed, it returns an
 // empty PackageJson with the error.
 func DeserializePackageJSON(source afero.Fs) (PackageJSON, error) {
 	p := NewPackageJSON()

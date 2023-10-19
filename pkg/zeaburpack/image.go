@@ -2,6 +2,7 @@ package zeaburpack
 
 import (
 	"bufio"
+	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -20,19 +21,41 @@ type buildImageOptions struct {
 	ResultImage         string
 	HandleLog           *func(log string)
 	PlainDockerProgress bool
-	CacheFrom           *string
+
+	CacheFrom *string
+	CacheTo   *string
+
+	// ProxyRegistry is the registry to be used for the image.
+	// See referenceConstructor for more details.
+	ProxyRegistry *string
 }
 
 func buildImage(opt *buildImageOptions) error {
 	// resolve env variable statically and don't depend on Dockerfile's order
 	resolvedVars := envexpander.ResolveEnvVariable(opt.UserVars)
 
+	refConstructor := newReferenceConstructor(opt.ProxyRegistry)
 	lines := strings.Split(opt.Dockerfile, "\n")
-	stageLines := []int{}
+	stageLines := make([]int, 0)
+
 	for i, line := range lines {
-		if strings.HasPrefix(line, "FROM") {
-			stageLines = append(stageLines, i)
+		fromStatement, isFromStatement := ParseFrom(line)
+		if !isFromStatement {
+			continue
 		}
+
+		// Construct the reference.
+		newRef := refConstructor.Construct(fromStatement.Source)
+
+		// Replace this FROM line.
+		fromStatement.Source = newRef
+		lines[i] = fromStatement.String()
+
+		// Mark this FROM line as a stage.
+		if stage, ok := fromStatement.Stage.Get(); ok {
+			refConstructor.AddStage(stage)
+		}
+		stageLines = append(stageLines, i)
 	}
 
 	// sort the resolvedVars by key so we can build
@@ -76,13 +99,20 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	dockerfilePath := path.Join(tempDir, buildID, "Dockerfile")
-	if err := os.WriteFile(
-		dockerfilePath, []byte(newDockerfile), 0o644,
-	); err != nil {
-		return err
+	err = os.WriteFile(dockerfilePath, []byte(newDockerfile), 0o644)
+	if err != nil {
+		return fmt.Errorf("write Dockerfile: %w", err)
+	}
+
+	dockerIgnore := []string{".next", "node_modules"}
+	dockerIgnorePath := path.Join(tempDir, buildID, ".dockerignore")
+	err = os.WriteFile(dockerIgnorePath, []byte(strings.Join(dockerIgnore, "\n")), 0o644)
+	if err != nil {
+		return fmt.Errorf("write .dockerignore: %w", err)
 	}
 
 	dockerCmd := []string{
+		"buildx",
 		"build",
 		"-t", opt.ResultImage,
 		"-f", dockerfilePath,
@@ -95,12 +125,11 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
-		// if cacheFrom contains tag, we need to remove it
-		if strings.Contains(*opt.CacheFrom, ":") {
-			*opt.CacheFrom = strings.Split(*opt.CacheFrom, ":")[0]
-		}
 		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
-		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheFrom)
+	}
+
+	if opt.CacheTo != nil && len(*opt.CacheTo) > 0 {
+		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheTo)
 	}
 
 	dockerCmd = append(dockerCmd, opt.AbsPath)

@@ -13,10 +13,8 @@ RUN yarn install
 # Build if we can build it
 
 
-
 EXPOSE 8080
 CMD yarn start
-
 
 ---
 
@@ -34,21 +32,8 @@ RUN yarn install
 # Build if we can build it
 
 
-
-FROM nginx:alpine as runtime
-
-COPY --from=build /src/dist /usr/share/nginx/html/static
-RUN echo "\
-    server { \
-        listen 8080; \
-        root /usr/share/nginx/html/static; \
-        absolute_redirect off; \
-        location / { \
-            try_files \$uri \$uri.html \$uri/index.html /404.html =404; \
-        } \
-    }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
-
+CMD yarn start
 
 ---
 
@@ -66,21 +51,8 @@ RUN yarn install
 # Build if we can build it
 
 
-
-FROM nginx:alpine as runtime
-
-COPY --from=build /src/dist /usr/share/nginx/html/static
-RUN echo "\
-    server { \
-        listen 8080; \
-        root /usr/share/nginx/html/static; \
-        absolute_redirect off; \
-        location / { \
-            try_files \$uri /index.html; \
-        } \
-    }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
-
+CMD yarn start
 
 ---
 
@@ -98,10 +70,8 @@ RUN yarn install
 # Build if we can build it
 RUN yarn build
 
-
 EXPOSE 8080
 CMD yarn start
-
 
 ---
 
@@ -119,20 +89,32 @@ RUN yarn install
 # Build if we can build it
 RUN yarn build
 
-
-FROM nginx:alpine as runtime
-
-COPY --from=build /src/dist /usr/share/nginx/html/static
-RUN echo "\
-    server { \
-        listen 8080; \
-        root /usr/share/nginx/html/static; \
-        absolute_redirect off; \
-        location / { \
-            try_files \$uri /index.html; \
-        } \
-    }"> /etc/nginx/conf.d/default.conf
 EXPOSE 8080
+CMD yarn start
 
+---
+
+[TestTemplate_BuildCmd_Bun - 1]
+# Install bun if we need it
+FROM oven/bun:1.0 as bun-runtime
+FROM node:18 as build
+
+ENV PORT=8080
+WORKDIR /src
+# Copy the bun binary from the bun-runtime stage directly.
+# A bit hacky but it works.
+COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
+COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
+
+RUN corepack enable && corepack prepare --all
+COPY . .
+
+RUN bun install
+
+# Build if we can build it
+
+
+EXPOSE 8080
+CMD bun start main.ts
 
 ---

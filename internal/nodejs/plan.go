@@ -2,6 +2,8 @@ package nodejs
 
 import (
 	"log"
+	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,6 +17,7 @@ import (
 type nodePlanContext struct {
 	PackageJSON PackageJSON
 	Src         afero.Fs
+	Bun         bool
 
 	PackageManager  optional.Option[types.NodePackageManager]
 	Framework       optional.Option[types.NodeProjectFramework]
@@ -27,6 +30,7 @@ type nodePlanContext struct {
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
+	Serverless      optional.Option[bool]
 }
 
 // DeterminePackageManager determines the package manager of the Node.js project.
@@ -36,6 +40,11 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
+	}
+
+	if ctx.Bun {
+		*pm = optional.Some(types.NodePackageManagerBun)
+		return pm.Unwrap()
 	}
 
 	if ctx.PackageJSON.PackageManager != nil {
@@ -87,6 +96,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
+	}
+
+	if _, isNuejs := packageJSON.Dependencies["nuejs-core"]; isNuejs {
+		*fw = optional.Some(types.NodeProjectFrameworkNueJs)
+		return fw.Unwrap()
 	}
 
 	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
@@ -280,28 +294,104 @@ func GetStartScript(ctx *nodePlanContext) string {
 		return ss.Unwrap()
 	}
 
+	// If this is a Bun project, the entrypoint is usually
+	// the value of `"module"`. Bun allows users to start the
+	// application with `bun run <entrypoint>`.
+	if ctx.Bun {
+		if entrypoint := packageJSON.Module; entrypoint != "" {
+			// The module path usually represents the artifact path
+			// instead of the path where the source code is located.
+			// We need to guess the correct extension of this entrypoint.
+
+			// Remove the original trailing extension.
+			finalDot := strings.LastIndex(entrypoint, ".")
+			if finalDot != -1 {
+				entrypoint = entrypoint[:finalDot]
+			}
+
+			// Find the possible entrypoint.
+			for _, ext := range []string{
+				".js", ".ts", ".tsx", ".jsx", ".mjs",
+				".mts", ".cjs", ".cts",
+			} {
+				possibleEntrypoint := entrypoint + ext
+
+				if utils.HasFile(ctx.Src, possibleEntrypoint) {
+					*ss = optional.Some(possibleEntrypoint)
+					return ss.Unwrap()
+				}
+			}
+		}
+	}
+
 	*ss = optional.Some("")
 	return ss.Unwrap()
 }
 
 const defaultNodeVersion = "18"
+const minNodeVersion uint64 = 4
+const maxNodeVersion uint64 = 20
+const maxLtsNodeVersion uint64 = 18
 
-func getNodeVersion(versionRange string, versionsList []*semver.Version) string {
-	if versionRange == "" {
+func getNodeVersion(versionConstraint string) string {
+	if versionConstraint == "" {
 		return defaultNodeVersion
 	}
 
-	// create a version constraint from versionRange
-	constraint, err := semver.NewConstraint(versionRange)
+	// .nvmrc extensions
+	if versionConstraint == "node" {
+		return strconv.FormatUint(maxNodeVersion, 10)
+	}
+	if versionConstraint == "lts/*" {
+		return strconv.FormatUint(maxLtsNodeVersion, 10)
+	}
+
+	// Use regex to find a version if the constraint
+	// has only one version condition and only limited
+	// in a major version.
+	var versionRegex = regexp.MustCompile(`^(?P<op>[~=^]?)(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*|\*)\.(?P<patch>0|[1-9]\d*|\*)$`)
+	if matched := versionRegex.FindStringSubmatch(versionConstraint); matched != nil {
+		op := matched[1]
+		major := matched[2]
+		minor := matched[3]
+		patch := matched[4]
+
+		switch op {
+		case "", "=":
+			// Exact: Return MAJOR.MINOR.PATCH.
+			if patch != "*" {
+				return major + "." + minor + "." + patch
+			}
+
+			fallthrough
+		case "~":
+			// Tilde: Return MAJOR.MINOR.
+			if minor != "*" {
+				return major + "." + minor
+			}
+
+			fallthrough
+		case "^":
+			// Caret: Return MAJOR.
+			return major
+		}
+	}
+
+	/* Fallback: Use semver to find a version. Not reliable in tilde case. */
+
+	// create a version constraint from versionConstraint
+	constraint, err := semver.NewConstraint(versionConstraint)
 	if err != nil {
 		log.Println("invalid node version constraint", err)
 		return defaultNodeVersion
 	}
 
 	// find the latest version which satisfies the constraint
-	for _, version := range versionsList {
-		if constraint.Check(version) {
-			return strconv.FormatUint(version.Major(), 10)
+	for ver := maxNodeVersion; ver >= minNodeVersion; ver-- {
+		upperVersion := semver.New(ver, 99, 99, "", "")
+
+		if constraint.Check(upperVersion) {
+			return strconv.FormatUint(ver, 10) // We only return the major version
 		}
 	}
 
@@ -311,10 +401,20 @@ func getNodeVersion(versionRange string, versionsList []*semver.Version) string 
 
 // GetNodeVersion gets the Node.js version of the project.
 func GetNodeVersion(ctx *nodePlanContext) string {
+	src := ctx.Src
 	packageJSON := ctx.PackageJSON
+	projectNodeVersion := packageJSON.Engines.Node
 
-	// nodeVersions is generated on compile time
-	return getNodeVersion(packageJSON.Engines.Node, nodeVersions)
+	// If there are ".node-version" or ".nvmrc" file, we pick
+	// the version from them.
+	if content, err := afero.ReadFile(src, ".node-version"); err == nil {
+		projectNodeVersion = strings.TrimSpace(string(content))
+	}
+	if content, err := afero.ReadFile(src, ".nvmrc"); err == nil {
+		projectNodeVersion = strings.TrimSpace(string(content))
+	}
+
+	return getNodeVersion(projectNodeVersion)
 }
 
 // GetEntry gets the entry file of the Node.js project.
@@ -330,7 +430,7 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
-// GetInstallCmd gets the install command of the Node.js project.
+// GetInstallCmd gets the installation command of the Node.js project.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
 
@@ -345,6 +445,8 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		installCmd = "npm install"
 	case types.NodePackageManagerPnpm:
 		installCmd = "pnpm install"
+	case types.NodePackageManagerBun:
+		installCmd = "bun install"
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -354,6 +456,14 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	needPlaywright := DetermineNeedPlaywright(ctx)
 	if needPlaywright {
 		installCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && ` + installCmd
+	}
+
+	needPuppeteer := DetermineNeedPuppeteer(ctx)
+	if needPuppeteer {
+		installCmd = `apt-get update
+RUN apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
+ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer
+RUN ` + installCmd
 	}
 
 	*cmd = optional.Some(installCmd)
@@ -377,6 +487,8 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		buildCmd = "pnpm run " + buildScript
 	case types.NodePackageManagerNpm:
 		buildCmd = "npm run " + buildScript
+	case types.NodePackageManagerBun:
+		buildCmd = "bun run " + buildScript
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -385,11 +497,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 
 	if buildScript == "" {
 		buildCmd = ""
-	}
-
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		buildCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && groupadd -r puppeteer && useradd -r -g puppeteer -G audio,video puppeteer && chown -R puppeteer:puppeteer /src && mkdir /home/puppeteer && chown -R puppeteer:puppeteer /home/puppeteer && USER puppeteer && ` + buildCmd
 	}
 
 	*cmd = optional.Some(buildCmd)
@@ -415,6 +522,8 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		startCmd = "pnpm " + startScript
 	case types.NodePackageManagerNpm:
 		startCmd = "npm run " + startScript
+	case types.NodePackageManagerBun:
+		startCmd = "bun run " + startScript
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
@@ -443,11 +552,6 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			// solid-start-node specific start script
 			startCmd = "node dist/server.js"
 		}
-	}
-
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		startCmd = "node node_modules/puppeteer/install.js && " + startCmd
 	}
 
 	*cmd = optional.Some(startCmd)
@@ -487,12 +591,43 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	return dir.Unwrap()
 }
 
+func getServerless(ctx *nodePlanContext) bool {
+	expEnv := os.Getenv("EXPERIMENTAL_SERVERLESS")
+	if expEnv != "true" && expEnv != "1" {
+		return false
+	}
+
+	sl := &ctx.Serverless
+
+	if serverless, err := sl.Take(); err == nil {
+		return serverless
+	}
+
+	framework := DetermineProjectFramework(ctx)
+
+	defaultServerless := map[types.NodeProjectFramework]bool{
+		types.NodeProjectFrameworkNextJs: true,
+		types.NodeProjectFrameworkNuxtJs: true,
+	}
+
+	if serverless, ok := defaultServerless[framework]; ok {
+		*sl = optional.Some(serverless)
+		return sl.Unwrap()
+	}
+
+	*sl = optional.Some(false)
+	return sl.Unwrap()
+}
+
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src            afero.Fs
+	Src afero.Fs
+
 	CustomBuildCmd *string
 	CustomStartCmd *string
 	OutputDir      *string
+
+	Bun bool
 }
 
 // GetMeta gets the metadata of the Node.js project.
@@ -506,9 +641,12 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := &nodePlanContext{
 		PackageJSON: packageJSON,
 		Src:         opt.Src,
+		Bun:         opt.Bun,
 	}
 
-	meta := types.PlanMeta{}
+	meta := types.PlanMeta{
+		"bun": strconv.FormatBool(opt.Bun),
+	}
 
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)
@@ -547,6 +685,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		startCmd = *opt.CustomStartCmd
 	}
 	meta["startCmd"] = startCmd
+
+	serverless := getServerless(ctx)
+	if serverless {
+		meta["serverless"] = strconv.FormatBool(serverless)
+	}
 
 	return meta
 }
