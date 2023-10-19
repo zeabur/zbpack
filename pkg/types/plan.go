@@ -22,6 +22,7 @@ const (
 	PlanTypeRust   PlanType = "rust"
 	PlanTypeDotnet PlanType = "dotnet"
 	PlanTypeElixir PlanType = "elixir"
+	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
 )
 
@@ -35,6 +36,7 @@ const (
 	NodePackageManagerYarn    NodePackageManager = "yarn"
 	NodePackageManagerPnpm    NodePackageManager = "pnpm"
 	NodePackageManagerNpm     NodePackageManager = "npm"
+	NodePackageManagerBun     NodePackageManager = "bun"
 	NodePackageManagerUnknown NodePackageManager = "unknown"
 )
 
@@ -65,6 +67,7 @@ const (
 	NodeProjectFrameworkSolidStart       NodeProjectFramework = "solid-start"
 	NodeProjectFrameworkSolidStartNode   NodeProjectFramework = "solid-start-node"
 	NodeProjectFrameworkSolidStartStatic NodeProjectFramework = "solid-start-static"
+	NodeProjectFrameworkNueJs            NodeProjectFramework = "nuejs"
 )
 
 //revive:enable:exported
@@ -77,6 +80,7 @@ const (
 	PythonFrameworkFlask   PythonFramework = "flask"
 	PythonFrameworkDjango  PythonFramework = "django"
 	PythonFrameworkFastapi PythonFramework = "fastapi"
+	PythonFrameworkSanic   PythonFramework = "sanic"
 	PythonFrameworkNone    PythonFramework = "none"
 )
 
@@ -135,15 +139,23 @@ const (
 // PHPApplication represents the application type of a PHP project.
 type PHPApplication string
 
+// PHPProperty represents the property flag of a PHP project.
+type PHPProperty uint64
+
 //revive:disable:exported
 const (
 	PHPApplicationDefault PHPApplication = "default"
 	PHPApplicationAcgFaka PHPApplication = "acg-faka"
 )
 
-//revive:enable:exported
+const (
+	PHPPropertyNone     PHPProperty = iota
+	PHPPropertyComposer PHPProperty = 1 << (iota - 1)
+)
 
 // RubyFramework represents the framework of a Ruby project.
+//
+//revive:enable:exported
 type RubyFramework string
 
 //revive:disable:exported
@@ -186,3 +198,14 @@ const (
 )
 
 //revive:enable:exported
+
+// BunFramework represents the framework of a Bun project.
+type BunFramework string
+
+//revive:enable:exported
+const (
+	BunFrameworkElysia BunFramework = "elysia"
+	BunFrameworkBaojs  BunFramework = "baojs"
+	BunFrameworkBagel  BunFramework = "bagel"
+	BunFrameworkNone   BunFramework = "none"
+)

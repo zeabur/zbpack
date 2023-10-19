@@ -1,0 +1,25 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+process.chdir(__dirname);
+process.env.NODE_ENV = 'production';
+process.env.__NEXT_PRIVATE_PREBUNDLED_REACT = "next"
+const NextServer = require('next/dist/server/next-server.js').default;
+const nextServer = new NextServer({
+	conf: {{ .NextConfig }},
+	dir: '.',
+	minimalMode: true,
+	customServer: false,
+	port: 80,
+	hostname: 'localhost'
+});
+const requestHandler = nextServer.getRequestHandler();
+module.exports = async (req, res) => {
+	const { NodeNextRequest, NodeNextResponse}  = require('next/dist/server/base-http/node');
+	req = new NodeNextRequest(req)
+	res = new NodeNextResponse(res)
+	try {
+		await requestHandler(req, res);
+	} catch (err) {
+		console.error(err);
+	}
+};

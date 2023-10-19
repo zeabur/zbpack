@@ -8,6 +8,7 @@ import (
 // GenerateDockerfile generates the Dockerfile for Python projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	installCmd := meta["install"]
+	buildCmd := meta["build"]
 	startCmd := meta["start"]
 	aptDeps := meta["apt-deps"]
 	staticMeta := staticInfoFromMeta(meta)
@@ -30,8 +31,8 @@ server { \
 			alias ` + staticMeta.StaticHostDir + ` ; \` + `
 		} \
     }"> /etc/nginx/conf.d/default.conf ` + ` && rm -rf /var/lib/apt/lists/*
+` + installCmd + `
 COPY . .
-RUN ` + installCmd + `
 EXPOSE 8080
 CMD ` + startCmd
 	} else {
@@ -40,8 +41,9 @@ WORKDIR /app
 RUN apt-get update
 RUN apt-get install -y ` + aptDeps + `
 RUN rm -rf /var/lib/apt/lists/*
+` + installCmd + `
 COPY . .
-RUN ` + installCmd + `
+` + buildCmd + `
 EXPOSE 8080
 CMD ` + startCmd
 	}
