@@ -50,7 +50,7 @@ type ViperProjectConfiguration struct {
 // NewProjectConfiguration creates a new ViperProjectConfiguration.
 func NewProjectConfiguration() ProjectConfiguration {
 	viperInstance := viper.New()
-	viperInstance.SetConfigType("toml")
+	viperInstance.SetConfigType("json")
 
 	return &ViperProjectConfiguration{
 		Viper: viperInstance,
@@ -80,7 +80,7 @@ func NewProjectConfigurationFromFs(fs afero.Fs) ProjectConfiguration {
 
 // ReadFromFs reads the configuration from the given file system.
 func (vpc *ViperProjectConfiguration) ReadFromFs(fs afero.Fs) error {
-	file, err := fs.Open("zbpack.toml")
+	file, err := fs.Open("zbpack.json")
 	if err != nil {
 		return fmt.Errorf("open config file: %w", err)
 	}
