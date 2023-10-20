@@ -11,14 +11,14 @@ import (
 func TestGetContextBasedOnMeta_MapShouldBeCorrect(t *testing.T) {
 	meta := getContextBasedOnMeta(types.PlanMeta{
 		"nodeVersion": "16",
-		"installCmd":  "npm install",
+		"installCmd":  "RUN npm install",
 		"buildCmd":    "npm run build",
 		"startCmd":    "npm run start",
 	})
 
 	assert.Equal(t, meta, TemplateContext{
 		NodeVersion: "16",
-		InstallCmd:  "npm install",
+		InstallCmd:  "RUN npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
 	})
@@ -27,7 +27,7 @@ func TestGetContextBasedOnMeta_MapShouldBeCorrect(t *testing.T) {
 func TestGetContextBasedOnMeta_WithOutputdirAndSPAFramework(t *testing.T) {
 	meta := getContextBasedOnMeta(types.PlanMeta{
 		"nodeVersion": "16",
-		"installCmd":  "npm install",
+		"installCmd":  "RUN npm install",
 		"buildCmd":    "npm run build",
 		"startCmd":    "npm run start",
 		"outputDir":   "dist",
@@ -36,7 +36,7 @@ func TestGetContextBasedOnMeta_WithOutputdirAndSPAFramework(t *testing.T) {
 
 	assert.Equal(t, meta, TemplateContext{
 		NodeVersion: "16",
-		InstallCmd:  "npm install",
+		InstallCmd:  "RUN npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
 	})
@@ -45,7 +45,7 @@ func TestGetContextBasedOnMeta_WithOutputdirAndSPAFramework(t *testing.T) {
 func TestGetContextBasedOnMeta_WithOutputdirAndMPAFramework(t *testing.T) {
 	meta := getContextBasedOnMeta(types.PlanMeta{
 		"nodeVersion": "16",
-		"installCmd":  "npm install",
+		"installCmd":  "RUN npm install",
 		"buildCmd":    "npm run build",
 		"startCmd":    "npm run start",
 		"outputDir":   "dist",
@@ -54,7 +54,7 @@ func TestGetContextBasedOnMeta_WithOutputdirAndMPAFramework(t *testing.T) {
 
 	assert.Equal(t, meta, TemplateContext{
 		NodeVersion: "16",
-		InstallCmd:  "npm install",
+		InstallCmd:  "RUN npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
 	})
