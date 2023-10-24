@@ -439,34 +439,36 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	var installCmd string
+	cmds := []string{"COPY package.json* tsconfig.json* .npmrc* ."}
 	switch pkgManager {
 	case types.NodePackageManagerNpm:
-		installCmd = "npm install"
+		cmds = append(cmds, "COPY package-lock.json* .", "RUN npm install")
 	case types.NodePackageManagerPnpm:
-		installCmd = "pnpm install"
+		cmds = append(cmds, "COPY pnpm-lock.yaml* .", "RUN pnpm install")
 	case types.NodePackageManagerBun:
-		installCmd = "bun install"
+		cmds = append(cmds, "COPY bun.lockb* .", "RUN bun install")
 	case types.NodePackageManagerYarn:
-		fallthrough
+		cmds = append(cmds, "COPY yarn.lock* .", "RUN yarn install")
 	default:
-		installCmd = "yarn install"
+		cmds = append(cmds, "RUN yarn install")
 	}
 
 	needPlaywright := DetermineNeedPlaywright(ctx)
 	if needPlaywright {
-		installCmd = `apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && ` + installCmd
+		cmds = append([]string{
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2",
+		}, cmds...)
 	}
 
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
-		installCmd = `apt-get update
-RUN apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1
-ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer
-RUN ` + installCmd
+		cmds = append([]string{
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1",
+			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
+		}, cmds...)
 	}
 
-	*cmd = optional.Some(installCmd)
+	*cmd = optional.Some(strings.Join(cmds, "\n"))
 	return cmd.Unwrap()
 }
 
