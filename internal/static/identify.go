@@ -1,8 +1,9 @@
 package static
 
 import (
-	"github.com/spf13/afero"
 	"strings"
+
+	"github.com/spf13/afero"
 
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
