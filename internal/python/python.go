@@ -13,7 +13,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	aptDeps := meta["apt-deps"]
 	staticMeta := staticInfoFromMeta(meta)
 
-	dockerfile := "FROM docker.io/library/python:" + meta["pythonVersion"] + "-slim-buster\n"
+	dockerfile := "FROM docker.io/library/python:" + meta["pythonVersion"] + "-slim-bookworm\n"
 
 	if staticMeta.NginxEnabled() {
 		dockerfile += `WORKDIR /app
