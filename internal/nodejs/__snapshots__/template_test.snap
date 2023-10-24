@@ -6,9 +6,10 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN yarn install
+
+COPY . .
 
 # Build if we can build it
 
@@ -25,9 +26,10 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN yarn install
+
+COPY . .
 
 # Build if we can build it
 
@@ -44,9 +46,10 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN yarn install
+
+COPY . .
 
 # Build if we can build it
 
@@ -63,9 +66,10 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN yarn install
+
+COPY . .
 
 # Build if we can build it
 RUN yarn build
@@ -82,9 +86,10 @@ ENV PORT=8080
 WORKDIR /src
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN yarn install
+
+COPY . .
 
 # Build if we can build it
 RUN yarn build
@@ -107,9 +112,10 @@ COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 
 RUN corepack enable && corepack prepare --all
-COPY . .
 
 RUN bun install
+
+COPY . .
 
 # Build if we can build it
 
