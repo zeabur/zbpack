@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeabur/zbpack/pkg/plan"
 )
 
 func TestGenerateDockerFile(t *testing.T) {
@@ -19,4 +20,11 @@ func TestGenerateDockerFile(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedContent, actualContent)
+}
+
+func TestNoMatchedDockerfile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	ctx := GetMeta(GetMetaOptions{Src: fs})
+
+	assert.Equal(t, plan.Continue(), ctx)
 }
