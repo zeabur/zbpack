@@ -35,10 +35,27 @@ func NewPlanner(opt *NewPlannerOptions, identifiers ...Identifier) Planner {
 	}
 }
 
+var continuePlanMeta = types.PlanMeta{
+	"__INTERNAL_STATE": "CONTINUE",
+}
+
+// Continue is a pseudo PlanMeta, indicating the planner
+// executor to find the next matched one.
+func Continue() types.PlanMeta {
+	return continuePlanMeta
+}
+
 func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 	for _, identifier := range b.identifiers {
 		if identifier.Match(b.Source) {
-			return identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
+			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
+
+			// If the planner returns a Continue flag, we find the next matched.
+			if v, ok := pm["__INTERNAL_STATE"]; ok && v == "CONTINUE" {
+				continue
+			}
+
+			return pt, pm
 		}
 	}
 
