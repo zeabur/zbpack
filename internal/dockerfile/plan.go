@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/zeabur/zbpack/pkg/plan"
 	"golang.org/x/text/cases"
 
 	"github.com/moznion/go-optional"
@@ -161,7 +162,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	dockerfileContent, err := ReadDockerfile(ctx)
 	if err != nil {
 		log.Println(err)
-		dockerfileContent = []byte{} // no Dockerfile
+		return plan.Continue()
 	}
 
 	exposePort := GetExposePort(ctx)
