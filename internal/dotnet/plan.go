@@ -13,12 +13,8 @@ import (
 // DetermineFramework is used to determine the Dotnet framework
 func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
 	fileName := entryPoint + ".csproj"
-	if utils.HasFile(src, fileName) {
-		content, err := afero.ReadFile(src, fileName)
-		if err != nil {
-			return "", err
-		}
-
+	content, err := afero.ReadFile(src, fileName)
+	if err == nil {
 		pattern := regexp.MustCompile(`Project Sdk="(.*?)"`)
 		// Search for the target framework in the file.
 		matches := pattern.FindStringSubmatch(string(content))
@@ -29,8 +25,6 @@ func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
 				return string(types.DotnetFrameworkAspnet), nil
 			} else if strings.Contains(matches[1], "Microsoft.NET.Sdk") {
 				return string(types.DotnetFrameworkConsole), nil
-			} else {
-				return "", errors.New("Unable to determine framework")
 			}
 		}
 	}
