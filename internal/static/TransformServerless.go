@@ -11,7 +11,7 @@ import (
 
 // TransformServerless copies the static files from output to .zeabur/output/static and creates a config.json file for SPA
 func TransformServerless(image, workdir string, meta types.PlanMeta, isHTMLStatic bool) error {
-	if isHTMLStatic == true {
+	if isHTMLStatic {
 		err := utils.CopyFromSource(path.Join(workdir, meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
 		if err != nil {
 			return err
