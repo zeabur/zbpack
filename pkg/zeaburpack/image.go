@@ -35,6 +35,9 @@ func buildImage(opt *buildImageOptions) error {
 	resolvedVars := envexpander.ResolveEnvVariable(opt.UserVars)
 
 	refConstructor := newReferenceConstructor(opt.ProxyRegistry)
+	if opt.Dockerfile == "HTML-STATIC" {
+		return nil
+	}
 	lines := strings.Split(opt.Dockerfile, "\n")
 	stageLines := make([]int, 0)
 

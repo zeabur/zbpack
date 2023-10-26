@@ -23,10 +23,14 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "index.html", "hugo.toml", "config/_default/hugo.toml")
+	return utils.HasFile(fs, "index.html", "hugo.toml", "config/_default/hugo.toml", "public/index.html", "dist/index.html")
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
+
+	if utils.HasFile(options.Source, "index.html", "public/index.html", "dist/index.html") {
+		return types.PlanMeta{"framework": "html-static"}
+	}
 
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
 		return types.PlanMeta{"framework": "hugo"}
