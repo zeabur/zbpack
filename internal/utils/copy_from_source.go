@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// CopyFromSource copies a directory from source code to the host
 func CopyFromSource(dirInSrc, destOnHost string) error {
 	if err := os.MkdirAll(".tmp", 0755); err != nil {
 		return fmt.Errorf("create directory: %w", err)
