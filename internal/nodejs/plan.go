@@ -10,12 +10,22 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
+)
+
+const (
+	// ConfigCacheDependencies is the key for the configuration of
+	// whether to cache dependencies.
+	// It is true by default.
+	ConfigCacheDependencies = "cache_dependencies"
 )
 
 type nodePlanContext struct {
 	PackageJSON PackageJSON
+	Config      plan.ImmutableProjectConfiguration
 	Src         afero.Fs
 	Bun         bool
 
@@ -439,7 +449,15 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	cmds := []string{"COPY package.json* tsconfig.json* .npmrc* ."}
+	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), cast.ToBoolE).TakeOr(true)
+
+	var cmds []string
+	if shouldCacheDependencies {
+		cmds = append(cmds, "COPY package.json* tsconfig.json* .npmrc* .")
+	} else {
+		cmds = append(cmds, "COPY . .")
+	}
+
 	switch pkgManager {
 	case types.NodePackageManagerNpm:
 		cmds = append(cmds, "COPY package-lock.json* .", "RUN npm install")
@@ -623,7 +641,8 @@ func getServerless(ctx *nodePlanContext) bool {
 
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src afero.Fs
+	Src    afero.Fs
+	Config plan.ImmutableProjectConfiguration
 
 	CustomBuildCmd *string
 	CustomStartCmd *string
@@ -642,6 +661,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	ctx := &nodePlanContext{
 		PackageJSON: packageJSON,
+		Config:      opt.Config,
 		Src:         opt.Src,
 		Bun:         opt.Bun,
 	}
