@@ -5,6 +5,7 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/pkg/plan"
 )
@@ -93,4 +94,13 @@ func TestGet_None(t *testing.T) {
 
 	config := plan.NewProjectConfigurationFromFs(fs, "")
 	assert.True(t, config.Get("build_command").IsNone())
+}
+
+func TestCastOptionValueOrNone(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, optional.Some[string]("owo"), plan.CastOptionValueOrNone(optional.Some[any]("owo"), cast.ToStringE))
+	assert.Equal(t, optional.Some[int](1234), plan.CastOptionValueOrNone(optional.Some[any](1234.5), cast.ToIntE))
+	assert.Equal(t, optional.None[uint](), plan.CastOptionValueOrNone(optional.Some[any](":)"), cast.ToUintE))
+	assert.Equal(t, optional.None[string](), plan.CastOptionValueOrNone(optional.None[any](), cast.ToStringE))
 }

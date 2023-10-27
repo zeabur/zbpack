@@ -93,14 +93,23 @@ func loadConfigToViper(fs afero.Fs, filename string) (*viper.Viper, error) {
 	return v, nil
 }
 
-// MapOptionValueOrNone maps the value to the given type.
+// CastOptionValueOrNone casts the value to the given type.
 // If the value is not present or the type assertion fails, it returns None.
-func MapOptionValueOrNone[T any](value optional.Option[interface{}]) optional.Option[T] {
-	if innerValue, err := value.Take(); err == nil {
-		if v, ok := innerValue.(T); ok {
-			return optional.Some(v)
-		}
+func CastOptionValueOrNone[T any](value optional.Option[interface{}], caster func(any) (T, error)) optional.Option[T] {
+	innerValue, err := value.Take()
+	if err != nil {
+		return optional.None[T]()
 	}
 
-	return optional.None[T]()
+	if v, ok := innerValue.(T); ok {
+		return optional.Some(v)
+	}
+
+	// Accept a `cast.To*E()` function.
+	cv, err := caster(innerValue)
+	if err != nil {
+		return optional.None[T]()
+	}
+
+	return optional.Some(cv)
 }
