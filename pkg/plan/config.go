@@ -16,9 +16,16 @@ type ImmutableProjectConfiguration interface {
 	Get(key string) optional.Option[interface{}]
 }
 
+// MutableProjectConfiguration declares the common interface for setting values
+// in project configuration.
+type MutableProjectConfiguration interface {
+	Set(key string, val interface{})
+}
+
 // ProjectConfiguration declares the common interface for project configuration.
 type ProjectConfiguration interface {
 	ImmutableProjectConfiguration
+	MutableProjectConfiguration
 }
 
 // ViperProjectConfiguration reads the extra configuration "zbpack.toml" from
@@ -28,9 +35,15 @@ type ViperProjectConfiguration struct {
 	root *viper.Viper
 	// submodule is the configuration for the `zbpack.[submodule].json`.
 	submodule *viper.Viper
+	// extra is the manual overridden value of this configuration.
+	extra map[string]interface{}
 }
 
 func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{}] {
+	if val, ok := vpc.extra[key]; ok {
+		return optional.Some(val)
+	}
+
 	if vpc.submodule != nil && vpc.submodule.IsSet(key) {
 		return optional.Some(vpc.submodule.Get(key))
 	}
@@ -40,6 +53,14 @@ func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{
 	}
 
 	return optional.None[interface{}]()
+}
+
+func (vpc *ViperProjectConfiguration) Set(key string, val interface{}) {
+	if vpc.extra == nil {
+		vpc.extra = make(map[string]interface{})
+	}
+
+	vpc.extra[key] = val
 }
 
 // NewProjectConfigurationFromFs creates a new ViperProjectConfiguration from fs.

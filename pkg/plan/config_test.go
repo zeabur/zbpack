@@ -138,3 +138,12 @@ func TestCastOptionValueOrNone(t *testing.T) {
 	assert.Equal(t, optional.None[uint](), plan.CastOptionValueOrNone(optional.Some[any](":)"), cast.ToUintE))
 	assert.Equal(t, optional.None[string](), plan.CastOptionValueOrNone(optional.None[any](), cast.ToStringE))
 }
+
+func TestSet(t *testing.T) {
+	t.Parallel()
+
+	config := &plan.ViperProjectConfiguration{}
+	config.Set("owo", "uwu")
+
+	assert.Equal(t, optional.Some[any]("uwu"), config.Get("owo"))
+}
