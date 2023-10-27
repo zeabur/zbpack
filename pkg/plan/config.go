@@ -118,9 +118,9 @@ func loadConfigToViper(fs afero.Fs, filename string) (*viper.Viper, error) {
 	return v, nil
 }
 
-// CastOptionValueOrNone casts the value to the given type.
+// Cast casts the value to the given type.
 // If the value is not present or the type assertion fails, it returns None.
-func CastOptionValueOrNone[T any](value optional.Option[any], caster func(any) (T, error)) optional.Option[T] {
+func Cast[T any](value optional.Option[any], caster func(any) (T, error)) optional.Option[T] {
 	innerValue, err := value.Take()
 	if err != nil {
 		return optional.None[T]()

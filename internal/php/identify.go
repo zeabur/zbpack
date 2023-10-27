@@ -29,7 +29,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	config := options.Config
 
-	server := plan.CastOptionValueOrNone(config.Get(ConfigLaravelOctaneServer), cast.ToStringE).TakeOr("")
+	server := plan.Cast(config.Get(ConfigLaravelOctaneServer), cast.ToStringE).TakeOr("")
 
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)

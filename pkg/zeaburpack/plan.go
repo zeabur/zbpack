@@ -63,19 +63,19 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	// The submodule-specific configuration (zbpack.[submodule].json)
 	// overrides the project configuration if defined.
 	if opt.CustomBuildCommand == nil {
-		value, err := plan.CastOptionValueOrNone(config.Get("build_command"), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get("build_command"), cast.ToStringE).Take()
 		if err == nil {
 			opt.CustomBuildCommand = &value
 		}
 	}
 	if opt.CustomStartCommand == nil {
-		value, err := plan.CastOptionValueOrNone(config.Get("start_command"), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get("start_command"), cast.ToStringE).Take()
 		if err == nil {
 			opt.CustomStartCommand = &value
 		}
 	}
 	if opt.OutputDir == nil {
-		value, err := plan.CastOptionValueOrNone(config.Get("output_dir"), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get("output_dir"), cast.ToStringE).Take()
 		if err == nil {
 			opt.OutputDir = &value
 		}

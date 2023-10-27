@@ -133,10 +133,10 @@ func TestGet_None(t *testing.T) {
 func TestCastOptionValueOrNone(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t, optional.Some[string]("owo"), plan.CastOptionValueOrNone(optional.Some[any]("owo"), cast.ToStringE))
-	assert.Equal(t, optional.Some[int](1234), plan.CastOptionValueOrNone(optional.Some[any](1234.5), cast.ToIntE))
-	assert.Equal(t, optional.None[uint](), plan.CastOptionValueOrNone(optional.Some[any](":)"), cast.ToUintE))
-	assert.Equal(t, optional.None[string](), plan.CastOptionValueOrNone(optional.None[any](), cast.ToStringE))
+	assert.Equal(t, optional.Some[string]("owo"), plan.Cast(optional.Some[any]("owo"), cast.ToStringE))
+	assert.Equal(t, optional.Some[int](1234), plan.Cast(optional.Some[any](1234.5), cast.ToIntE))
+	assert.Equal(t, optional.None[uint](), plan.Cast(optional.Some[any](":)"), cast.ToUintE))
+	assert.Equal(t, optional.None[string](), plan.Cast(optional.None[any](), cast.ToStringE))
 }
 
 func TestSet(t *testing.T) {
