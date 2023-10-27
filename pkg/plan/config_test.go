@@ -43,6 +43,40 @@ func TestProjectConfiguration_ZbpackJsonNotExisted(t *testing.T) {
 	assert.True(t, config.Get("laravel.owo").IsNone())
 }
 
+func TestProjectConfiguration_RootMalformed(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`I'm not JSON'`), 0644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	assert.True(t, config.Get("laravel").IsNone())
+}
+
+func TestProjectConfiguration_SubmoduleMalformed(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "zbpack.hi.json", []byte(`I'm not JSON'`), 0644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "hi")
+
+	assert.True(t, config.Get("laravel").IsNone())
+}
+
+func TestProjectConfiguration_SubmoduleMalformedWhileRootWorks(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"hi": 1234}`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.hi.json", []byte(`I'm not JSON'`), 0644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "hi")
+
+	assert.Equal(t, optional.Some[any](float64(1234)), config.Get("hi"))
+}
+
 func TestGet_Global(t *testing.T) {
 	t.Parallel()
 
