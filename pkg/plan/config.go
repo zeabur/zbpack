@@ -14,14 +14,14 @@ import (
 // in project configuration.
 type ImmutableProjectConfiguration interface {
 	// Get returns the value of the given key. If the key is not present, it returns None.
-	Get(key string) optional.Option[interface{}]
+	Get(key string) optional.Option[any]
 }
 
 // MutableProjectConfiguration declares the common interface for setting values
 // in project configuration.
 type MutableProjectConfiguration interface {
 	// Set sets the value of the given key. The value set here has the highest priority.
-	Set(key string, val interface{})
+	Set(key string, val any)
 }
 
 // ProjectConfiguration declares the common interface for project configuration.
@@ -38,11 +38,11 @@ type ViperProjectConfiguration struct {
 	// submodule is the configuration for the `zbpack.[submodule].json`.
 	submodule *viper.Viper
 	// extra is the manual overridden value of this configuration.
-	extra map[string]interface{}
+	extra map[string]any
 }
 
 // Get returns the value of the given key. If the key is not present, it returns None.
-func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{}] {
+func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[any] {
 	if val, ok := vpc.extra[key]; ok {
 		return optional.Some(val)
 	}
@@ -55,13 +55,13 @@ func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{
 		return optional.Some(vpc.root.Get(key))
 	}
 
-	return optional.None[interface{}]()
+	return optional.None[any]()
 }
 
 // Set sets the value of the given key. The value set here has the highest priority.
-func (vpc *ViperProjectConfiguration) Set(key string, val interface{}) {
+func (vpc *ViperProjectConfiguration) Set(key string, val any) {
 	if vpc.extra == nil {
-		vpc.extra = make(map[string]interface{})
+		vpc.extra = make(map[string]any)
 	}
 
 	vpc.extra[key] = val
@@ -120,7 +120,7 @@ func loadConfigToViper(fs afero.Fs, filename string) (*viper.Viper, error) {
 
 // CastOptionValueOrNone casts the value to the given type.
 // If the value is not present or the type assertion fails, it returns None.
-func CastOptionValueOrNone[T any](value optional.Option[interface{}], caster func(any) (T, error)) optional.Option[T] {
+func CastOptionValueOrNone[T any](value optional.Option[any], caster func(any) (T, error)) optional.Option[T] {
 	innerValue, err := value.Take()
 	if err != nil {
 		return optional.None[T]()
