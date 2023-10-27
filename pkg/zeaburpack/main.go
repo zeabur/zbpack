@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/static"
 
@@ -128,12 +129,13 @@ func Build(opt *BuildOptions) error {
 	}
 
 	src := afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
+	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
 
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
-			Config:             plan.NewProjectConfigurationFromFs(src),
-			SubmoduleName:      *opt.SubmoduleName,
+			Config:             plan.NewProjectConfigurationFromFs(src, submoduleName),
+			SubmoduleName:      submoduleName,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,

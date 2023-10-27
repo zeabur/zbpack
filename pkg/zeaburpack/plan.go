@@ -3,7 +3,9 @@ package zeaburpack
 import (
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -47,38 +49,33 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	}
 
-	config := plan.NewProjectConfigurationFromFs(src)
+	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
+	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
 	// You can specify customBuildCommand, customStartCommand, and
 	// outputDir in the project configuration file, with the following
 	// form:
 	//
-	//     [project]
-	//     build_command = "..."
-	//     start_command = "..."
-	//     output_dir = "..."
+	// {"build_command": "your_command"}
+	// {"start_command": "your_command"}
+	// {"output_dir": "your_output_dir"}
 	//
-	//     [project.submodule]
-	//     build_command = "..."
-	//     start_command = "..."
-	//     output_dir = "..."
-	//
-	// The submodule-specific configuration overrides the project
-	// configuration if defined.
+	// The submodule-specific configuration (zbpack.[submodule].json)
+	// overrides the project configuration if defined.
 	if opt.CustomBuildCommand == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "build_command").Take()
+		value, err := plan.CastOptionValueOrNone(config.Get("build_command"), cast.ToStringE).Take()
 		if err == nil {
 			opt.CustomBuildCommand = &value
 		}
 	}
 	if opt.CustomStartCommand == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "start_command").Take()
+		value, err := plan.CastOptionValueOrNone(config.Get("start_command"), cast.ToStringE).Take()
 		if err == nil {
 			opt.CustomStartCommand = &value
 		}
 	}
 	if opt.OutputDir == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "output_dir").Take()
+		value, err := plan.CastOptionValueOrNone(config.Get("output_dir"), cast.ToStringE).Take()
 		if err == nil {
 			opt.OutputDir = &value
 		}
@@ -87,11 +84,11 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
-			Config:             plan.NewProjectConfigurationFromFs(src),
+			Config:             config,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,
-			SubmoduleName:      *opt.SubmoduleName,
+			SubmoduleName:      submoduleName,
 		},
 		SupportedIdentifiers()...,
 	)
