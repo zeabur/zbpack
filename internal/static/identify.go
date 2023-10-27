@@ -42,10 +42,6 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		return types.PlanMeta{"framework": "hexo"}
 	}
 
-	if utils.HasFile(options.Source, "index.html", "public/index.html", "dist/index.html") {
-		return types.PlanMeta{"framework": "html-static"}
-	}
-
 	return types.PlanMeta{"framework": "unknown"}
 }
 
