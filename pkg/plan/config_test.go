@@ -12,10 +12,8 @@ import (
 func TestProjectConfiguration_Empty(t *testing.T) {
 	t.Parallel()
 
-	config := plan.NewProjectConfiguration()
-
-	assert.Equal(t, "", config.GetString("laravel.test"))
-	assert.False(t, config.IsSet("laravel.owo"))
+	config := &plan.ViperProjectConfiguration{}
+	assert.Equal(t, optional.None[any](), config.Get("laravel.test"))
 }
 
 func TestProjectConfiguration_ZbpackJsonExisted(t *testing.T) {
@@ -24,12 +22,12 @@ func TestProjectConfiguration_ZbpackJsonExisted(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"laravel":{"test": "owo" }}`), 0644)
 
-	config := plan.NewProjectConfigurationFromFs(fs)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-	assert.Equal(t, "owo", config.GetString("laravel.test"))
-	assert.True(t, config.IsSet("laravel"))
-	assert.True(t, config.IsSet("laravel.test"))
-	assert.False(t, config.IsSet("laravel.owo"))
+	assert.Equal(t, optional.Some[any]("owo"), config.Get("laravel.test"))
+	assert.True(t, config.Get("laravel").IsSome())
+	assert.True(t, config.Get("laravel.test").IsSome())
+	assert.True(t, config.Get("laravel.owo").IsNone())
 }
 
 func TestProjectConfiguration_ZbpackJsonNotExisted(t *testing.T) {
@@ -37,97 +35,62 @@ func TestProjectConfiguration_ZbpackJsonNotExisted(t *testing.T) {
 
 	fs := afero.NewMemMapFs()
 
-	config := plan.NewProjectConfigurationFromFs(fs)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-	assert.Equal(t, "", config.GetString("laravel.test"))
-	assert.False(t, config.IsSet("laravel"))
-	assert.False(t, config.IsSet("laravel.test"))
-	assert.False(t, config.IsSet("laravel.owo"))
+	assert.True(t, config.Get("laravel").IsNone())
+	assert.True(t, config.Get("laravel.test").IsNone())
+	assert.True(t, config.Get("laravel.owo").IsNone())
 }
 
-func TestGetProjectConfigValue_Global(t *testing.T) {
+func TestGet_Global(t *testing.T) {
 	t.Parallel()
 
 	fs := afero.NewMemMapFs()
 
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"project": { "build_command": "build" } }`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{ "build_command": "build" }`), 0644)
 
-	config := plan.NewProjectConfigurationFromFs(fs)
-	assert.Equal(t, optional.Some("build"), plan.GetProjectConfigValue(config, "", "build_command"))
+	config := plan.NewProjectConfigurationFromFs(fs, "global_test")
+	assert.Equal(t, optional.Some[any]("build"), config.Get("build_command"))
 }
 
-func TestGetProjectConfigValue_Submodule(t *testing.T) {
+func TestGet_Submodule(t *testing.T) {
 	t.Parallel()
 
 	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{
-	"project": {
-		"sm": {
-			"build_command": "build.sm"
-		}
-	}
-}`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.test.json", []byte(`{ "build_command": "build#test" }`), 0644)
 
-	config := plan.NewProjectConfigurationFromFs(fs)
-	assert.Equal(t, optional.Some("build.sm"), plan.GetProjectConfigValue(config, "sm", "build_command"))
+	config := plan.NewProjectConfigurationFromFs(fs, "test")
+	assert.Equal(t, optional.Some[any]("build#test"), config.Get("build_command"))
 }
 
-func TestGetProjectConfigValue_SubmoduleOverride(t *testing.T) {
+func TestGet_SubmoduleOverride(t *testing.T) {
 	t.Parallel()
 
 	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{
-  "project": {
-    "build_command": "build",
-    "sm": {
-      "build_command": "build.sm"
-    }
-  }
-}`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{ "build_command": "build" }`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.test.json", []byte(`{ "build_command": "build#test" }`), 0644)
 
-	config := plan.NewProjectConfigurationFromFs(fs)
-	assert.Equal(t, optional.Some("build.sm"), plan.GetProjectConfigValue(config, "sm", "build_command"))
+	config := plan.NewProjectConfigurationFromFs(fs, "test")
+	assert.Equal(t, optional.Some[any]("build#test"), config.Get("build_command"))
 }
 
-func TestGetProjectConfigValue_SubmoduleFallback(t *testing.T) {
-	t.Parallel()
-
-	t.Run("with-submodule-group", func(t *testing.T) {
-		t.Parallel()
-
-		fs := afero.NewMemMapFs()
-		_ = afero.WriteFile(fs, "zbpack.json", []byte(`{
-  "project": {
-    "build_command": "build",
-    "sm": {}
-  }
-}`), 0644)
-
-		config := plan.NewProjectConfigurationFromFs(fs)
-		assert.Equal(t, optional.Some("build"), plan.GetProjectConfigValue(config, "sm", "build_command"))
-	})
-
-	t.Run("without-submodule-group", func(t *testing.T) {
-		t.Parallel()
-
-		fs := afero.NewMemMapFs()
-		_ = afero.WriteFile(fs, "zbpack.json", []byte(`{
-  "project": {
-    "build_command": "build"
-  }
-}`), 0644)
-
-		config := plan.NewProjectConfigurationFromFs(fs)
-		assert.Equal(t, optional.Some("build"), plan.GetProjectConfigValue(config, "sm", "build_command"))
-	})
-}
-
-func TestGetProjectConfigValue_None(t *testing.T) {
+func TestGet_SubmoduleFallback(t *testing.T) {
 	t.Parallel()
 
 	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"project":{}}`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{ "build_command": "build" }`), 0644)
+	_ = afero.WriteFile(fs, "zbpack.test.json", []byte(`{}`), 0644)
 
-	config := plan.NewProjectConfigurationFromFs(fs)
-	assert.Equal(t, optional.None[string](), plan.GetProjectConfigValue(config, "", "build_command"))
+	config := plan.NewProjectConfigurationFromFs(fs, "test")
+	assert.Equal(t, optional.Some[any]("build"), config.Get("build_command"))
+}
+
+func TestGet_None(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{}`), 0644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	assert.True(t, config.Get("build_command").IsNone())
 }
