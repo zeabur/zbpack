@@ -28,10 +28,6 @@ func (i *identify) Match(fs afero.Fs) bool {
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 
-	if utils.HasFile(options.Source, "index.html", "public/index.html", "dist/index.html") {
-		return types.PlanMeta{"framework": "html-static"}
-	}
-
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
 		return types.PlanMeta{"framework": "hugo"}
 	}
@@ -44,6 +40,10 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 
 	if err == nil && strings.Contains(string(html), "Hexo") {
 		return types.PlanMeta{"framework": "hexo"}
+	}
+
+	if utils.HasFile(options.Source, "index.html", "public/index.html", "dist/index.html") {
+		return types.PlanMeta{"framework": "html-static"}
 	}
 
 	return types.PlanMeta{"framework": "unknown"}
