@@ -23,10 +23,6 @@ RUN echo "server { listen 8080; root /usr/share/nginx/html/static; absolute_redi
 EXPOSE 8080`, nil
 	}
 
-	if meta["framework"] == "html-static" {
-		return `HTML-STATIC`, nil
-	}
-
 	dockerfile := `FROM docker.io/library/nginx:alpine as runtime
 WORKDIR /usr/share/nginx/html/static
 COPY . .

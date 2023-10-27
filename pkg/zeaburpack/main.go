@@ -202,7 +202,7 @@ func Build(opt *BuildOptions) error {
 
 	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
 		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, false)
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
 		if err != nil {
 			println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
@@ -210,9 +210,9 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeStatic && m["framework"] == "html-static" {
+	if t == types.PlanTypeStatic {
 		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, true)
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
 		if err != nil {
 			println("Failed to transform static serverless: " + err.Error())
 			handleBuildFailed(err)
@@ -225,8 +225,9 @@ func Build(opt *BuildOptions) error {
 		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
 		if t == types.PlanTypeNodejs && m["outputDir"] != "" {
 			handleLog("npx serve .zeabur/output/static")
-		} else if t == types.PlanTypeStatic && m["framework"] == "html-static" {
-			handleLog("npx serve .zeabur/output/static")
+		} else if t == types.PlanTypeStatic {
+			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+			handleLog("or you can find generated static file in .zeabur/output/static")
 		} else {
 			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
 		}
