@@ -13,12 +13,14 @@ import (
 // ImmutableProjectConfiguration declares the common interface for getting values
 // in project configuration.
 type ImmutableProjectConfiguration interface {
+	// Get returns the value of the given key. If the key is not present, it returns None.
 	Get(key string) optional.Option[interface{}]
 }
 
 // MutableProjectConfiguration declares the common interface for setting values
 // in project configuration.
 type MutableProjectConfiguration interface {
+	// Set sets the value of the given key. The value set here has the highest priority.
 	Set(key string, val interface{})
 }
 
@@ -39,6 +41,7 @@ type ViperProjectConfiguration struct {
 	extra map[string]interface{}
 }
 
+// Get returns the value of the given key. If the key is not present, it returns None.
 func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{}] {
 	if val, ok := vpc.extra[key]; ok {
 		return optional.Some(val)
@@ -55,6 +58,7 @@ func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[interface{
 	return optional.None[interface{}]()
 }
 
+// Set sets the value of the given key. The value set here has the highest priority.
 func (vpc *ViperProjectConfiguration) Set(key string, val interface{}) {
 	if vpc.extra == nil {
 		vpc.extra = make(map[string]interface{})
