@@ -5,8 +5,6 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
-	"github.com/spf13/cast"
-
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -52,34 +50,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
 	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
-	// You can specify customBuildCommand, customStartCommand, and
-	// outputDir in the project configuration file, with the following
-	// form:
-	//
-	// {"build_command": "your_command"}
-	// {"start_command": "your_command"}
-	// {"output_dir": "your_output_dir"}
-	//
-	// The submodule-specific configuration (zbpack.[submodule].json)
-	// overrides the project configuration if defined.
-	if opt.CustomBuildCommand == nil {
-		value, err := plan.Cast(config.Get("build_command"), cast.ToStringE).Take()
-		if err == nil {
-			opt.CustomBuildCommand = &value
-		}
-	}
-	if opt.CustomStartCommand == nil {
-		value, err := plan.Cast(config.Get("start_command"), cast.ToStringE).Take()
-		if err == nil {
-			opt.CustomStartCommand = &value
-		}
-	}
-	if opt.OutputDir == nil {
-		value, err := plan.Cast(config.Get("output_dir"), cast.ToStringE).Take()
-		if err == nil {
-			opt.OutputDir = &value
-		}
-	}
+	UpdateOptionsOnConfig(&opt, config)
 
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{

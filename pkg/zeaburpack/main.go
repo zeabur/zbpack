@@ -130,6 +130,9 @@ func Build(opt *BuildOptions) error {
 
 	src := afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
+	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
+
+	UpdateOptionsOnConfig(opt, config)
 
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
