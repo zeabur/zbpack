@@ -10,10 +10,18 @@ import (
 )
 
 // TransformServerless copies the static files from output to .zeabur/output/static and creates a config.json file for SPA
-func TransformServerless(image, workdir string, meta types.PlanMeta) error {
-	err := utils.CopyFromImage(image, path.Join("/usr/share/nginx/html/static", meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
-	if err != nil {
-		return err
+func TransformServerless(image, workdir string, meta types.PlanMeta, planType types.PlanType) error {
+	println("planType: ", planType)
+	if planType == types.PlanTypeNodejs {
+		err := utils.CopyFromImage(image, path.Join("/src", meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
+		if err != nil {
+			return err
+		}
+	} else {
+		err := utils.CopyFromImage(image, path.Join("/usr/share/nginx/html/static", meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
+		if err != nil {
+			return err
+		}
 	}
 
 	config := types.ZeaburOutputConfig{Containerized: false, Routes: make([]types.ZeaburOutputConfigRoute, 0)}

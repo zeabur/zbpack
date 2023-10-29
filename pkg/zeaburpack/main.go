@@ -202,7 +202,7 @@ func Build(opt *BuildOptions) error {
 
 	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
 		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, t)
 		if err != nil {
 			println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
@@ -212,7 +212,7 @@ func Build(opt *BuildOptions) error {
 
 	if t == types.PlanTypeStatic {
 		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, t)
 		if err != nil {
 			println("Failed to transform static serverless: " + err.Error())
 			handleBuildFailed(err)
