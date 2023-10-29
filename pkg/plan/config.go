@@ -1,10 +1,9 @@
 package plan
 
 import (
+	"errors"
 	"fmt"
 	"log"
-	"strings"
-	"time"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
@@ -14,110 +13,128 @@ import (
 // ImmutableProjectConfiguration declares the common interface for getting values
 // in project configuration.
 type ImmutableProjectConfiguration interface {
-	Get(key string) interface{}
-	GetBool(key string) bool
-	GetDuration(key string) time.Duration
-	GetFloat64(key string) float64
-	GetInt(key string) int
-	GetInt32(key string) int32
-	GetInt64(key string) int64
-	GetIntSlice(key string) []int
-	GetSizeInBytes(key string) uint
-	GetString(key string) string
-	GetStringMap(key string) map[string]interface{}
-	GetStringMapString(key string) map[string]string
-	GetStringMapStringSlice(key string) map[string][]string
-	GetStringSlice(key string) []string
-	GetTime(key string) time.Time
-	GetUint(key string) uint
-	GetUint16(key string) uint16
-	GetUint32(key string) uint32
-	GetUint64(key string) uint64
-	IsSet(key string) bool
+	// Get returns the value of the given key. If the key is not present, it returns None.
+	Get(key string) optional.Option[any]
+}
+
+// MutableProjectConfiguration declares the common interface for setting values
+// in project configuration.
+type MutableProjectConfiguration interface {
+	// Set sets the value of the given key. The value set here has the highest priority.
+	Set(key string, val any)
 }
 
 // ProjectConfiguration declares the common interface for project configuration.
 type ProjectConfiguration interface {
 	ImmutableProjectConfiguration
+	MutableProjectConfiguration
 }
 
 // ViperProjectConfiguration reads the extra configuration "zbpack.toml" from
-// the root directory of project and turn it to a struct for easy access.
+// the root directory of a project and turns it to a struct for easy access.
 type ViperProjectConfiguration struct {
-	*viper.Viper
+	// root is the configuration for the `zbpack.json`.
+	root *viper.Viper
+	// submodule is the configuration for the `zbpack.[submodule].json`.
+	submodule *viper.Viper
+	// extra is the manual overridden value of this configuration.
+	extra map[string]any
 }
 
-// NewProjectConfiguration creates a new ViperProjectConfiguration.
-func NewProjectConfiguration() ProjectConfiguration {
-	viperInstance := viper.New()
-	viperInstance.SetConfigType("json")
-
-	return &ViperProjectConfiguration{
-		Viper: viperInstance,
+// Get returns the value of the given key. If the key is not present, it returns None.
+func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[any] {
+	if val, ok := vpc.extra[key]; ok {
+		return optional.Some(val)
 	}
+
+	if vpc.submodule != nil && vpc.submodule.IsSet(key) {
+		return optional.Some(vpc.submodule.Get(key))
+	}
+
+	if vpc.root != nil && vpc.root.IsSet(key) {
+		return optional.Some(vpc.root.Get(key))
+	}
+
+	return optional.None[any]()
+}
+
+// Set sets the value of the given key. The value set here has the highest priority.
+func (vpc *ViperProjectConfiguration) Set(key string, val any) {
+	if vpc.extra == nil {
+		vpc.extra = make(map[string]any)
+	}
+
+	vpc.extra[key] = val
 }
 
 // NewProjectConfigurationFromFs creates a new ViperProjectConfiguration from fs.
 //
 // If the configuration file is not found, it will print a warning and
 // return a default configuration.
-func NewProjectConfigurationFromFs(fs afero.Fs) ProjectConfiguration {
-	vpc := NewProjectConfiguration().(*ViperProjectConfiguration)
-	err := vpc.ReadFromFs(fs)
-	if err != nil {
+func NewProjectConfigurationFromFs(fs afero.Fs, submoduleName string) ProjectConfiguration {
+	vpc := &ViperProjectConfiguration{
+		root:      nil,
+		submodule: nil,
+	}
 
-		// If no configuration file, return a default configuration.
-		if strings.Contains(err.Error(), "no such file or directory") {
-			return NewProjectConfiguration()
+	root, err := loadConfigToViper(fs, "zbpack.json")
+	if err != nil && !errors.Is(err, afero.ErrFileNotFound) {
+		log.Printf("Failed to read the root configuration file (%s).", err)
+	} else {
+		vpc.root = root
+	}
+
+	if submoduleName != "" {
+		submodule, err := loadConfigToViper(fs, fmt.Sprintf("zbpack.%s.json", submoduleName))
+		if err != nil && !errors.Is(err, afero.ErrFileNotFound) {
+			log.Printf("Failed to read the submodule configuration file (%s).", err)
+		} else {
+			vpc.submodule = submodule
 		}
-
-		log.Println("read config from fs:", err)
-		return NewProjectConfiguration()
 	}
 
 	return vpc
 }
 
-// ReadFromFs reads the configuration from the given file system.
-func (vpc *ViperProjectConfiguration) ReadFromFs(fs afero.Fs) error {
-	file, err := fs.Open("zbpack.json")
+func loadConfigToViper(fs afero.Fs, filename string) (*viper.Viper, error) {
+	v := viper.New()
+	v.SetConfigType("json")
+
+	file, err := fs.Open(filename)
 	if err != nil {
-		return fmt.Errorf("open config file: %w", err)
+		return nil, fmt.Errorf("open config file %s: %w", filename, err)
 	}
 	defer func(file afero.File) {
 		err := file.Close()
 		if err != nil {
-			log.Println("closing file:", err)
+			log.Printf("closing file %s: %s", filename, err)
 		}
 	}(file)
 
-	return vpc.ReadConfig(file)
+	if err := v.ReadConfig(file); err != nil {
+		return nil, fmt.Errorf("parse config file %s: %w", filename, err)
+	}
+
+	return v, nil
 }
 
-// GetProjectConfigValue returns the project-specific configuration of the specified key.
-//
-// The format of project-specific configuration is like:
-//
-//	    [project]            # global
-//	    key = "value"
-//
-//		[project.submodule]  # submoduleName specific
-//	    key = "value"        # overrides global
-//
-// If no such key is found in config, it returns None.
-func GetProjectConfigValue(config ProjectConfiguration, submoduleName string, key string) optional.Option[string] {
-	submoduleKey := "project." + submoduleName + "."
-	globalKey := "project."
-
-	if config.IsSet(submoduleKey + key) {
-		value := config.GetString(submoduleKey + key)
-		return optional.Some(value)
+// Cast casts the value to the given type.
+// If the value is not present or the type assertion fails, it returns None.
+func Cast[T any](value optional.Option[any], caster func(any) (T, error)) optional.Option[T] {
+	innerValue, err := value.Take()
+	if err != nil {
+		return optional.None[T]()
 	}
 
-	if config.IsSet(globalKey + key) {
-		value := config.GetString(globalKey + key)
-		return optional.Some(value)
+	if v, ok := innerValue.(T); ok {
+		return optional.Some(v)
 	}
 
-	return optional.None[string]()
+	// Accept a `cast.To*E()` function.
+	cv, err := caster(innerValue)
+	if err != nil {
+		return optional.None[T]()
+	}
+
+	return optional.Some(cv)
 }

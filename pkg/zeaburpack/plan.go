@@ -3,8 +3,8 @@ package zeaburpack
 import (
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
-
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -12,7 +12,7 @@ import (
 // PlanOptions is the options for Plan function.
 type PlanOptions struct {
 	// SubmoduleName is the of the submodule to build.
-	// For example, if directory is considered as a Go project,
+	// For example, if a directory is considered as a Go project,
 	// submoduleName would be used to try file in `cmd` directory.
 	// in Zeabur internal system, this is the name of the service.
 	SubmoduleName *string
@@ -34,7 +34,7 @@ type PlanOptions struct {
 	OutputDir *string
 }
 
-// Plan returns the build plan and meta data.
+// Plan returns the build plan and metadata.
 func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	var src afero.Fs
 	if strings.HasPrefix(*opt.Path, "https://github.com") {
@@ -47,51 +47,19 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	}
 
-	config := plan.NewProjectConfigurationFromFs(src)
+	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
+	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
-	// You can specify customBuildCommand, customStartCommand, and
-	// outputDir in the project configuration file, with the following
-	// form:
-	//
-	//     [project]
-	//     build_command = "..."
-	//     start_command = "..."
-	//     output_dir = "..."
-	//
-	//     [project.submodule]
-	//     build_command = "..."
-	//     start_command = "..."
-	//     output_dir = "..."
-	//
-	// The submodule-specific configuration overrides the project
-	// configuration if defined.
-	if opt.CustomBuildCommand == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "build_command").Take()
-		if err == nil {
-			opt.CustomBuildCommand = &value
-		}
-	}
-	if opt.CustomStartCommand == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "start_command").Take()
-		if err == nil {
-			opt.CustomStartCommand = &value
-		}
-	}
-	if opt.OutputDir == nil {
-		value, err := plan.GetProjectConfigValue(config, *opt.SubmoduleName, "output_dir").Take()
-		if err == nil {
-			opt.OutputDir = &value
-		}
-	}
+	UpdateOptionsOnConfig(&opt, config)
 
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:             src,
-			Config:             plan.NewProjectConfigurationFromFs(src),
+			Config:             config,
 			CustomBuildCommand: opt.CustomBuildCommand,
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,
-			SubmoduleName:      *opt.SubmoduleName,
+			SubmoduleName:      submoduleName,
 		},
 		SupportedIdentifiers()...,
 	)

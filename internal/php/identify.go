@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -28,7 +29,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	config := options.Config
 
-	server := config.GetString(ConfigLaravelOctaneServer)
+	server := plan.Cast(config.Get(ConfigLaravelOctaneServer), cast.ToStringE).TakeOr("")
 
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)
