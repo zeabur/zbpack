@@ -191,6 +191,9 @@ func Build(opt *BuildOptions) error {
 	}
 
 	_ = os.RemoveAll(".zeabur")
+	if wd != *opt.Path {
+		_ = os.RemoveAll(*opt.Path + "/.zeabur")
+	}
 
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
@@ -204,7 +207,17 @@ func Build(opt *BuildOptions) error {
 
 	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
 		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m)
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, t)
+		if err != nil {
+			println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeStatic {
+		println("Transforming build output to serverless format ...")
+		err = static.TransformServerless(*opt.ResultImage, *opt.Path, m, t)
 		if err != nil {
 			println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
@@ -217,6 +230,9 @@ func Build(opt *BuildOptions) error {
 		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
 		if t == types.PlanTypeNodejs && m["outputDir"] != "" {
 			handleLog("npx serve .zeabur/output/static")
+		} else if t == types.PlanTypeStatic {
+			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+			handleLog("or you can find the static files in .zeabur/output/static")
 		} else {
 			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
 		}
