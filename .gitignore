@@ -1,3 +1,4 @@
 .idea
 bin
 .DS_Store
+tests/*/.zeabur
