@@ -68,6 +68,7 @@ type BuildOptions struct {
 // Build will analyze the project, determine the plan and build the image.
 func Build(opt *BuildOptions) error {
 	wd, err := os.Getwd()
+	println("Working directory: " + wd)
 	if err != nil {
 		return err
 	}
@@ -186,7 +187,8 @@ func Build(opt *BuildOptions) error {
 	}
 
 	_ = os.RemoveAll(".zeabur")
-	if opt.Path != nil || *opt.Path != "" {
+	if wd != *opt.Path {
+		println("Removing .zeabur directory:" + *opt.Path + "/.zeabur")
 		_ = os.RemoveAll(*opt.Path + "/.zeabur")
 	}
 

@@ -17,7 +17,7 @@ func TransformServerless(image, workdir string, meta types.PlanMeta, planType ty
 			return err
 		}
 	} else {
-		err := utils.CopyFromImage(image, path.Join("/usr/share/nginx/html/static", meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
+		err := utils.CopyFromImage(image, "/usr/share/nginx/html/static"+"/.", path.Join(workdir, ".zeabur/output/static"))
 		if err != nil {
 			return err
 		}
