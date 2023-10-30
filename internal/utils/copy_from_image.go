@@ -40,7 +40,7 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
 	}
 	excludeFiles := []string{".gitkeep", ".ini", ".env", ".DS_Store"}
-	excludeDirs := []string{".git", ".zeabur"}
+	excludeDirs := []string{".git", ".zeabur", ".vscode", ".idea", ".github"}
 	err = deleteFilesRecursively(excludeFiles, destOnHost)
 	if err != nil {
 		return fmt.Errorf("delete files in directory: %w", err)
