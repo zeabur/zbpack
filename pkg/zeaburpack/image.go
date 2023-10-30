@@ -104,7 +104,7 @@ func buildImage(opt *buildImageOptions) error {
 		return fmt.Errorf("write Dockerfile: %w", err)
 	}
 
-	dockerIgnore := []string{".next", "node_modules", ".zeabur", ".git"}
+	dockerIgnore := []string{".next", "node_modules", ".zeabur"}
 	dockerIgnorePath := path.Join(tempDir, buildID, ".dockerignore")
 	err = os.WriteFile(dockerIgnorePath, []byte(strings.Join(dockerIgnore, "\n")), 0o644)
 	if err != nil {
