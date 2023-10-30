@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -38,6 +39,70 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	if err != nil {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
 	}
+	excludeFiles := []string{".gitkeep", ".ini", ".env"}
+	excludeDirs := []string{".git", ".zeabur"}
+	err = deleteFilesInDirectory(excludeFiles, destOnHost)
+	if err != nil {
+		return fmt.Errorf("delete files in directory: %w", err)
+	}
+	err = deleteDirectoriesInDirectory(excludeDirs, destOnHost)
+	if err != nil {
+		return fmt.Errorf("delete directories in directory: %w", err)
+	}
 
+	return nil
+}
+
+func deleteFilesInDirectory(deleteFiles []string, path string) error {
+	// walk through the directory
+	err := filepath.Walk(path, func(filePath string, fileInfo os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !fileInfo.IsDir() {
+			fileName := fileInfo.Name()
+
+			for _, targetFile := range deleteFiles {
+				if fileName == targetFile {
+					filePath := filepath.Join(path, fileName)
+
+					err := os.Remove(filePath)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteDirectoriesInDirectory(deleteDirs []string, path string) error {
+	fileInfo, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, dirInfo := range fileInfo {
+		if dirInfo.IsDir() {
+			dirName := dirInfo.Name()
+
+			for _, targetDir := range deleteDirs {
+				if dirName == targetDir {
+					dirPath := filepath.Join(path, dirName)
+					err := os.RemoveAll(dirPath)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
 	return nil
 }
