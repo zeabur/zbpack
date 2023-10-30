@@ -41,11 +41,11 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	}
 	excludeFiles := []string{".gitkeep", ".ini", ".env", ".DS_Store"}
 	excludeDirs := []string{".git", ".zeabur"}
-	err = deleteFilesInDirectory(excludeFiles, destOnHost)
+	err = deleteFilesRecursively(excludeFiles, destOnHost)
 	if err != nil {
 		return fmt.Errorf("delete files in directory: %w", err)
 	}
-	err = deleteDirectoriesInDirectory(excludeDirs, destOnHost)
+	err = deleteDirectories(excludeDirs, destOnHost)
 	if err != nil {
 		return fmt.Errorf("delete directories in directory: %w", err)
 	}
@@ -53,7 +53,7 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	return nil
 }
 
-func deleteFilesInDirectory(deleteFiles []string, path string) error {
+func deleteFilesRecursively(deleteFiles []string, path string) error {
 	// walk through the directory
 	err := filepath.Walk(path, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
@@ -83,25 +83,12 @@ func deleteFilesInDirectory(deleteFiles []string, path string) error {
 	return nil
 }
 
-func deleteDirectoriesInDirectory(deleteDirs []string, path string) error {
-	fileInfo, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	for _, dirInfo := range fileInfo {
-		if dirInfo.IsDir() {
-			dirName := dirInfo.Name()
-
-			for _, targetDir := range deleteDirs {
-				if dirName == targetDir {
-					dirPath := filepath.Join(path, dirName)
-					err := os.RemoveAll(dirPath)
-					if err != nil {
-						return err
-					}
-				}
-			}
+func deleteDirectories(deleteDirs []string, path string) error {
+	for _, targetDir := range deleteDirs {
+		dirPath := filepath.Join(path, targetDir)
+		err := os.RemoveAll(dirPath)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
