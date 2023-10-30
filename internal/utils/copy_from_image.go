@@ -54,25 +54,27 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 }
 
 func deleteFilesRecursively(deleteFiles []string, path string) error {
-	// walk through the directory
 	err := filepath.Walk(path, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !fileInfo.IsDir() {
-			fileName := fileInfo.Name()
+		if fileInfo.IsDir() {
+			return nil
+		}
+		fileName := fileInfo.Name()
 
-			for _, targetFile := range deleteFiles {
-				if strings.EqualFold(fileName, targetFile) {
-					filePath := filepath.Join(path, fileName)
-					err := os.Remove(filePath)
-					if err != nil {
-						return err
-					}
-				}
+		for _, targetFile := range deleteFiles {
+			if !strings.EqualFold(fileName, targetFile) {
+				continue
+			}
+			filePath := filepath.Join(path, fileName)
+			err := os.Remove(filePath)
+			if err != nil {
+				return err
 			}
 		}
+
 		return nil
 	})
 	if err != nil {
