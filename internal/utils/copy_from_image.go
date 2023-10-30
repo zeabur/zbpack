@@ -64,9 +64,8 @@ func deleteFilesRecursively(deleteFiles []string, path string) error {
 			fileName := fileInfo.Name()
 
 			for _, targetFile := range deleteFiles {
-				if fileName == targetFile {
+				if strings.EqualFold(fileName, targetFile) {
 					filePath := filepath.Join(path, fileName)
-
 					err := os.Remove(filePath)
 					if err != nil {
 						return err
