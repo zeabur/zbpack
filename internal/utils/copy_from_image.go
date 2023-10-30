@@ -39,7 +39,7 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	if err != nil {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
 	}
-	excludeFiles := []string{".gitkeep", ".ini", ".env"}
+	excludeFiles := []string{".gitkeep", ".ini", ".env", ".DS_Store"}
 	excludeDirs := []string{".git"}
 	err = deleteFilesInDirectory(excludeFiles, destOnHost)
 	if err != nil {
