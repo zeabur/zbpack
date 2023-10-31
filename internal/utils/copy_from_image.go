@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -38,48 +37,6 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	err = copyCmd.Run()
 	if err != nil {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
-	}
-
-	err = deleteHiddenFilesAndDirs(destOnHost)
-	if err != nil {
-		return fmt.Errorf("delete hidden files and directories in directory: %w", err)
-	}
-
-	return nil
-}
-
-// DeleteHiddenFilesAndDirs deletes hidden files and directories in a directory
-func deleteHiddenFilesAndDirs(dirPath string) error {
-	dir, err := os.Open(dirPath)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := dir.Close()
-		if err != nil {
-			log.Println("delete hidden files and directories in directory: %w", err)
-		}
-	}()
-
-	entries, err := dir.Readdir(0)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), ".") {
-			entryPath := filepath.Join(dirPath, entry.Name())
-
-			if entry.IsDir() {
-				if err := os.RemoveAll(entryPath); err != nil {
-					return err
-				}
-			} else {
-				if err := os.Remove(entryPath); err != nil {
-					return err
-				}
-			}
-		}
 	}
 
 	return nil
