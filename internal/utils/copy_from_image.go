@@ -54,7 +54,12 @@ func deleteHiddenFilesAndDirs(dirPath string) error {
 	if err != nil {
 		return err
 	}
-	defer dir.Close()
+	defer func() {
+		err := dir.Close()
+		if err != nil {
+			log.Println("delete hidden files and directories in directory: %w", err)
+		}
+	}()
 
 	entries, err := dir.Readdir(0)
 	if err != nil {
