@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -39,38 +38,5 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	if err != nil {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
 	}
-
-	// there may be some symlinks in the copied directory, we need to resolve them
-	err = filepath.Walk(destOnHost, func(p string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-
-		if info.Mode()&os.ModeSymlink != 0 {
-			targetInImage, err := os.Readlink(p)
-			if err != nil {
-				return fmt.Errorf("read symlink target: %w", err)
-			}
-
-			relativeToSrc, err := filepath.Rel(srcInImage, targetInImage)
-			if err != nil {
-				return fmt.Errorf("calculate relative path: %w", err)
-			}
-
-			absTarget := filepath.Join(destOnHost, relativeToSrc)
-			err = os.Remove(p)
-			if err != nil {
-				return fmt.Errorf("remove symlink: %w", err)
-			}
-
-			err = os.Symlink(absTarget, p)
-			if err != nil {
-				return fmt.Errorf("create symlink: %w", err)
-			}
-		}
-
-		return nil
-	})
-
 	return nil
 }
