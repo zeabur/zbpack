@@ -10,6 +10,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/static"
+	"github.com/zeabur/zbpack/internal/utils"
 
 	"github.com/spf13/afero"
 
@@ -194,6 +195,9 @@ func Build(opt *BuildOptions) error {
 	if wd != *opt.Path {
 		_ = os.RemoveAll(*opt.Path + "/.zeabur")
 	}
+
+	// try to copy .zeabur directory from the image to the host, ignore error because it's fine if it not exists
+	_ = utils.CopyFromImage(*opt.ResultImage, "/src/.zeabur/.", path.Join(*opt.Path, ".zeabur"))
 
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
