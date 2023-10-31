@@ -39,58 +39,43 @@ func CopyFromImage(image, srcInImage, destOnHost string) error {
 	if err != nil {
 		return fmt.Errorf("copy from image: %s: %w", stderr.String(), err)
 	}
-	excludeFiles := []string{".gitkeep", ".ini", ".env", ".DS_Store"}
-	excludeDirs := []string{".git", ".vscode", ".idea", ".github"}
-	err = deleteFilesRecursively(excludeFiles, destOnHost)
+
+	err = deleteHiddenFilesAndDirs(destOnHost)
 	if err != nil {
-		return fmt.Errorf("delete files in directory: %w", err)
-	}
-	err = deleteDirectories(excludeDirs, destOnHost)
-	if err != nil {
-		return fmt.Errorf("delete directories in directory: %w", err)
+		return fmt.Errorf("delete hidden files and directories in directory: %w", err)
 	}
 
 	return nil
 }
 
-func deleteFilesRecursively(deleteFiles []string, path string) error {
-	err := filepath.Walk(path, func(filePath string, fileInfo os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+// DeleteHiddenFilesAndDirs deletes hidden files and directories in a directory
+func deleteHiddenFilesAndDirs(dirPath string) error {
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
 
-		if fileInfo.IsDir() {
-			return nil
-		}
-		fileName := fileInfo.Name()
-
-		for _, targetFile := range deleteFiles {
-			if !strings.EqualFold(fileName, targetFile) {
-				continue
-			}
-			filePath := filepath.Join(path, fileName)
-			err := os.Remove(filePath)
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
+	entries, err := dir.Readdir(0)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".") {
+			entryPath := filepath.Join(dirPath, entry.Name())
 
-func deleteDirectories(deleteDirs []string, path string) error {
-	for _, targetDir := range deleteDirs {
-		dirPath := filepath.Join(path, targetDir)
-		err := os.RemoveAll(dirPath)
-		if err != nil {
-			return err
+			if entry.IsDir() {
+				if err := os.RemoveAll(entryPath); err != nil {
+					return err
+				}
+			} else {
+				if err := os.Remove(entryPath); err != nil {
+					return err
+				}
+			}
 		}
 	}
+
 	return nil
 }
