@@ -95,7 +95,7 @@ func buildImage(opt *buildImageOptions) error {
 
 	err := os.MkdirAll(path.Join(tempDir, buildID), 0o755)
 	if err != nil {
-		return err
+		return fmt.Errorf("create temp dir: %w", err)
 	}
 
 	dockerfilePath := path.Join(tempDir, buildID, "Dockerfile")
@@ -143,29 +143,31 @@ func buildImage(opt *buildImageOptions) error {
 		err := cmd.Run()
 		if err != nil {
 			println("failed to run docker build: " + err.Error())
-			return err
+			return fmt.Errorf("run docker build: %w", err)
 		}
 		return nil
 	}
 
 	errPipe, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		return fmt.Errorf("get stderr pipe: %w", err)
 	}
 
 	outPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+		return fmt.Errorf("get stdout pipe: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return err
+		return fmt.Errorf("start docker build: %w", err)
 	}
 
 	go func() {
 		scanner := bufio.NewScanner(errPipe)
 		for scanner.Scan() {
-			(*opt.HandleLog)(scanner.Text())
+			t := scanner.Text()
+			println(t)
+			(*opt.HandleLog)(t)
 		}
 	}()
 
@@ -176,5 +178,10 @@ func buildImage(opt *buildImageOptions) error {
 		}
 	}()
 
-	return cmd.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		return fmt.Errorf("wait docker build: %w", err)
+	}
+
+	return nil
 }
