@@ -65,7 +65,7 @@ RUN pip install uvicorn
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-none - 1]
-echo "skip install"
+RUN echo "skip install"
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
