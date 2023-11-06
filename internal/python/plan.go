@@ -458,6 +458,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pipenv install gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pipenv install streamlit")
+		}
+
 		commands = append(commands, "COPY Pipfile* .", "RUN pipenv install")
 	case types.PythonPackageManagerPoetry:
 		commands = append(commands, "RUN pip install poetry")
@@ -469,9 +474,15 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN poetry add gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN poetry add streamlit")
+		}
+
 		commands = append(commands, "COPY poetry.lock* pyproject.toml* .", "RUN poetry install")
 	case types.PythonPackageManagerPdm:
 		commands = append(commands, "COPY pdm.lock* pyproject.toml* .", "RUN pip install pdm")
+
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
 				commands = append(commands, "RUN pdm add uvicorn")
@@ -479,6 +490,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pdm add gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pdm add streamlit")
+		}
+
 		commands = append(commands, "RUN pdm install")
 	case types.PythonPackageManagerPip:
 		if wsgi != "" {
@@ -488,6 +504,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pip install gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pip install streamlit")
+		}
+
 		commands = append(commands, "COPY requirements.txt* .", "RUN pip install -r requirements.txt")
 	default:
 		if wsgi != "" {
@@ -496,6 +517,10 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 			} else {
 				commands = append(commands, "RUN pip install gunicorn")
 			}
+		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pip install streamlit")
 		}
 	}
 
