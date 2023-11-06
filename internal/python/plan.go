@@ -26,6 +26,7 @@ type pythonPlanContext struct {
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
+	StreamlitEntry optional.Option[string]
 }
 
 const (
@@ -648,19 +649,27 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 func determineStreamlitEntry(ctx *pythonPlanContext) string {
 	src := ctx.Src
 	config := ctx.Config
+	se := &ctx.StreamlitEntry
+
+	if entry, err := se.Take(); err == nil {
+		return entry
+	}
 
 	if streamlitEntry := plan.Cast(config.Get(ConfigStreamlitEntry), cast.ToStringE); streamlitEntry.IsSome() {
-		return streamlitEntry.Unwrap()
+		*se = optional.Some(streamlitEntry.Unwrap())
+		return se.Unwrap()
 	}
 
 	for _, file := range []string{"app.py", "main.py", "streamlit_app.py"} {
 		content, err := afero.ReadFile(src, file)
 		if err == nil && bytes.Contains(content, []byte("import streamlit")) {
-			return file
+			*se = optional.Some(file)
+			return se.Unwrap()
 		}
 	}
 
-	return ""
+	*se = optional.Some("")
+	return se.Unwrap()
 }
 
 // GetMetaOptions is the options for GetMeta.

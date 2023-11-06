@@ -788,3 +788,24 @@ st.write(x, "squared is", x * x)`), 0o644)
 
 	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
 }
+
+func TestDetermineStreamlitEntry_Cache(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "zeabur_streamlit_demo.py", []byte(`import streamlit as st
+x = st.slider("Select a value")
+st.write(x, "squared is", x * x)`), 0o644)
+	_ = afero.WriteFile(fs, "app.py", []byte(`print('not me')`), 0o644)
+	_ = afero.WriteFile(fs, "requirements.txt", []byte("streamlit"), 0o644)
+	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"streamlit": {"entry": "zeabur_streamlit_demo.py"}}`), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
+	assert.Equal(t, "zeabur_streamlit_demo.py", ctx.StreamlitEntry.Unwrap())
+}
