@@ -582,7 +582,7 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	}
 
 	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {
-		commandSegment = append(commandSegment, "streamlit run", streamlitEntry)
+		commandSegment = append(commandSegment, "streamlit run", streamlitEntry, "--server.port=8080", "--server.address=0.0.0.0")
 	} else if wsgi != "" {
 		wsgilistenedPort := "8080"
 
