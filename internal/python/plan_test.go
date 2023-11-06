@@ -190,6 +190,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		WithStaticDjango      = "with-static-django"
 		WithStaticNginx       = "with-static-nginx"
 		WithStaticNginxDjango = "with-static-nginx-django"
+		WithStreamlitEntry    = "with-streamlit-entry"
 		None                  = "none"
 	)
 
@@ -206,13 +207,19 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 			WithStaticNginx,
 			WithStaticDjango,
 			WithStaticNginxDjango,
+			WithStreamlitEntry,
 			None,
 		} {
 			mode := mode
 			t.Run(string(pm)+"-"+mode, func(t *testing.T) {
 				t.Parallel()
 
+				fs := afero.NewMemMapFs()
+				config := plan.NewProjectConfigurationFromFs(fs, "")
+
 				ctx := pythonPlanContext{
+					Src:            fs,
+					Config:         config,
 					PackageManager: optional.Some(pm),
 				}
 
@@ -255,6 +262,10 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 						StaticURLPath: "/static",
 						StaticHostDir: "/app/static",
 					})
+				}
+
+				if mode == WithStreamlitEntry {
+					ctx.StreamlitEntry = optional.Some("streamlit_app.py")
 				}
 
 				ic := determineInstallCmd(&ctx)
