@@ -492,7 +492,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	if command != "" {
 		return command
 	}
-	return "echo \"skip install\""
+	return "RUN echo \"skip install\""
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
