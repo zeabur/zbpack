@@ -12,11 +12,13 @@ import (
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
 	Src            afero.Fs
+	Config         plan.ImmutableProjectConfiguration
 	PackageManager optional.Option[types.PackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
@@ -635,7 +637,8 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src afero.Fs
+	Src    afero.Fs
+	Config plan.ImmutableProjectConfiguration
 }
 
 // GetMeta returns the metadata of a Python project.
@@ -643,7 +646,8 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta := types.PlanMeta{}
 
 	ctx := &pythonPlanContext{
-		Src: opt.Src,
+		Src:    opt.Src,
+		Config: opt.Config,
 	}
 
 	pm := DeterminePackageManager(ctx)
