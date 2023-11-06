@@ -87,7 +87,7 @@ func buildImage(opt *buildImageOptions) error {
 		value = strings.ReplaceAll(value, "\"", "\\\"")
 		value = strings.ReplaceAll(value, "\\", "\\\\")
 
-		dockerfileEnv += "ENV " + key + " " + value + "\n"
+		dockerfileEnv += "ENV " + key + " \"" + value + "\"\n"
 	}
 
 	for _, stageLine := range stageLines {
