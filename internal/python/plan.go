@@ -2,6 +2,7 @@
 package python
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -25,6 +27,12 @@ type pythonPlanContext struct {
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
 }
+
+const (
+	// ConfigStreamlitEntry is the key for specifying the streamlit entry explicitly
+	// in the project configuration.
+	ConfigStreamlitEntry = "streamlit.entry"
+)
 
 // DetermineFramework determines the framework of the Python project.
 func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
@@ -547,7 +555,9 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		commandSegment = append(commandSegment, "pdm run")
 	}
 
-	if wsgi != "" {
+	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {
+		commandSegment = append(commandSegment, "streamlit run", streamlitEntry)
+	} else if wsgi != "" {
 		wsgilistenedPort := "8080"
 
 		// The WSGI application should listen at 8000
@@ -630,6 +640,24 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 	if staticInfo.DjangoEnabled() {
 		// We need to collect static files if we are using Django.
 		return "RUN python manage.py collectstatic --noinput"
+	}
+
+	return ""
+}
+
+func determineStreamlitEntry(ctx *pythonPlanContext) string {
+	src := ctx.Src
+	config := ctx.Config
+
+	if streamlitEntry := plan.Cast(config.Get(ConfigStreamlitEntry), cast.ToStringE); streamlitEntry.IsSome() {
+		return streamlitEntry.Unwrap()
+	}
+
+	for _, file := range []string{"app.py", "main.py", "streamlit_app.py"} {
+		content, err := afero.ReadFile(src, file)
+		if err == nil && bytes.Contains(content, []byte("import streamlit")) {
+			return file
+		}
 	}
 
 	return ""
