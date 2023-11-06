@@ -82,8 +82,10 @@ func buildImage(opt *buildImageOptions) error {
 			continue
 		}
 
-		// if value is multi-line, we need to escape the new line
 		value = strings.ReplaceAll(value, "\n", "\\n")
+		value = strings.ReplaceAll(value, "'", "\\'")
+		value = strings.ReplaceAll(value, "\"", "\\\"")
+		value = strings.ReplaceAll(value, "\\", "\\\\")
 
 		dockerfileEnv += "ENV " + key + " " + value + "\n"
 	}
