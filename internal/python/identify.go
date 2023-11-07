@@ -22,12 +22,12 @@ func (i *identify) PlanType() types.PlanType {
 func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(
 		fs,
-		"app.py", "main.py", "app.py", "manage.py", "requirements.txt",
+		"app.py", "main.py", "app.py", "manage.py", "requirements.txt", "streamlit_app.py",
 	)
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	return GetMeta(GetMetaOptions{Src: options.Source})
+	return GetMeta(GetMetaOptions{Src: options.Source, Config: options.Config})
 }
 
 var _ plan.Identifier = (*identify)(nil)

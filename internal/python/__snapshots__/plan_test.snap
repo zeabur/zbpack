@@ -65,7 +65,7 @@ RUN pip install uvicorn
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-none - 1]
-echo "skip install"
+RUN echo "skip install"
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
@@ -202,4 +202,28 @@ RUN pip install pipenv
 RUN pipenv install gunicorn
 COPY Pipfile* .
 RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
+RUN pip install pipenv
+RUN pipenv install streamlit
+COPY Pipfile* .
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
+RUN pip install streamlit
+COPY requirements.txt* .
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
+RUN pip install poetry
+RUN poetry add streamlit
+COPY poetry.lock* pyproject.toml* .
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
+RUN pip install streamlit
 ---

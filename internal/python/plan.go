@@ -2,6 +2,7 @@
 package python
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -11,18 +12,28 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
 	Src            afero.Fs
+	Config         plan.ImmutableProjectConfiguration
 	PackageManager optional.Option[types.PackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
+	StreamlitEntry optional.Option[string]
 }
+
+const (
+	// ConfigStreamlitEntry is the key for specifying the streamlit entry explicitly
+	// in the project configuration.
+	ConfigStreamlitEntry = "streamlit.entry"
+)
 
 // DetermineFramework determines the framework of the Python project.
 func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
@@ -447,6 +458,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pipenv install gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pipenv install streamlit")
+		}
+
 		commands = append(commands, "COPY Pipfile* .", "RUN pipenv install")
 	case types.PythonPackageManagerPoetry:
 		commands = append(commands, "RUN pip install poetry")
@@ -458,9 +474,15 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN poetry add gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN poetry add streamlit")
+		}
+
 		commands = append(commands, "COPY poetry.lock* pyproject.toml* .", "RUN poetry install")
 	case types.PythonPackageManagerPdm:
 		commands = append(commands, "COPY pdm.lock* pyproject.toml* .", "RUN pip install pdm")
+
 		if wsgi != "" {
 			if framework == types.PythonFrameworkFastapi {
 				commands = append(commands, "RUN pdm add uvicorn")
@@ -468,6 +490,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pdm add gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pdm add streamlit")
+		}
+
 		commands = append(commands, "RUN pdm install")
 	case types.PythonPackageManagerPip:
 		if wsgi != "" {
@@ -477,6 +504,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pip install gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pip install streamlit")
+		}
+
 		commands = append(commands, "COPY requirements.txt* .", "RUN pip install -r requirements.txt")
 	default:
 		if wsgi != "" {
@@ -486,13 +518,17 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 				commands = append(commands, "RUN pip install gunicorn")
 			}
 		}
+
+		if determineStreamlitEntry(ctx) != "" {
+			commands = append(commands, "RUN pip install streamlit")
+		}
 	}
 
 	command := strings.Join(commands, "\n")
 	if command != "" {
 		return command
 	}
-	return "echo \"skip install\""
+	return "RUN echo \"skip install\""
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
@@ -545,7 +581,9 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		commandSegment = append(commandSegment, "pdm run")
 	}
 
-	if wsgi != "" {
+	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {
+		commandSegment = append(commandSegment, "streamlit run", streamlitEntry, "--server.port=8080", "--server.address=0.0.0.0")
+	} else if wsgi != "" {
 		wsgilistenedPort := "8080"
 
 		// The WSGI application should listen at 8000
@@ -633,9 +671,36 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 	return ""
 }
 
+func determineStreamlitEntry(ctx *pythonPlanContext) string {
+	src := ctx.Src
+	config := ctx.Config
+	se := &ctx.StreamlitEntry
+
+	if entry, err := se.Take(); err == nil {
+		return entry
+	}
+
+	if streamlitEntry := plan.Cast(config.Get(ConfigStreamlitEntry), cast.ToStringE); streamlitEntry.IsSome() {
+		*se = optional.Some(streamlitEntry.Unwrap())
+		return se.Unwrap()
+	}
+
+	for _, file := range []string{"app.py", "main.py", "streamlit_app.py"} {
+		content, err := afero.ReadFile(src, file)
+		if err == nil && bytes.Contains(content, []byte("import streamlit")) {
+			*se = optional.Some(file)
+			return se.Unwrap()
+		}
+	}
+
+	*se = optional.Some("")
+	return se.Unwrap()
+}
+
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
-	Src afero.Fs
+	Src    afero.Fs
+	Config plan.ImmutableProjectConfiguration
 }
 
 // GetMeta returns the metadata of a Python project.
@@ -643,7 +708,8 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta := types.PlanMeta{}
 
 	ctx := &pythonPlanContext{
-		Src: opt.Src,
+		Src:    opt.Src,
+		Config: opt.Config,
 	}
 
 	pm := DeterminePackageManager(ctx)
