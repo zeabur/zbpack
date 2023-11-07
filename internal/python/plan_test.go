@@ -198,6 +198,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		types.PythonPackageManagerPipenv,
 		types.PythonPackageManagerPoetry,
 		types.PythonPackageManagerPip,
+		types.PythonPackageManagerPdm,
 		types.PythonPackageManagerUnknown,
 	} {
 		pm := pm
