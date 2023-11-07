@@ -237,62 +237,35 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		return ""
 	}
 
-	if framework == types.PythonFrameworkFlask {
-		entryFile := DetermineEntry(ctx)
-		// if there is something like `app = Flask(__name__)` in the entry file
+	{
+		// if there is something like `app = <Constructor>(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
-		re := regexp.MustCompile(`(\w+)\s*=\s*Flask\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
+		constructor := ""
+		switch framework {
+		case types.PythonFrameworkFlask:
+			constructor = "Flask"
+		case types.PythonFrameworkFastapi:
+			constructor = "FastAPI"
+		case types.PythonFrameworkSanic:
+			constructor = "Sanic"
 		}
 
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
+		if constructor != "" {
+			entryFile := DetermineEntry(ctx)
+
+			re := regexp.MustCompile(`(\w+)\s*=\s*` + constructor + `\([^)]*\)`)
+			content, err := afero.ReadFile(src, entryFile)
+			if err != nil {
+				return ""
+			}
+
+			match := re.FindStringSubmatch(string(content))
+			if len(match) > 1 {
+				entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
+				*wa = optional.Some(entryWithoutExt + ":" + match[1])
+				return wa.Unwrap()
+			}
 		}
-
-		return ""
-	}
-
-	if framework == types.PythonFrameworkFastapi {
-		entryFile := DetermineEntry(ctx)
-		// if there is something like `app = FastAPI(__name__)` in the entry file
-		// we use this variable (app) as the wsgi application
-		re := regexp.MustCompile(`(\w+)\s*=\s*FastAPI\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
-		}
-
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
-		}
-
-		return ""
-	}
-
-	if framework == types.PythonFrameworkSanic {
-		entryFile := DetermineEntry(ctx)
-
-		re := regexp.MustCompile(`(\w+)\s*=\s*Sanic\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
-		}
-
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
-		}
-		return ""
 	}
 
 	return ""
