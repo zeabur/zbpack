@@ -21,7 +21,7 @@ import (
 type pythonPlanContext struct {
 	Src            afero.Fs
 	Config         plan.ImmutableProjectConfiguration
-	PackageManager optional.Option[types.PackageManager]
+	PackageManager optional.Option[types.PythonPackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
@@ -94,13 +94,13 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 }
 
 // DeterminePackageManager determines the package manager of this Python project.
-func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
+func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager {
 	src := ctx.Src
 	cpm := &ctx.PackageManager
 
 	// Pipfile > pyproject.toml > requirements.txt
 	depFiles := []struct {
-		packageManagerID types.PackageManager
+		packageManagerID types.PythonPackageManager
 		filename         string
 		content          string
 		lockFile         string

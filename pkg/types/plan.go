@@ -86,16 +86,16 @@ const (
 
 //revive:enable:exported
 
-// PackageManager is the type of the package manager.
-type PackageManager string
+// PythonPackageManager is the type of the package manager.
+type PythonPackageManager string
 
 //revive:disable:exported
 const (
-	PythonPackageManagerUnknown PackageManager = "unknown"
-	PythonPackageManagerPip     PackageManager = "pip"
-	PythonPackageManagerPoetry  PackageManager = "poetry"
-	PythonPackageManagerPipenv  PackageManager = "pipenv"
-	PythonPackageManagerPdm     PackageManager = "pdm"
+	PythonPackageManagerUnknown PythonPackageManager = "unknown"
+	PythonPackageManagerPip     PythonPackageManager = "pip"
+	PythonPackageManagerPoetry  PythonPackageManager = "poetry"
+	PythonPackageManagerPipenv  PythonPackageManager = "pipenv"
+	PythonPackageManagerPdm     PythonPackageManager = "pdm"
 )
 
 //revive:enable:exported
