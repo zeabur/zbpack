@@ -506,13 +506,8 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		commandSegment = append(commandSegment, "/usr/sbin/nginx &&")
 	}
 
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		commandSegment = append(commandSegment, "pipenv run")
-	case types.PythonPackageManagerPoetry:
-		commandSegment = append(commandSegment, "poetry run")
-	case types.PythonPackageManagerPdm:
-		commandSegment = append(commandSegment, "pdm run")
+	if prefix := getPmStartCmdPrefix(pm); prefix != "" {
+		commandSegment = append(commandSegment, prefix)
 	}
 
 	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {

@@ -51,6 +51,19 @@ func getPmInstallCmd(pm types.PythonPackageManager) string {
 	return ""
 }
 
+func getPmStartCmdPrefix(pm types.PythonPackageManager) string {
+	switch pm {
+	case types.PythonPackageManagerPipenv:
+		return "pipenv run"
+	case types.PythonPackageManagerPoetry:
+		return "poetry run"
+	case types.PythonPackageManagerPdm:
+		return "pdm run"
+	}
+
+	return ""
+}
+
 func getPmDeclarationFile(pm types.PythonPackageManager) string {
 	switch pm {
 	case types.PythonPackageManagerPip:
