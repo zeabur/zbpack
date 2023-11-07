@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/moznion/go-optional"
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
@@ -420,81 +421,41 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	// will be joined by newline
 	var commands []string
 
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		commands = append(commands, "RUN pip install pipenv")
-
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pipenv install uvicorn")
-			} else {
-				commands = append(commands, "RUN pipenv install gunicorn")
-			}
+	var depToInstall []string
+	if wsgi != "" {
+		if framework == types.PythonFrameworkFastapi {
+			depToInstall = append(depToInstall, "uvicorn")
+		} else {
+			depToInstall = append(depToInstall, "gunicorn")
 		}
+	}
+	if determineStreamlitEntry(ctx) != "" {
+		depToInstall = append(depToInstall, "streamlit")
+	}
 
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pipenv install streamlit")
-		}
+	var filesToCopy []string
+	if decl := getPmDeclarationFile(pm); decl != "" {
+		filesToCopy = append(filesToCopy, decl+"*")
+	}
+	if lock := getPmLockFile(pm); len(lock) > 0 {
+		lockGlob := lo.Map(lock, func(s string, _ int) string {
+			return s + "*"
+		})
 
-		commands = append(commands, "COPY Pipfile* .", "RUN pipenv install")
-	case types.PythonPackageManagerPoetry:
-		commands = append(commands, "RUN pip install poetry")
+		filesToCopy = append(filesToCopy, lockGlob...)
+	}
 
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN poetry add uvicorn")
-			} else {
-				commands = append(commands, "RUN poetry add gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN poetry add streamlit")
-		}
-
-		commands = append(commands, "COPY poetry.lock* pyproject.toml* .", "RUN poetry install")
-	case types.PythonPackageManagerPdm:
-		commands = append(commands, "COPY pdm.lock* pyproject.toml* .", "RUN pip install pdm")
-
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pdm add uvicorn")
-			} else {
-				commands = append(commands, "RUN pdm add gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pdm add streamlit")
-		}
-
-		commands = append(commands, "RUN pdm install")
-	case types.PythonPackageManagerPip:
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pip install uvicorn")
-			} else {
-				commands = append(commands, "RUN pip install gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pip install streamlit")
-		}
-
-		commands = append(commands, "COPY requirements.txt* .", "RUN pip install -r requirements.txt")
-	default:
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pip install uvicorn")
-			} else {
-				commands = append(commands, "RUN pip install gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pip install streamlit")
-		}
+	if cmd := getPmInitCmd(pm); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
+	}
+	if len(filesToCopy) > 0 {
+		commands = append(commands, fmt.Sprintf("COPY %s .", strings.Join(filesToCopy, " ")))
+	}
+	if cmd := getPmAddCmd(pm, depToInstall...); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
+	}
+	if cmd := getPmInstallCmd(pm); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
 	}
 
 	command := strings.Join(commands, "\n")
