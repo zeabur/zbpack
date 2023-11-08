@@ -146,18 +146,14 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
-	switch pm {
-	case types.PythonPackageManagerPip:
-		return weakHasStringsInFiles(src, []string{"requirements.txt"}, dependency)
-	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFiles(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
-	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFiles(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
-	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFiles(src, []string{"pyproject.toml", "pdm.lock"}, dependency)
-	}
+	filesToFind := lo.Filter(
+		append([]string{getPmDeclarationFile(pm)}, getPmLockFile(pm)...),
+		func(s string, _ int) bool {
+			return s != ""
+		},
+	)
 
-	return false
+	return weakHasStringsInFiles(src, filesToFind, dependency)
 }
 
 // weakHasStringsInFiles checks if the specified text are in the listed files.
@@ -181,15 +177,10 @@ func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
-	switch pm {
-	case types.PythonPackageManagerPip:
-		return weakHasStringsInFile(src, "requirements.txt", dependency)
-	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFile(src, "Pipfile", dependency)
-	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFile(src, "pyproject.toml", dependency)
-	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFile(src, "pyproject.toml", dependency)
+	if f := getPmDeclarationFile(pm); f != "" {
+		if weakHasStringsInFile(src, f, dependency) {
+			return true
+		}
 	}
 
 	return false
