@@ -531,6 +531,11 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return startCmd
 	}
 
+	if getServerless(ctx) {
+		*cmd = optional.Some("")
+		return cmd.Unwrap()
+	}
+
 	startScript := GetStartScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 	entry := GetEntry(ctx)

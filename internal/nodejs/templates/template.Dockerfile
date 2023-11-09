@@ -20,6 +20,10 @@ RUN corepack enable && corepack prepare --all
 
 COPY . .
 
+{{ if and (eq .Framework "nuxt.js") .Serverless }}
+ENV NITRO_PRESET=node
+{{ end }}
+
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 

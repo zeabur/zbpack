@@ -9,6 +9,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
+	"github.com/zeabur/zbpack/internal/nodejs/nuxtjs"
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/internal/utils"
 
@@ -202,6 +203,16 @@ func Build(opt *BuildOptions) error {
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
 		err = nextjs.TransformServerless(*opt.ResultImage, *opt.Path)
+		if err != nil {
+			log.Println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNuxtJs) && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err = nuxtjs.TransformServerless(*opt.ResultImage, *opt.Path)
 		if err != nil {
 			log.Println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
