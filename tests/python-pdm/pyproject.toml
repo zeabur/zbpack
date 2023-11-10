@@ -1,0 +1,14 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "Yi-Jyun Pan",email = "yjpan@zeabur.com"},
+]
+dependencies = [
+    "requests>=2.31.0",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+

@@ -1,33 +1,33 @@
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-wsgi - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install gunicorn
-COPY Pipfile* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-wsgi - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-none - 1]
 RUN pip install poetry
-COPY poetry.lock* pyproject.toml* .
+COPY pyproject.toml* poetry.lock* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-none - 1]
 RUN pip install pipenv
-COPY Pipfile* .
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
-RUN pip install gunicorn
 COPY requirements.txt* .
+RUN pip install gunicorn
 RUN pip install -r requirements.txt
 ---
 
@@ -37,22 +37,22 @@ RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
-RUN pip install uvicorn
 COPY requirements.txt* .
+RUN pip install uvicorn
 RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add uvicorn
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-fastapi - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install uvicorn
-COPY Pipfile* .
 RUN pipenv install
 ---
 
@@ -134,27 +134,27 @@ poetry run gunicorn --bind :8080 wsgi.py
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx-django - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
-RUN pip install gunicorn
 COPY requirements.txt* .
+RUN pip install gunicorn
 RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-django - 1]
-RUN pip install gunicorn
 COPY requirements.txt* .
+RUN pip install gunicorn
 RUN pip install -r requirements.txt
 ---
 
@@ -164,8 +164,8 @@ RUN pip install gunicorn
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-static-django - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
@@ -179,51 +179,147 @@ RUN pip install gunicorn
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx-django - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install gunicorn
-COPY Pipfile* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install gunicorn
-COPY Pipfile* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx-django - 1]
-RUN pip install gunicorn
 COPY requirements.txt* .
+RUN pip install gunicorn
 RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-static-django - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install gunicorn
-COPY Pipfile* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
 RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
 RUN pipenv install streamlit
-COPY Pipfile* .
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
-RUN pip install streamlit
 COPY requirements.txt* .
+RUN pip install streamlit
 RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
 RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
 RUN poetry add streamlit
-COPY poetry.lock* pyproject.toml* .
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
 RUN pip install streamlit
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add uvicorn
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
+RUN pip install uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
+COPY requirements.txt* .
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add streamlit
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-none - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx-django - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-static-nginx-django - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add gunicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-static-django - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add gunicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-wsgi - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add gunicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-static-nginx - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add gunicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-fastapi - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add uvicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-fastapi - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install uvicorn
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-none - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add streamlit
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-static-django - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add gunicorn
+RUN poetry install
 ---
