@@ -142,7 +142,7 @@ func TransformServerless(image, workdir string) error {
 	}
 
 	err = cp.Copy(path.Join(workdir, "public"), path.Join(zeaburOutputDir, "static"))
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "no such file or directory") {
 		return fmt.Errorf("copy public dir: %w", err)
 	}
 
