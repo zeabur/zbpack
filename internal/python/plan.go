@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/moznion/go-optional"
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
@@ -21,7 +22,7 @@ import (
 type pythonPlanContext struct {
 	Src            afero.Fs
 	Config         plan.ImmutableProjectConfiguration
-	PackageManager optional.Option[types.PackageManager]
+	PackageManager optional.Option[types.PythonPackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
 	Wsgi           optional.Option[string]
@@ -94,13 +95,13 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 }
 
 // DeterminePackageManager determines the package manager of this Python project.
-func DeterminePackageManager(ctx *pythonPlanContext) types.PackageManager {
+func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager {
 	src := ctx.Src
 	cpm := &ctx.PackageManager
 
 	// Pipfile > pyproject.toml > requirements.txt
 	depFiles := []struct {
-		packageManagerID types.PackageManager
+		packageManagerID types.PythonPackageManager
 		filename         string
 		content          string
 		lockFile         string
@@ -145,18 +146,14 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
-	switch pm {
-	case types.PythonPackageManagerPip:
-		return weakHasStringsInFiles(src, []string{"requirements.txt"}, dependency)
-	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFiles(src, []string{"pyproject.toml", "poetry.lock"}, dependency)
-	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFiles(src, []string{"Pipfile", "Pipfile.lock"}, dependency)
-	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFiles(src, []string{"pyproject.toml", "pdm.lock"}, dependency)
-	}
+	filesToFind := lo.Filter(
+		append([]string{getPmDeclarationFile(pm)}, getPmLockFile(pm)...),
+		func(s string, _ int) bool {
+			return s != ""
+		},
+	)
 
-	return false
+	return weakHasStringsInFiles(src, filesToFind, dependency)
 }
 
 // weakHasStringsInFiles checks if the specified text are in the listed files.
@@ -180,15 +177,10 @@ func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
-	switch pm {
-	case types.PythonPackageManagerPip:
-		return weakHasStringsInFile(src, "requirements.txt", dependency)
-	case types.PythonPackageManagerPipenv:
-		return weakHasStringsInFile(src, "Pipfile", dependency)
-	case types.PythonPackageManagerPoetry:
-		return weakHasStringsInFile(src, "pyproject.toml", dependency)
-	case types.PythonPackageManagerPdm:
-		return weakHasStringsInFile(src, "pyproject.toml", dependency)
+	if f := getPmDeclarationFile(pm); f != "" {
+		if weakHasStringsInFile(src, f, dependency) {
+			return true
+		}
 	}
 
 	return false
@@ -237,62 +229,35 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		return ""
 	}
 
-	if framework == types.PythonFrameworkFlask {
-		entryFile := DetermineEntry(ctx)
-		// if there is something like `app = Flask(__name__)` in the entry file
+	{
+		// if there is something like `app = <Constructor>(__name__)` in the entry file
 		// we use this variable (app) as the wsgi application
-		re := regexp.MustCompile(`(\w+)\s*=\s*Flask\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
+		constructor := ""
+		switch framework {
+		case types.PythonFrameworkFlask:
+			constructor = "Flask"
+		case types.PythonFrameworkFastapi:
+			constructor = "FastAPI"
+		case types.PythonFrameworkSanic:
+			constructor = "Sanic"
 		}
 
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
+		if constructor != "" {
+			entryFile := DetermineEntry(ctx)
+
+			re := regexp.MustCompile(`(\w+)\s*=\s*` + constructor + `\([^)]*\)`)
+			content, err := afero.ReadFile(src, entryFile)
+			if err != nil {
+				return ""
+			}
+
+			match := re.FindStringSubmatch(string(content))
+			if len(match) > 1 {
+				entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
+				*wa = optional.Some(entryWithoutExt + ":" + match[1])
+				return wa.Unwrap()
+			}
 		}
-
-		return ""
-	}
-
-	if framework == types.PythonFrameworkFastapi {
-		entryFile := DetermineEntry(ctx)
-		// if there is something like `app = FastAPI(__name__)` in the entry file
-		// we use this variable (app) as the wsgi application
-		re := regexp.MustCompile(`(\w+)\s*=\s*FastAPI\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
-		}
-
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.Replace(entryFile, ".py", "", 1)
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
-		}
-
-		return ""
-	}
-
-	if framework == types.PythonFrameworkSanic {
-		entryFile := DetermineEntry(ctx)
-
-		re := regexp.MustCompile(`(\w+)\s*=\s*Sanic\([^)]*\)`)
-		content, err := afero.ReadFile(src, entryFile)
-		if err != nil {
-			return ""
-		}
-
-		match := re.FindStringSubmatch(string(content))
-		if len(match) > 1 {
-			entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
-			*wa = optional.Some(entryWithoutExt + ":" + match[1])
-			return wa.Unwrap()
-		}
-		return ""
 	}
 
 	return ""
@@ -447,81 +412,41 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	// will be joined by newline
 	var commands []string
 
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		commands = append(commands, "RUN pip install pipenv")
-
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pipenv install uvicorn")
-			} else {
-				commands = append(commands, "RUN pipenv install gunicorn")
-			}
+	var depToInstall []string
+	if wsgi != "" {
+		if framework == types.PythonFrameworkFastapi {
+			depToInstall = append(depToInstall, "uvicorn")
+		} else {
+			depToInstall = append(depToInstall, "gunicorn")
 		}
+	}
+	if determineStreamlitEntry(ctx) != "" {
+		depToInstall = append(depToInstall, "streamlit")
+	}
 
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pipenv install streamlit")
-		}
+	var filesToCopy []string
+	if decl := getPmDeclarationFile(pm); decl != "" {
+		filesToCopy = append(filesToCopy, decl+"*")
+	}
+	if lock := getPmLockFile(pm); len(lock) > 0 {
+		lockGlob := lo.Map(lock, func(s string, _ int) string {
+			return s + "*"
+		})
 
-		commands = append(commands, "COPY Pipfile* .", "RUN pipenv install")
-	case types.PythonPackageManagerPoetry:
-		commands = append(commands, "RUN pip install poetry")
+		filesToCopy = append(filesToCopy, lockGlob...)
+	}
 
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN poetry add uvicorn")
-			} else {
-				commands = append(commands, "RUN poetry add gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN poetry add streamlit")
-		}
-
-		commands = append(commands, "COPY poetry.lock* pyproject.toml* .", "RUN poetry install")
-	case types.PythonPackageManagerPdm:
-		commands = append(commands, "COPY pdm.lock* pyproject.toml* .", "RUN pip install pdm")
-
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pdm add uvicorn")
-			} else {
-				commands = append(commands, "RUN pdm add gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pdm add streamlit")
-		}
-
-		commands = append(commands, "RUN pdm install")
-	case types.PythonPackageManagerPip:
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pip install uvicorn")
-			} else {
-				commands = append(commands, "RUN pip install gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pip install streamlit")
-		}
-
-		commands = append(commands, "COPY requirements.txt* .", "RUN pip install -r requirements.txt")
-	default:
-		if wsgi != "" {
-			if framework == types.PythonFrameworkFastapi {
-				commands = append(commands, "RUN pip install uvicorn")
-			} else {
-				commands = append(commands, "RUN pip install gunicorn")
-			}
-		}
-
-		if determineStreamlitEntry(ctx) != "" {
-			commands = append(commands, "RUN pip install streamlit")
-		}
+	if cmd := getPmInitCmd(pm); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
+	}
+	if len(filesToCopy) > 0 {
+		commands = append(commands, fmt.Sprintf("COPY %s .", strings.Join(filesToCopy, " ")))
+	}
+	if cmd := getPmAddCmd(pm, depToInstall...); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
+	}
+	if cmd := getPmInstallCmd(pm); cmd != "" {
+		commands = append(commands, "RUN "+cmd)
 	}
 
 	command := strings.Join(commands, "\n")
@@ -572,13 +497,8 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		commandSegment = append(commandSegment, "/usr/sbin/nginx &&")
 	}
 
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		commandSegment = append(commandSegment, "pipenv run")
-	case types.PythonPackageManagerPoetry:
-		commandSegment = append(commandSegment, "poetry run")
-	case types.PythonPackageManagerPdm:
-		commandSegment = append(commandSegment, "pdm run")
+	if prefix := getPmStartCmdPrefix(pm); prefix != "" {
+		commandSegment = append(commandSegment, prefix)
 	}
 
 	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {

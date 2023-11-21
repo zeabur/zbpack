@@ -194,10 +194,11 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		None                  = "none"
 	)
 
-	for _, pm := range []types.PackageManager{
+	for _, pm := range []types.PythonPackageManager{
 		types.PythonPackageManagerPipenv,
 		types.PythonPackageManagerPoetry,
 		types.PythonPackageManagerPip,
+		types.PythonPackageManagerPdm,
 		types.PythonPackageManagerUnknown,
 	} {
 		pm := pm
@@ -283,7 +284,7 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 		None        = "none"
 	)
 
-	for _, pm := range []types.PackageManager{
+	for _, pm := range []types.PythonPackageManager{
 		types.PythonPackageManagerPipenv,
 		types.PythonPackageManagerPoetry,
 		types.PythonPackageManagerPip,
