@@ -1,8 +1,6 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 process.chdir(__dirname);
 process.env.NODE_ENV = 'production';
-process.env.__NEXT_PRIVATE_PREBUNDLED_REACT = "next"
 const NextServer = require('next/dist/server/next-server.js').default;
 const nextServer = new NextServer({
 	conf: {{ .NextConfig }},
