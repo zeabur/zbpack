@@ -617,8 +617,8 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 func getServerless(ctx *nodePlanContext) bool {
-	expEnv := os.Getenv("EXPERIMENTAL_SERVERLESS")
-	if expEnv != "true" && expEnv != "1" {
+	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
+	if fcEnv == "true" || fcEnv == "1" {
 		return false
 	}
 
