@@ -1,7 +1,6 @@
 package zeaburpack
 
 import (
-	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
@@ -154,51 +153,10 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	cmd := exec.Command("buildctl", buildKitCmd...)
-
-	if opt.HandleLog == nil {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			println("failed to run buildctl build: " + err.Error())
-			return fmt.Errorf("run buildctl build: %w", err)
-		}
-		return nil
-	}
-
-	errPipe, err := cmd.StderrPipe()
-	if err != nil {
-		return fmt.Errorf("get stderr pipe: %w", err)
-	}
-
-	outPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("get stdout pipe: %w", err)
-	}
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("start buildctl build: %w", err)
-	}
-
-	go func() {
-		scanner := bufio.NewScanner(errPipe)
-		for scanner.Scan() {
-			t := scanner.Text()
-			println(t)
-			(*opt.HandleLog)(t)
-		}
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(outPipe)
-		for scanner.Scan() {
-			(*opt.HandleLog)(scanner.Text())
-		}
-	}()
-
-	err = cmd.Wait()
-	if err != nil {
-		return fmt.Errorf("wait buildctl build: %w", err)
+	cmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
+	cmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run buildctl build: %w", err)
 	}
 
 	return nil
