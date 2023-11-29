@@ -27,5 +27,19 @@ ENV NITRO_PRESET=node
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 
+{{ if .Serverless }}
+
+FROM scratch as output
+COPY --from=build /src /
+
+{{ else if ne .OutputDir "" }}
+
+FROM scratch as output
+COPY --from=build /src/{{ .OutputDir }} /
+
+{{ else }}
+
 EXPOSE 8080
 CMD {{ .StartCmd }}
+
+{{ end }}
