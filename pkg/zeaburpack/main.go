@@ -115,7 +115,6 @@ func Build(opt *BuildOptions) error {
 	} else {
 		handleLog = func(log string) {
 			(*opt.HandleLog)(log)
-			println(log)
 		}
 	}
 
