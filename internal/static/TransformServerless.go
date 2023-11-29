@@ -14,7 +14,7 @@ import (
 )
 
 // TransformServerless copies the static files from output to .zeabur/output/static and creates a config.json file for SPA
-func TransformServerless(workdir string, meta types.PlanMeta, planType types.PlanType) error {
+func TransformServerless(workdir string, meta types.PlanMeta) error {
 	err := cp.Copy(path.Join(os.TempDir(), "zbpack/buildkit", "/."), path.Join(workdir, ".zeabur/output/static"))
 	if err != nil {
 		return fmt.Errorf("copy static files from buildkit output to .zeabur/output/static: %w", err)
