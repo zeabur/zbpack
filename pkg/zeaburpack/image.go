@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"os"
@@ -131,7 +132,13 @@ func buildImage(opt *buildImageOptions) error {
 	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" {
 		buildKitCmd = append(buildKitCmd, "--output", "type=local,dest="+path.Join(os.TempDir(), "zbpack/buildkit"))
 	} else {
-		o := "type=image,name=" + opt.ResultImage
+		t := "image"
+		if !opt.PushImage {
+			// -> docker registry
+			t = "docker"
+		}
+
+		o := "type=" + t + ",name=" + opt.ResultImage
 		if opt.PushImage {
 			o += ",push=true"
 		}
@@ -152,11 +159,23 @@ func buildImage(opt *buildImageOptions) error {
 		buildKitCmd = append(buildKitCmd, "--progress", "tty")
 	}
 
-	cmd := exec.Command("buildctl", buildKitCmd...)
-	cmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
-	cmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
-	if err := cmd.Run(); err != nil {
+	buildctlCmd := exec.Command("buildctl", buildKitCmd...)
+	buildctlCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	output, err := buildctlCmd.Output()
+	if err != nil {
 		return fmt.Errorf("run buildctl build: %w", err)
+	}
+
+	if opt.PushImage {
+		return nil // buildctl have handled push
+	}
+
+	dockerLoadCmd := exec.Command("docker", "load")
+	dockerLoadCmd.Stdin = bytes.NewReader(output)
+	dockerLoadCmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
+	dockerLoadCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	if err := dockerLoadCmd.Run(); err != nil {
+		return fmt.Errorf("run docker load: %w", err)
 	}
 
 	return nil

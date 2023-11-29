@@ -50,7 +50,7 @@ func TestHandledWriter_Write(t *testing.T) {
 	handledWriter := NewHandledWriter(mockWriter, &handler)
 
 	_, _ = handledWriter.Write([]byte("test"))
-	// wait for 3 ms – `go (*h.handler)(string(p))` is async
+	// wait for 3 ms – `go h.handler(string(p))` is async
 	time.Sleep(3 * time.Millisecond)
 
 	assert.Equal(t, "test", mockWriter.written)

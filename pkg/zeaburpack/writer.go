@@ -8,7 +8,7 @@ import (
 // to the specified log and calls handler with the log.
 type HandledWriter struct {
 	console.File
-	handler *func(log string)
+	handler func(log string)
 }
 
 // NewHandledWriter creates a new HandledWriter.
@@ -19,15 +19,12 @@ func NewHandledWriter(w console.File, handler *func(log string)) console.File {
 
 	return &HandledWriter{
 		File:    w,
-		handler: handler,
+		handler: *handler,
 	}
 }
 
 func (h HandledWriter) Write(p []byte) (n int, err error) {
-	if h.handler != nil {
-		go (*h.handler)(string(p))
-	}
-
+	go h.handler(string(p))
 	return h.File.Write(p)
 }
 
