@@ -39,6 +39,8 @@ func TestGetContextBasedOnMeta_WithOutputdirAndSPAFramework(t *testing.T) {
 		InstallCmd:  "RUN npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
+		Framework:   "wtfisthis",
+		OutputDir:   "dist",
 	})
 }
 
@@ -57,5 +59,7 @@ func TestGetContextBasedOnMeta_WithOutputdirAndMPAFramework(t *testing.T) {
 		InstallCmd:  "RUN npm install",
 		BuildCmd:    "npm run build",
 		StartCmd:    "npm run start",
+		Framework:   "hexo",
+		OutputDir:   "dist",
 	})
 }

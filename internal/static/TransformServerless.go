@@ -9,26 +9,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeabur/zbpack/internal/utils"
+	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // TransformServerless copies the static files from output to .zeabur/output/static and creates a config.json file for SPA
-func TransformServerless(image, workdir string, meta types.PlanMeta, planType types.PlanType) error {
-	if planType == types.PlanTypeStatic {
-		err := utils.CopyFromImage(image, "/usr/share/nginx/html/static"+"/.", path.Join(workdir, ".zeabur/output/static"))
-		if err != nil {
-			return err
-		}
-	} else {
-		err := utils.CopyFromImage(image, path.Join("/src", meta["outputDir"])+"/.", path.Join(workdir, ".zeabur/output/static"))
-		if err != nil {
-			return err
-		}
+func TransformServerless(workdir string, meta types.PlanMeta) error {
+	err := cp.Copy(path.Join(os.TempDir(), "zbpack/buildkit", "/."), path.Join(workdir, ".zeabur/output/static"))
+	if err != nil {
+		return fmt.Errorf("copy static files from buildkit output to .zeabur/output/static: %w", err)
 	}
 
 	// delete hidden files and directories in output directory
-	err := deleteHiddenFilesAndDirs(path.Join(workdir, ".zeabur/output/static"))
+	err = deleteHiddenFilesAndDirs(path.Join(workdir, ".zeabur/output/static"))
 	if err != nil {
 		return fmt.Errorf("delete hidden files and directories in directory: %w", err)
 	}

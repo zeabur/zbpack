@@ -21,7 +21,7 @@ import (
 
 // TransformServerless will transform build output of Next.js app to the serverless build output format of Zeabur
 // It is trying to implement the same logic as build function of https://github.com/vercel/vercel/tree/main/packages/next/src/index.ts
-func TransformServerless(image, workdir string) error {
+func TransformServerless(workdir string) error {
 
 	// create a tmpDir to store the build output of Next.js app
 	uuid := uuid2.New().String()
@@ -47,27 +47,10 @@ func TransformServerless(image, workdir string) error {
 
 	fmt.Println("=> Copying build output from image")
 
-	err := cp.Copy(workdir, tmpDir)
+	err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(tmpDir))
 	if err != nil {
-		return err
+		return fmt.Errorf("copy buildkit output to tmp dir: %w", err)
 	}
-
-	err = utils.CopyFromImage(image, "/src/.next", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = utils.CopyFromImage(image, "/src/node_modules", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = utils.CopyFromImage(image, "/src/package.json", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	_ = os.RemoveAll(path.Join(workdir, ".zeabur"))
 
 	serverlessFunctionPages := mapset.NewSet()
 	prerenderPaths := mapset.NewSet()

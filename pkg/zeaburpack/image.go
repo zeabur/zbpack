@@ -12,9 +12,12 @@ import (
 	"strings"
 
 	"github.com/pan93412/envexpander"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type buildImageOptions struct {
+	PlanType            types.PlanType
+	PlanMeta            types.PlanMeta
 	Dockerfile          string
 	AbsPath             string
 	UserVars            map[string]string
@@ -28,6 +31,9 @@ type buildImageOptions struct {
 	// ProxyRegistry is the registry to be used for the image.
 	// See referenceConstructor for more details.
 	ProxyRegistry *string
+
+	// PushImage is a flag to indicate if the image should be pushed to the registry.
+	PushImage bool
 }
 
 func buildImage(opt *buildImageOptions) error {
@@ -116,39 +122,46 @@ func buildImage(opt *buildImageOptions) error {
 		return fmt.Errorf("write .dockerignore: %w", err)
 	}
 
-	dockerCmd := []string{
-		"buildx",
+	buildKitCmd := []string{
 		"build",
-		"-t", opt.ResultImage,
-		"-f", dockerfilePath,
+		"--frontend", "dockerfile.v0",
+		"--local", "context=" + opt.AbsPath,
+		"--local", "dockerfile=" + path.Dir(dockerfilePath),
 	}
 
-	if opt.PlainDockerProgress {
-		dockerCmd = append(dockerCmd, "--progress", "plain")
+	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" {
+		buildKitCmd = append(buildKitCmd, "--output", "type=local,dest="+os.TempDir()+"zbpack/buildkit")
 	} else {
-		dockerCmd = append(dockerCmd, "--progress", "tty")
+		o := "type=image,name=" + opt.ResultImage
+		if opt.PushImage {
+			o += ",push=true"
+		}
+		buildKitCmd = append(buildKitCmd, "--output", o)
 	}
 
 	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
-		dockerCmd = append(dockerCmd, "--cache-from", *opt.CacheFrom)
+		buildKitCmd = append(buildKitCmd, "--import-cache type=registry,ref="+*opt.CacheFrom)
 	}
 
 	if opt.CacheTo != nil && len(*opt.CacheTo) > 0 {
-		dockerCmd = append(dockerCmd, "--cache-to", *opt.CacheTo)
+		buildKitCmd = append(buildKitCmd, "--export-cache", *opt.CacheTo)
 	}
 
-	dockerCmd = append(dockerCmd, opt.AbsPath)
+	if opt.PlainDockerProgress {
+		buildKitCmd = append(buildKitCmd, "--progress", "plain")
+	} else {
+		buildKitCmd = append(buildKitCmd, "--progress", "tty")
+	}
 
-	cmd := exec.Command("docker", dockerCmd...)
-	cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
+	cmd := exec.Command("buildctl", buildKitCmd...)
 
 	if opt.HandleLog == nil {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
 		if err != nil {
-			println("failed to run docker build: " + err.Error())
-			return fmt.Errorf("run docker build: %w", err)
+			println("failed to run buildctl build: " + err.Error())
+			return fmt.Errorf("run buildctl build: %w", err)
 		}
 		return nil
 	}
@@ -164,7 +177,7 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("start docker build: %w", err)
+		return fmt.Errorf("start buildctl build: %w", err)
 	}
 
 	go func() {
@@ -185,7 +198,7 @@ func buildImage(opt *buildImageOptions) error {
 
 	err = cmd.Wait()
 	if err != nil {
-		return fmt.Errorf("wait docker build: %w", err)
+		return fmt.Errorf("wait buildctl build: %w", err)
 	}
 
 	return nil

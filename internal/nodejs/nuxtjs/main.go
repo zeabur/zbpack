@@ -10,12 +10,11 @@ import (
 
 	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
-	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // TransformServerless will transform build output of Nuxt.js app to the serverless build output format of Zeabur
-func TransformServerless(image, workdir string) error {
+func TransformServerless(workdir string) error {
 
 	// create a tmpDir to store the build output of Next.js app
 	uuid := uuid2.New().String()
@@ -35,27 +34,10 @@ func TransformServerless(image, workdir string) error {
 
 	fmt.Println("=> Copying build output from image")
 
-	err := cp.Copy(workdir, tmpDir)
+	err := cp.Copy(path.Join(os.TempDir(), "zbpack/buildkit"), path.Join(tmpDir))
 	if err != nil {
 		return err
 	}
-
-	err = utils.CopyFromImage(image, "/src/.output", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = utils.CopyFromImage(image, "/src/node_modules", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	err = utils.CopyFromImage(image, "/src/package.json", tmpDir)
-	if err != nil {
-		return err
-	}
-
-	_ = os.RemoveAll(path.Join(workdir, ".zeabur"))
 
 	fmt.Println("=> Copying static asset files")
 

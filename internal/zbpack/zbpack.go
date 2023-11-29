@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -56,6 +57,27 @@ func run(args []string) error {
 
 // build is used to build Docker image and show build plan.
 func build(path string) error {
+
+	// before start, check if buildctl is installed and buildkitd is running
+	err := exec.Command("buildctl", "debug", "workers").Run()
+	if err != nil {
+		red := "\033[31m"
+		blue := "\033[34m"
+		reset := "\033[0m"
+		gray := "\033[90m"
+
+		print(red, "buildctl is not installed or buildkitd is not running.\n", reset)
+		print("Learn more: https://github.com/moby/buildkit#quick-start\n\n", reset)
+		print(gray, "Or you can simply run the following command to run buildkitd in a container:\n", reset)
+		print(blue, "docker run -d --name buildkitd --privileged moby/buildkit:latest\n\n", reset)
+		print(gray, "And then install buildctl if you haven't:\n", reset)
+		print(blue, "docker cp buildkitd:/usr/bin/buildctl /usr/local/bin\n\n", reset)
+		print(gray, "After that, you can run zbpack again with the following command:\n", reset)
+		print(blue, "BUILDKIT_HOST=docker-container://buildkitd zbpack <...>\n", reset)
+
+		return nil
+	}
+
 	// TODO support online repositories
 	if strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://") {
 		return fmt.Errorf("zbpack does not support building from online repositories yet")
