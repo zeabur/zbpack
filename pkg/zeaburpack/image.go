@@ -129,7 +129,7 @@ func buildImage(opt *buildImageOptions) error {
 		"--local", "dockerfile=" + path.Dir(dockerfilePath),
 	}
 
-	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" {
+	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" || opt.PlanType == types.PlanTypeStatic {
 		buildKitCmd = append(buildKitCmd, "--output", "type=local,dest="+path.Join(os.TempDir(), "zbpack/buildkit"))
 	} else {
 		o := "type=image,name=" + opt.ResultImage
