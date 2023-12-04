@@ -129,12 +129,10 @@ func TransformServerless(workdir string) error {
 
 	fmt.Println("=> Creating serverless function symlinks")
 
-	// if there is any serverless function page, create the __next function route
-	if serverlessFunctionPages.Cardinality() > 0 {
-		err = constructNextFunction(zeaburOutputDir, tmpDir)
-		if err != nil {
-			return fmt.Errorf("construct next function: %w", err)
-		}
+	// Create the __next function route
+	err = constructNextFunction(zeaburOutputDir, tmpDir)
+	if err != nil {
+		return fmt.Errorf("construct next function: %w", err)
 	}
 
 	cfg := types.ZeaburOutputConfig{
