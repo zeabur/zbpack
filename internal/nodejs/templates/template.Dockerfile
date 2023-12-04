@@ -14,7 +14,7 @@ COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 {{- end }}
 
-RUN corepack enable && corepack prepare --all
+RUN corepack enable
 
 {{ .InstallCmd }}
 
