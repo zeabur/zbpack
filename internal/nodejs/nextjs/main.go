@@ -15,7 +15,6 @@ import (
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
-	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -53,9 +52,6 @@ func TransformServerless(workdir string) error {
 	}
 
 	serverlessFunctionPages := mapset.NewSet()
-	prerenderPaths := mapset.NewSet()
-	staticPages := mapset.NewSet()
-	staticAppPages := mapset.NewSet()
 
 	fmt.Println("=> Collect serverless function pages")
 
@@ -91,26 +87,6 @@ func TransformServerless(workdir string) error {
 
 		return nil
 	})
-
-	fmt.Println("=> Collect SSG pages")
-
-	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".html") {
-			filePath := strings.TrimPrefix(path, nextOutputServerPagesDir)
-			staticPages.Add(filePath)
-		}
-		return nil
-	})
-
-	_ = filepath.Walk(nextOutputServerAppDir, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".html") {
-			filePath := strings.TrimPrefix(path, nextOutputServerAppDir)
-			staticAppPages.Add(filePath)
-		}
-		return nil
-	})
-
-	serverlessFunctionPages.Add("/_next/image")
 
 	fmt.Println("=> Copying static asset files")
 
@@ -151,40 +127,6 @@ func TransformServerless(workdir string) error {
 		return fmt.Errorf("render launcher template: %w", err)
 	}
 
-	file, err := os.ReadFile(path.Join(nextOutputDir, "prerender-manifest.json"))
-	if err != nil {
-		return fmt.Errorf("read prerender manifest: %w", err)
-	}
-
-	type prerenderManifestRoute struct {
-		SrcRoute                 *string         `json:"srcRoute"`
-		DataRoute                string          `json:"dataRoute"`
-		InitialRevalidateSeconds utils.IntOrBool `json:"initialRevalidateSeconds"`
-	}
-
-	type prerenderManifest struct {
-		Routes        map[string]prerenderManifestRoute `json:"routes"`
-		DynamicRoutes map[string]prerenderManifestRoute `json:"dynamicRoutes"`
-	}
-
-	var pm prerenderManifest
-	err = json.Unmarshal(file, &pm)
-	if err != nil {
-		return fmt.Errorf("unmarshal prerender manifest: %w", err)
-	}
-
-	for route, config := range pm.Routes {
-		if config.InitialRevalidateSeconds.IsInt {
-			serverlessFunctionPages.Add(route)
-			serverlessFunctionPages.Add(config.DataRoute)
-		}
-	}
-
-	for _, config := range pm.DynamicRoutes {
-		serverlessFunctionPages.Add(config.DataRoute)
-		prerenderPaths.Add(config.DataRoute)
-	}
-
 	fmt.Println("=> Creating serverless function symlinks")
 
 	// if there is any serverless function page, create the __next function route
@@ -192,34 +134,6 @@ func TransformServerless(workdir string) error {
 		err = constructNextFunction(zeaburOutputDir, tmpDir)
 		if err != nil {
 			return fmt.Errorf("construct next function: %w", err)
-		}
-	}
-
-	for route, config := range pm.Routes {
-		if config.InitialRevalidateSeconds.IsInt {
-			r := route
-			if config.SrcRoute != nil {
-				r = *config.SrcRoute
-			}
-			prerenderPaths.Add(r)
-			prerenderPaths.Add(config.DataRoute)
-		}
-	}
-
-	// copy static pages which is rendered by Next.js at build time, so they will be served as static files
-	for i := range staticPages.Iter() {
-		p := i.(string)
-		err = cp.Copy(path.Join(nextOutputDir, "server/pages", p), path.Join(zeaburOutputDir, "static", p))
-		if err != nil {
-			return fmt.Errorf("copy static page: %w", err)
-		}
-	}
-
-	for i := range staticAppPages.Iter() {
-		p := i.(string)
-		err = cp.Copy(path.Join(nextOutputDir, "server/app", p), path.Join(zeaburOutputDir, "static", p))
-		if err != nil {
-			return fmt.Errorf("copy static page: %w", err)
 		}
 	}
 
@@ -245,27 +159,6 @@ func TransformServerless(workdir string) error {
 	err = buildMiddleware(tmpDir, zeaburOutputDir)
 	if err != nil {
 		return fmt.Errorf("build middleware: %w", err)
-	}
-
-	return nil
-}
-
-func writePrerenderConfig(zeaburOutputDir, r string) error {
-	prerenderConfigFilename := r + ".prerender-config.json"
-	if r == "/" {
-		prerenderConfigFilename = "index.prerender-config.json"
-	}
-
-	pcPath := path.Join(zeaburOutputDir, "functions", prerenderConfigFilename)
-
-	err := os.MkdirAll(path.Dir(pcPath), 0755)
-	if err != nil {
-		return fmt.Errorf("create prerender config dir: %w", err)
-	}
-
-	err = os.WriteFile(pcPath, []byte("{\"type\": \"Prerender\"}"), 0644)
-	if err != nil {
-		return fmt.Errorf("write prerender config: %w", err)
 	}
 
 	return nil
