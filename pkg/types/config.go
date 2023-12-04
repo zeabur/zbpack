@@ -15,9 +15,4 @@ type ZeaburOutputConfigRoute struct {
 type ZeaburOutputConfig struct {
 	// Routes is a list of routes to override the default route
 	Routes []ZeaburOutputConfigRoute `json:"routes"`
-
-	// Containerized is a flag to indicate whether the output is containerized
-	// If it is containerized, Zeabur will deploy a container during deployment
-	// Otherwise, service is deployed as a serverless function plus static files
-	Containerized bool `json:"containerized"`
 }

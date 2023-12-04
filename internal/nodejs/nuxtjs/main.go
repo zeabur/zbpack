@@ -61,7 +61,7 @@ func TransformServerless(workdir string) error {
 		return fmt.Errorf("copy nitro function dir: %w", err)
 	}
 
-	config := types.ZeaburOutputConfig{Containerized: false, Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__nitro"}}}
+	config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__nitro"}}}
 
 	configBytes, err := json.Marshal(config)
 	if err != nil {

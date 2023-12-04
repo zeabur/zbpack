@@ -12,11 +12,8 @@ import (
 )
 
 // constructNextFunction will construct the first function page, used as symlinks for other function pages
-func constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir string) error {
-	p := path.Join(zeaburOutputDir, "functions", firstFuncPage+".func")
-	if firstFuncPage == "/" {
-		p = path.Join(zeaburOutputDir, "functions", "index.func")
-	}
+func constructNextFunction(zeaburOutputDir, tmpDir string) error {
+	p := path.Join(zeaburOutputDir, "functions", "__next.func")
 
 	err := os.MkdirAll(p, 0755)
 	if err != nil {

@@ -26,7 +26,7 @@ func TransformServerless(workdir string, meta types.PlanMeta) error {
 		return fmt.Errorf("delete hidden files and directories in directory: %w", err)
 	}
 
-	config := types.ZeaburOutputConfig{Containerized: false, Routes: make([]types.ZeaburOutputConfigRoute, 0)}
+	config := types.ZeaburOutputConfig{Routes: make([]types.ZeaburOutputConfigRoute, 0)}
 	if isNotMpaFramework(meta["framework"]) {
 		config.Routes = []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/"}}
 	}

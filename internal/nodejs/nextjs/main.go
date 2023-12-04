@@ -187,38 +187,11 @@ func TransformServerless(workdir string) error {
 
 	fmt.Println("=> Creating serverless function symlinks")
 
-	// if there is any serverless function page, create the first function page and symlinks for other function pages
+	// if there is any serverless function page, create the __next function route
 	if serverlessFunctionPages.Cardinality() > 0 {
-
-		// create the first function page
-		firstFuncPage := serverlessFunctionPages.Pop().(string)
-		err = constructNextFunction(zeaburOutputDir, firstFuncPage, tmpDir)
+		err = constructNextFunction(zeaburOutputDir, tmpDir)
 		if err != nil {
 			return fmt.Errorf("construct next function: %w", err)
-		}
-
-		// create symlinks for other function pages
-		for i := range serverlessFunctionPages.Iter() {
-			p := i.(string)
-			funcPath := path.Join(zeaburOutputDir, "functions", p+".func")
-			if p == "/" {
-				funcPath = path.Join(zeaburOutputDir, "functions", "index.func")
-			}
-
-			err = os.MkdirAll(path.Dir(funcPath), 0755)
-			if err != nil {
-				return fmt.Errorf("create function dir: %w", err)
-			}
-
-			target := path.Join(zeaburOutputDir, "functions", firstFuncPage+".func")
-			if firstFuncPage == "/" {
-				target = path.Join(zeaburOutputDir, "functions", "index.func")
-			}
-
-			err = os.Symlink(target, funcPath)
-			if err != nil && !os.IsExist(err) {
-				return fmt.Errorf("create symlink: %w", err)
-			}
 		}
 	}
 
@@ -230,13 +203,6 @@ func TransformServerless(workdir string) error {
 			}
 			prerenderPaths.Add(r)
 			prerenderPaths.Add(config.DataRoute)
-		}
-	}
-
-	for r := range prerenderPaths.Iter() {
-		err = writePrerenderConfig(zeaburOutputDir, r.(string))
-		if err != nil {
-			return fmt.Errorf("write prerender config: %w", err)
 		}
 	}
 
@@ -257,7 +223,13 @@ func TransformServerless(workdir string) error {
 		}
 	}
 
-	cfg := types.ZeaburOutputConfig{Containerized: false, Routes: make([]types.ZeaburOutputConfigRoute, 0)}
+	cfg := types.ZeaburOutputConfig{
+		Routes: []types.ZeaburOutputConfigRoute{
+			// redirect all requests not match any static files to __next function
+			{Src: "/(.*)", Dest: "/__next"},
+		},
+	}
+
 	cfgBytes, err := json.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("marshal config: %w", err)
