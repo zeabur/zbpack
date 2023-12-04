@@ -1,7 +1,7 @@
 package zeaburpack
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
 	"math/rand"
 	"os"
@@ -132,7 +132,13 @@ func buildImage(opt *buildImageOptions) error {
 	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" || opt.PlanType == types.PlanTypeStatic {
 		buildKitCmd = append(buildKitCmd, "--output", "type=local,dest="+path.Join(os.TempDir(), "zbpack/buildkit"))
 	} else {
-		o := "type=image,name=" + opt.ResultImage
+		t := "image"
+		if !opt.PushImage {
+			// -> docker registry
+			t = "docker"
+		}
+
+		o := "type=" + t + ",name=" + opt.ResultImage
 		if opt.PushImage {
 			o += ",push=true"
 		}
@@ -153,52 +159,23 @@ func buildImage(opt *buildImageOptions) error {
 		buildKitCmd = append(buildKitCmd, "--progress", "tty")
 	}
 
-	cmd := exec.Command("buildctl", buildKitCmd...)
-
-	if opt.HandleLog == nil {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			println("failed to run buildctl build: " + err.Error())
-			return fmt.Errorf("run buildctl build: %w", err)
-		}
-		return nil
-	}
-
-	errPipe, err := cmd.StderrPipe()
+	buildctlCmd := exec.Command("buildctl", buildKitCmd...)
+	buildctlCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	output, err := buildctlCmd.Output()
 	if err != nil {
-		return fmt.Errorf("get stderr pipe: %w", err)
+		return fmt.Errorf("run buildctl build: %w", err)
 	}
 
-	outPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("get stdout pipe: %w", err)
+	if opt.PushImage {
+		return nil // buildctl have handled push
 	}
 
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("start buildctl build: %w", err)
-	}
-
-	go func() {
-		scanner := bufio.NewScanner(errPipe)
-		for scanner.Scan() {
-			t := scanner.Text()
-			println(t)
-			(*opt.HandleLog)(t)
-		}
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(outPipe)
-		for scanner.Scan() {
-			(*opt.HandleLog)(scanner.Text())
-		}
-	}()
-
-	err = cmd.Wait()
-	if err != nil {
-		return fmt.Errorf("wait buildctl build: %w", err)
+	dockerLoadCmd := exec.Command("docker", "load")
+	dockerLoadCmd.Stdin = bytes.NewReader(output)
+	dockerLoadCmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
+	dockerLoadCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	if err := dockerLoadCmd.Run(); err != nil {
+		return fmt.Errorf("run docker load: %w", err)
 	}
 
 	return nil
