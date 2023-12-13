@@ -5,8 +5,8 @@ const NextServer = require('next/dist/server/next-server.js').default;
 const nextServer = new NextServer({
 	conf: {{ .NextConfig }},
 	dir: '.',
-	minimalMode: true,
-	customServer: false,
+	minimalMode: false,
+	customServer: true,
 	port: 80,
 	hostname: 'localhost'
 });
