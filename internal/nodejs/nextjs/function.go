@@ -40,6 +40,9 @@ func constructNextFunction(zeaburOutputDir, tmpDir string) error {
 		return fmt.Errorf("copy package.json: %w", err)
 	}
 
+	// https://github.com/i18next/next-i18next
+	_ = cp.Copy(path.Join(tmpDir, "next-i18next.config.js"), path.Join(p, "next-i18next.config.js"))
+
 	outputNodeModulesDir := path.Join(p, "node_modules")
 	err = os.MkdirAll(outputNodeModulesDir, 0755)
 	if err != nil {
