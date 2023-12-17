@@ -166,7 +166,7 @@ func buildImage(opt *buildImageOptions) error {
 		return fmt.Errorf("run buildctl build: %w", err)
 	}
 
-	if opt.PushImage {
+	if !strings.Contains(buildctlCmd.String(), "--type=docker") {
 		return nil // buildctl have handled push
 	}
 
