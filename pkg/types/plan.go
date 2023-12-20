@@ -24,6 +24,7 @@ const (
 	PlanTypeElixir PlanType = "elixir"
 	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
+	PlanTypeSwift  PlanType = "swift"
 )
 
 //revive:enable:exported
@@ -96,6 +97,14 @@ const (
 	PythonPackageManagerPoetry  PythonPackageManager = "poetry"
 	PythonPackageManagerPipenv  PythonPackageManager = "pipenv"
 	PythonPackageManagerPdm     PythonPackageManager = "pdm"
+)
+
+type SwiftFramework string
+
+//revive:disable:exported
+const (
+	SwiftFrameworkVapor SwiftFramework = "vapor"
+	SwiftFrameworkNone  SwiftFramework = "none"
 )
 
 //revive:enable:exported

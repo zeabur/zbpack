@@ -14,6 +14,7 @@ import (
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/rust"
 	"github.com/zeabur/zbpack/internal/static"
+	"github.com/zeabur/zbpack/internal/swift"
 	"github.com/zeabur/zbpack/pkg/plan"
 )
 
@@ -33,6 +34,7 @@ func SupportedIdentifiers() []plan.Identifier {
 		rust.NewIdentifier(),
 		dotnet.NewIdentifier(),
 		elixir.NewIdentifier(),
+		swift.NewIdentifier(),
 		static.NewIdentifier(),
 	}
 }

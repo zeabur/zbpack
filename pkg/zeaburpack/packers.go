@@ -14,6 +14,7 @@ import (
 	"github.com/zeabur/zbpack/internal/ruby"
 	"github.com/zeabur/zbpack/internal/rust"
 	"github.com/zeabur/zbpack/internal/static"
+	"github.com/zeabur/zbpack/internal/swift"
 	"github.com/zeabur/zbpack/pkg/packer"
 )
 
@@ -32,6 +33,7 @@ func SupportedPackers() []packer.Packer {
 		rust.NewPacker(),
 		dotnet.NewPacker(),
 		elixir.NewPacker(),
+		swift.NewPacker(),
 		static.NewPacker(),
 	}
 }
