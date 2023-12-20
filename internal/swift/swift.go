@@ -1,3 +1,4 @@
+// Package swift is the build planner for Swift projects.
 package swift
 
 import (
@@ -9,13 +10,15 @@ type pack struct {
 	*identify
 }
 
+// NewPacker returns a new Packer for Swift
 func NewPacker() packer.Packer {
 	return &pack{
 		identify: &identify{},
 	}
 }
 
-func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+// GenerateDockerfile generates a Dockerfile for Swift project
+func GenerateDockerfile(_ types.PlanMeta) (string, error) {
 
 	// TODO: following dockerfile is copied from Vapor's template, need to be modified to support other Swift use cases
 	return `FROM swift:5.9-jammy as build
