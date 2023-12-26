@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/nodejs/nuxtjs"
+	"github.com/zeabur/zbpack/internal/nodejs/waku"
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -215,6 +216,16 @@ func Build(opt *BuildOptions) error {
 		err = cp.Copy(dotZeaburDirInOutput, path.Join(*opt.Path, ".zeabur"))
 		if err != nil {
 			println("Failed to copy .zeabur directory from the output: " + err.Error())
+		}
+	}
+
+	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkWaku) && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err = waku.TransformServerless(*opt.Path)
+		if err != nil {
+			log.Println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
 		}
 	}
 
