@@ -163,6 +163,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
+		*fw = optional.Some(types.NodeProjectFrameworkWaku)
+		return fw.Unwrap()
+	}
+
 	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
 		*fw = optional.Some(types.NodeProjectFrameworkVite)
 		return fw.Unwrap()
@@ -633,6 +638,7 @@ func getServerless(ctx *nodePlanContext) bool {
 	defaultServerless := map[types.NodeProjectFramework]bool{
 		types.NodeProjectFrameworkNextJs: true,
 		types.NodeProjectFrameworkNuxtJs: true,
+		types.NodeProjectFrameworkWaku:   true,
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {

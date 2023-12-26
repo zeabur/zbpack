@@ -48,6 +48,7 @@ type NodeProjectFramework string
 
 //revive:disable:exported
 const (
+	NodeProjectFrameworkWaku             NodeProjectFramework = "waku"
 	NodeProjectFrameworkVite             NodeProjectFramework = "vite"
 	NodeProjectFrameworkQwik             NodeProjectFramework = "qwik"
 	NodeProjectFrameworkCreateReactApp   NodeProjectFramework = "create-react-app"
