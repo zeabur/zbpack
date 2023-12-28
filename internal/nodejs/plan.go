@@ -627,6 +627,11 @@ func getServerless(ctx *nodePlanContext) bool {
 		return false
 	}
 
+	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
+	if zsEnv == "true" || zsEnv == "1" {
+		return true
+	}
+
 	sl := &ctx.Serverless
 
 	if serverless, err := sl.Take(); err == nil {

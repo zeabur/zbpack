@@ -208,7 +208,7 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
-	dotZeaburDirInOutput := path.Join(os.TempDir(), "zbpack/buildkit", "src/.zeabur")
+	dotZeaburDirInOutput := path.Join(os.TempDir(), "zbpack/buildkit", ".zeabur")
 
 	stat, err := os.Stat(dotZeaburDirInOutput)
 	if err == nil && stat.IsDir() {
