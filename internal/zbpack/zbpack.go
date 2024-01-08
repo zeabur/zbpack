@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/zeabur/zbpack/pkg/types"
 	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
 
@@ -90,20 +89,11 @@ func build(path string) error {
 
 	trueValue := true
 
-	handlePlanDetermined := func(planType types.PlanType, planMeta types.PlanMeta) {
-		zeaburpack.PrintPlanAndMeta(
-			planType, planMeta, func(info string) {
-				fmt.Println(info)
-			},
-		)
-	}
-
 	return zeaburpack.Build(
 		&zeaburpack.BuildOptions{
-			Path:                 &path,
-			Interactive:          &trueValue,
-			HandlePlanDetermined: &handlePlanDetermined,
-			SubmoduleName:        &submoduleName,
+			Path:          &path,
+			Interactive:   &trueValue,
+			SubmoduleName: &submoduleName,
 		},
 	)
 }

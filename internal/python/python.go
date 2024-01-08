@@ -12,8 +12,23 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	startCmd := meta["start"]
 	aptDeps := meta["apt-deps"]
 	staticMeta := staticInfoFromMeta(meta)
+	serverless := meta["serverless"]
+	pyVer := meta["pythonVersion"]
 
-	dockerfile := "FROM docker.io/library/python:" + meta["pythonVersion"] + "-slim\n"
+	if serverless == "true" {
+		return `FROM docker.io/library/python:` + pyVer + `-slim as builder
+WORKDIR /app
+` + installCmd + `
+COPY . .
+` + buildCmd + `
+
+FROM scratch as output
+COPY --from=builder /usr/local/lib/python` + pyVer + `/site-packages /.site-packages
+COPY --from=builder /app /
+`, nil
+	}
+
+	dockerfile := "FROM docker.io/library/python:" + pyVer + "-slim\n"
 
 	if staticMeta.NginxEnabled() {
 		dockerfile += `WORKDIR /app

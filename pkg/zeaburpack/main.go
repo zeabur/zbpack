@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -157,6 +158,8 @@ func Build(opt *BuildOptions) error {
 
 	t, m := planner.Plan()
 
+	PrintPlanAndMeta(t, m, handleLog)
+
 	if opt.HandlePlanDetermined != nil {
 		(*opt.HandlePlanDetermined)(t, m)
 	}
@@ -216,6 +219,34 @@ func Build(opt *BuildOptions) error {
 		err = cp.Copy(dotZeaburDirInOutput, path.Join(*opt.Path, ".zeabur"))
 		if err != nil {
 			println("Failed to copy .zeabur directory from the output: " + err.Error())
+		}
+	}
+
+	if t == types.PlanTypePython && m["serverless"] == "true" {
+		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__py.func"))
+		if err != nil {
+			println("Failed to copy serverless function: " + err.Error())
+		}
+
+		// if there is "static" directory in the output, we will copy it to .zeabur/output/static
+		statStatic, errStatic := os.Stat(path.Join(os.TempDir(), "/zbpack/buildkit/static"))
+		if errStatic == nil && statStatic.IsDir() {
+			err = cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit/static"), path.Join(*opt.Path, ".zeabur/output/static"))
+			if err != nil {
+				println("Failed to copy static directory: " + err.Error())
+			}
+		}
+
+		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__py"}}}
+
+		configBytes, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		if err != nil {
+			return err
 		}
 	}
 

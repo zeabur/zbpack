@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -28,6 +29,7 @@ type pythonPlanContext struct {
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
 	StreamlitEntry optional.Option[string]
+	Serverless     optional.Option[bool]
 }
 
 const (
@@ -67,6 +69,11 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 
 	if HasDependencyWithFile(ctx, "sanic") {
 		*fw = optional.Some(types.PythonFrameworkSanic)
+		return fw.Unwrap()
+	}
+
+	if HasDependencyWithFile(ctx, "streamlit") {
+		*fw = optional.Some(types.PythonFrameworkStreamlit)
 		return fw.Unwrap()
 	}
 
@@ -420,9 +427,6 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 			depToInstall = append(depToInstall, "gunicorn")
 		}
 	}
-	if determineStreamlitEntry(ctx) != "" {
-		depToInstall = append(depToInstall, "streamlit")
-	}
 
 	var filesToCopy []string
 	if decl := getPmDeclarationFile(pm); decl != "" {
@@ -457,6 +461,11 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
+	serverless := getServerless(ctx)
+	if serverless {
+		return []string{}
+	}
+
 	deps := []string{"build-essential", "pkg-config"}
 
 	// If we need to host static files, we need nginx.
@@ -489,6 +498,12 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
 	staticPath := DetermineStaticInfo(ctx)
+	serverless := getServerless(ctx)
+
+	// serverless function doesn't need a start command
+	if serverless {
+		return ""
+	}
 
 	var commandSegment []string
 
@@ -623,6 +638,46 @@ type GetMetaOptions struct {
 	Config plan.ImmutableProjectConfiguration
 }
 
+func getServerless(ctx *pythonPlanContext) bool {
+	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
+	if fcEnv == "true" || fcEnv == "1" {
+		return false
+	}
+
+	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
+	if zsEnv == "true" || zsEnv == "1" {
+		return true
+	}
+
+	// Python's serverless is experimental, so we need to enable it explicitly.
+	if os.Getenv("ZBPACK_EXPERIMENTAL_SERVERLESS") != "1" {
+		return false
+	}
+
+	sl := &ctx.Serverless
+
+	if serverless, err := sl.Take(); err == nil {
+		return serverless
+	}
+
+	framework := DetermineFramework(ctx)
+
+	defaultServerless := map[types.PythonFramework]bool{
+		types.PythonFrameworkFlask:     true,
+		types.PythonFrameworkDjango:    true,
+		types.PythonFrameworkFastapi:   true,
+		types.PythonFrameworkStreamlit: true,
+	}
+
+	if serverless, ok := defaultServerless[framework]; ok {
+		*sl = optional.Some(serverless)
+		return sl.Unwrap()
+	}
+
+	*sl = optional.Some(false)
+	return sl.Unwrap()
+}
+
 // GetMeta returns the metadata of a Python project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta := types.PlanMeta{}
@@ -656,8 +711,15 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		meta["build"] = buildCmd
 	}
 
+	serverless := getServerless(ctx)
+	if serverless {
+		meta["serverless"] = "true"
+	}
+
 	startCmd := determineStartCmd(ctx)
-	meta["start"] = startCmd
+	if startCmd != "" {
+		meta["start"] = startCmd
+	}
 
 	aptDeps := determineAptDependencies(ctx)
 	if len(aptDeps) > 0 {

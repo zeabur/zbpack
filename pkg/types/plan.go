@@ -84,6 +84,9 @@ const (
 	PythonFrameworkFastapi PythonFramework = "fastapi"
 	PythonFrameworkSanic   PythonFramework = "sanic"
 	PythonFrameworkNone    PythonFramework = "none"
+
+	// PythonFrameworkStreamlit https://github.com/streamlit/streamlit
+	PythonFrameworkStreamlit PythonFramework = "streamlit"
 )
 
 //revive:enable:exported
