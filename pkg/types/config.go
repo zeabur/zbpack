@@ -24,11 +24,13 @@ type ZeaburOutputConfig struct {
 	Routes []ZeaburOutputConfigRoute `json:"routes"`
 }
 
+// ZeaburOutputFunctionConfig is the output config of Zeabur for a function. Tells Zeabur how to run the function
 type ZeaburOutputFunctionConfig struct {
 	Runtime string `json:"runtime"`
 	Entry   string `json:"entry,omitempty"`
 }
 
+// WriteTo writes the output config to the given path of function
 func (c ZeaburOutputFunctionConfig) WriteTo(funcPath string) error {
 	funcConfigBytes, err := json.Marshal(c)
 	if err != nil {
