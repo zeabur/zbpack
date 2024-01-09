@@ -207,25 +207,22 @@ RUN pipenv install
 [TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
 RUN pip install pipenv
 COPY Pipfile* Pipfile.lock* .
-RUN pipenv install streamlit
 RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
 COPY requirements.txt* .
-RUN pip install streamlit
 RUN pip install -r requirements.txt
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
 RUN pip install poetry
 COPY pyproject.toml* poetry.lock* .
-RUN poetry add streamlit
 RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
-RUN pip install streamlit
+RUN echo "skip install"
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
@@ -248,7 +245,6 @@ RUN pip install -r requirements.txt
 [TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
-RUN pdm add streamlit
 RUN pdm install
 ---
 

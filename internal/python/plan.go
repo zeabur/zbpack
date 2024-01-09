@@ -415,12 +415,13 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
+	serverless := getServerless(ctx)
 
 	// will be joined by newline
 	var commands []string
 
 	var depToInstall []string
-	if wsgi != "" {
+	if wsgi != "" && !serverless {
 		if framework == types.PythonFrameworkFastapi {
 			depToInstall = append(depToInstall, "uvicorn")
 		} else {
@@ -714,6 +715,14 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	serverless := getServerless(ctx)
 	if serverless {
 		meta["serverless"] = "true"
+	}
+
+	// if serverless, we need a wsgi entry
+	if serverless {
+		wsgi := DetermineWsgi(ctx)
+		if wsgi != "" {
+			meta["entry"] = wsgi
+		}
 	}
 
 	startCmd := determineStartCmd(ctx)

@@ -238,6 +238,10 @@ func Build(opt *BuildOptions) error {
 		}
 
 		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "python3"}
+		if m["entry"] != "" {
+			funcConfig.Entry = m["entry"]
+		}
+
 		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__py.func"))
 		if err != nil {
 			handleLog("Failed to write function config to \".zeabur/output/functions/__py.func\": " + err.Error())

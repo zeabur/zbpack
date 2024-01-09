@@ -26,6 +26,7 @@ type ZeaburOutputConfig struct {
 
 type ZeaburOutputFunctionConfig struct {
 	Runtime string `json:"runtime"`
+	Entry   string `json:"entry,omitempty"`
 }
 
 func (c ZeaburOutputFunctionConfig) WriteTo(funcPath string) error {
