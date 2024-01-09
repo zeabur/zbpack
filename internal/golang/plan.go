@@ -80,9 +80,9 @@ type GetMetaOptions struct {
 	SubmoduleName string
 }
 
-// GetMeta gets the metadata of the Node.js project.
+// GetMeta gets the metadata of the Go project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	ctx := &goPlanContext{Src: opt.Src}
+	ctx := &goPlanContext{Src: opt.Src, SubmoduleName: opt.SubmoduleName}
 	meta := types.PlanMeta{}
 
 	goVersion := getGoVersion(ctx)
