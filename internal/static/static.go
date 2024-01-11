@@ -26,6 +26,7 @@ COPY --from=builder /src/public /
 WORKDIR /app
 RUN apk add zola
 COPY . .
+RUN mkdir -p templates
 RUN zola build
 
 FROM scratch as output
