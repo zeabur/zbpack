@@ -21,6 +21,19 @@ COPY --from=builder /src/public /
 `, nil
 	}
 
+	if meta["framework"] == "zola" {
+		return `FROM alpine as builder
+WORKDIR /app
+RUN apk add zola
+COPY . .
+RUN zola build
+
+FROM scratch as output
+COPY --from=builder /app/public /
+`, nil
+
+	}
+
 	dockerfile := `FROM scratch as output
 COPY . /
 `
