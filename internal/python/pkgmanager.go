@@ -39,13 +39,23 @@ func getPmAddCmd(pm types.PythonPackageManager, deps ...string) string {
 func getPmInstallCmd(pm types.PythonPackageManager) string {
 	switch pm {
 	case types.PythonPackageManagerPip:
-		return "pip install -r requirements.txt"
+		return "sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
 	case types.PythonPackageManagerPipenv:
 		return "pipenv install"
 	case types.PythonPackageManagerPoetry:
 		return "poetry install"
 	case types.PythonPackageManagerPdm:
 		return "pdm install"
+	}
+
+	return ""
+}
+
+func getPmPostInstallCmd(pm types.PythonPackageManager) string {
+	switch pm {
+	case types.PythonPackageManagerPip:
+		// bind project directory in site_packages
+		return "pip install -r requirements.txt"
 	}
 
 	return ""
