@@ -26,20 +26,20 @@ RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-none - 1]
-COPY requirements.txt* .
-RUN pip install -r requirements.txt
+COPY requirements.txt* pyproject.toml* .
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install uvicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
@@ -147,15 +147,15 @@ RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-django - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-with-static-django - 1]
@@ -192,9 +192,9 @@ RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx-django - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-static-django - 1]
@@ -211,8 +211,8 @@ RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
-COPY requirements.txt* .
-RUN pip install -r requirements.txt
+COPY requirements.txt* pyproject.toml* .
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
@@ -237,9 +237,9 @@ RUN pip install uvicorn
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
-COPY requirements.txt* .
+COPY requirements.txt* pyproject.toml* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
@@ -318,4 +318,31 @@ RUN pip install poetry
 COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
 RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
+COPY requirements.txt* pyproject.toml* .
+RUN pip install gunicorn
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
+COPY requirements.txt* pyproject.toml* .
+RUN pip install gunicorn
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx-django - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install gunicorn
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
+RUN pip install uvicorn
 ---
