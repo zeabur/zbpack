@@ -59,7 +59,7 @@ func getEntry(ctx *goPlanContext) string {
 
 	// in a basic go project, we assume the entrypoint is main.go in root directory
 	if utils.HasFile(ctx.Src, "main.go") {
-		*ent = optional.Some("main.go")
+		*ent = optional.Some("")
 		return ent.Unwrap()
 	}
 

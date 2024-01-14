@@ -8,7 +8,7 @@ import (
 
 // GenerateDockerfile generates the Dockerfile for Golang projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	buildStage := `FROM docker.io/library/golang:` + meta["goVersion"] + ` as builder
+	buildStage := `FROM docker.io/library/golang:` + meta["goVersion"] + `-alpine as builder
 RUN mkdir /src
 WORKDIR /src
 COPY go.mod ./
@@ -18,7 +18,7 @@ COPY . /src/
 ENV CGO_ENABLED=0
 RUN go build -o ./bin/server ` + meta["entry"]
 
-	runtimeStage := `FROM docker.io/library/alpine as runtime
+	runtimeStage := `FROM alpine as runtime
 COPY --from=builder /src/bin/server /bin/server
 CMD ["/bin/server"]`
 
