@@ -20,12 +20,38 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// EntryType indicates what this entry originally is.
+type EntryType string
+
+const (
+	// EntryTypeModule indicates that this is the __main__ entry
+	// of a module.
+	//
+	// For example: `src/my_module/__main__.py`.
+	// The module should be: `my_module`.
+	EntryTypeModule EntryType = "module"
+	// EntryTypeFile indicates that this is a standalone Python file.
+	//
+	// For example, `src/main.py`.
+	// The module should be: `src.main`.
+	EntryTypeFile EntryType = "file"
+)
+
+// EntryInfo contains the information about the entry, including
+// the type of this entry, the raw file path of this entry, and
+// the parsed module name from this file path.
+type EntryInfo struct {
+	Type   EntryType
+	File   string
+	Module string
+}
+
 type pythonPlanContext struct {
 	Src            afero.Fs
 	Config         plan.ImmutableProjectConfiguration
 	PackageManager optional.Option[types.PythonPackageManager]
 	Framework      optional.Option[types.PythonFramework]
-	Entry          optional.Option[string]
+	Entry          optional.Option[EntryInfo]
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
 	StreamlitEntry optional.Option[string]
@@ -81,8 +107,32 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 	return fw.Unwrap()
 }
 
+// findEntryableModule finds the first occurrence of the module directory
+// with `__main__.py` under the project directory.
+//
+// The first return value is the module name; the second one is the original
+// file path.
+func findEntryableModule(ctx *pythonPlanContext) (string, string) {
+	// find projects by finding all src/<project_name>/__main__.py
+	srcDir, err := afero.ReadDir(ctx.Src, "src")
+	if err != nil {
+		return "", ""
+	}
+
+	for _, dirs := range srcDir {
+		if dirs.IsDir() {
+			path := "src/" + dirs.Name() + "/__main__.py"
+			if utils.HasFile(ctx.Src, path) {
+				return dirs.Name(), path
+			}
+		}
+	}
+
+	return "", ""
+}
+
 // DetermineEntry determines the entry of the Python project.
-func DetermineEntry(ctx *pythonPlanContext) string {
+func DetermineEntry(ctx *pythonPlanContext) EntryInfo {
 	src := ctx.Src
 	et := &ctx.Entry
 
@@ -90,14 +140,33 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 		return entry
 	}
 
-	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py"} {
+	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "src/main.py", "src/app.py"} {
 		if utils.HasFile(src, file) {
-			*et = optional.Some(file)
+			info := EntryInfo{
+				Type:   EntryTypeFile,
+				File:   file,
+				Module: strings.Replace(strings.TrimSuffix(file, ".py"), "/", ".", -1),
+			}
+			*et = optional.Some(info)
 			return et.Unwrap()
 		}
 	}
 
-	*et = optional.Some("main.py")
+	if module, filePath := findEntryableModule(ctx); module != "" && filePath != "" {
+		info := EntryInfo{
+			Type:   EntryTypeModule,
+			Module: module,
+			File:   filePath,
+		}
+		*et = optional.Some(info)
+		return et.Unwrap()
+	}
+
+	*et = optional.Some(EntryInfo{
+		Type:   EntryTypeFile,
+		File:   "main.py",
+		Module: "main",
+	})
 	return et.Unwrap()
 }
 
@@ -250,18 +319,18 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		}
 
 		if constructor != "" {
-			entryFile := DetermineEntry(ctx)
+			entry := DetermineEntry(ctx)
 
 			re := regexp.MustCompile(`(\w+)\s*=\s*` + constructor + `\([^)]*\)`)
-			content, err := afero.ReadFile(src, entryFile)
+			content, err := afero.ReadFile(src, entry.File)
 			if err != nil {
 				return ""
 			}
 
 			match := re.FindStringSubmatch(string(content))
 			if len(match) > 1 {
-				entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
-				*wa = optional.Some(entryWithoutExt + ":" + match[1])
+				module := entry.Module
+				*wa = optional.Some(module + ":" + match[1])
 				return wa.Unwrap()
 			}
 		}
@@ -539,7 +608,13 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 		}
 	} else {
 		entry := DetermineEntry(ctx)
-		commandSegment = append(commandSegment, "python", entry)
+
+		switch entry.Type {
+		case EntryTypeModule:
+			commandSegment = append(commandSegment, "python", "-m", entry.Module)
+		case EntryTypeFile:
+			commandSegment = append(commandSegment, "python", entry.File)
+		}
 	}
 
 	command := strings.Join(commandSegment, " ")

@@ -302,7 +302,11 @@ func TestDetermineStartCmd_Snapshot(t *testing.T) {
 					Src:            fs,
 					Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 					PackageManager: optional.Some(pm),
-					Entry:          optional.Some("app.py"),
+					Entry: optional.Some(EntryInfo{
+						Type:   EntryTypeFile,
+						File:   "app.py",
+						Module: "app",
+					}),
 				}
 
 				if mode == WithWsgi || mode == WithFastapi {
@@ -820,4 +824,40 @@ st.write(x, "squared is", x * x)`), 0o644)
 
 	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
 	assert.Equal(t, "zeabur_streamlit_demo.py", ctx.StreamlitEntry.Unwrap())
+}
+
+func TestEntry_File(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "src/app.py", []byte(""), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	entry := DetermineEntry(ctx)
+	assert.Equal(t, EntryTypeFile, entry.Type)
+	assert.Equal(t, "src/app.py", entry.File)
+	assert.Equal(t, "src.app", entry.Module)
+}
+
+func TestEntry_Module(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "src/owo/__main__.py", []byte(""), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	entry := DetermineEntry(ctx)
+	assert.Equal(t, EntryTypeModule, entry.Type)
+	assert.Equal(t, "src/owo/__main__.py", entry.File)
+	assert.Equal(t, "owo", entry.Module)
 }
