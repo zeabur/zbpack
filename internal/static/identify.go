@@ -1,6 +1,7 @@
 package static
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -35,7 +36,11 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	if utils.HasFile(options.Source, "config.toml") {
 		config, err := afero.ReadFile(options.Source, "config.toml")
 		if err == nil && strings.Contains(string(config), "base_url") {
-			return types.PlanMeta{"framework": "zola"}
+			ver := "0.18.0"
+			if os.Getenv("ZOLA_VERSION") != "" {
+				ver = os.Getenv("ZOLA_VERSION")
+			}
+			return types.PlanMeta{"framework": "zola", "version": ver}
 		}
 	}
 

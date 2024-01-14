@@ -22,12 +22,10 @@ COPY --from=builder /src/public /
 	}
 
 	if meta["framework"] == "zola" {
-		return `FROM alpine as builder
+		return `FROM ghcr.io/getzola/zola:v` + meta["version"] + ` as builder
 WORKDIR /app
-RUN apk add zola
 COPY . .
-RUN mkdir -p templates
-RUN zola build
+RUN ["zola", "build"]
 
 FROM scratch as output
 COPY --from=builder /app/public /
