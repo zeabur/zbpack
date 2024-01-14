@@ -222,6 +222,32 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
+	if t == types.PlanTypeGo && m["serverless"] == "true" {
+		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__go.func"))
+		if err != nil {
+			println("Failed to copy serverless function: " + err.Error())
+		}
+
+		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "binary", Entry: "./main"}
+
+		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__go.func"))
+		if err != nil {
+			handleLog("Failed to write function config to \".zeabur/output/functions/__go.func\": " + err.Error())
+		}
+
+		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__go"}}}
+
+		configBytes, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	if t == types.PlanTypePython && m["serverless"] == "true" {
 		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__py.func"))
 		if err != nil {

@@ -2,6 +2,7 @@ package golang
 
 import (
 	"bufio"
+	"os"
 	"path"
 
 	"github.com/moznion/go-optional"
@@ -16,6 +17,8 @@ type goPlanContext struct {
 
 	GoVersion optional.Option[string]
 	Entry     optional.Option[string]
+
+	Serverless optional.Option[bool]
 }
 
 func getGoVersion(ctx *goPlanContext) string {
@@ -80,6 +83,20 @@ type GetMetaOptions struct {
 	SubmoduleName string
 }
 
+func getServerless(ctx *goPlanContext) bool {
+	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
+	if fcEnv == "true" || fcEnv == "1" {
+		return false
+	}
+
+	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
+	if zsEnv == "true" || zsEnv == "1" {
+		return true
+	}
+
+	return false
+}
+
 // GetMeta gets the metadata of the Go project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := &goPlanContext{Src: opt.Src, SubmoduleName: opt.SubmoduleName}
@@ -90,6 +107,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	entry := getEntry(ctx)
 	meta["entry"] = entry
+
+	serverless := getServerless(ctx)
+	if serverless {
+		meta["serverless"] = "true"
+	}
 
 	return meta
 }
