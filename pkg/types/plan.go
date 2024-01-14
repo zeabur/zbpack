@@ -56,6 +56,7 @@ const (
 	NodeProjectFrameworkRemix            NodeProjectFramework = "remix"
 	NodeProjectFrameworkNuxtJs           NodeProjectFramework = "nuxt.js"
 	NodeProjectFrameworkVueCli           NodeProjectFramework = "vue-cli"
+	NodeProjectFrameworkAngular          NodeProjectFramework = "angular"
 	NodeProjectFrameworkNone             NodeProjectFramework = "none"
 	NodeProjectFrameworkUmi              NodeProjectFramework = "umi"
 	NodeProjectFrameworkSvelte           NodeProjectFramework = "svelte"

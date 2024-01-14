@@ -1,6 +1,7 @@
 package nodejs
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"regexp"
@@ -120,6 +121,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		}
 
 		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
+	}
+
+	if _, isAngular := packageJSON.Dependencies["@angular/core"]; isAngular {
+		*fw = optional.Some(types.NodeProjectFrameworkAngular)
 		return fw.Unwrap()
 	}
 
@@ -599,6 +605,44 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 
 	framework := DetermineProjectFramework(ctx)
 
+	// the default output directory of Angular is `dist/<project-name>/browser`
+	// we need to find the project name from `angular.json`.
+	if framework == types.NodeProjectFrameworkAngular {
+		angularJSON, err := os.ReadFile("angular.json")
+		if err != nil {
+			println("failed to read angular.json: " + err.Error())
+			*dir = optional.Some("")
+			return dir.Unwrap()
+		}
+
+		type AngularJSON struct {
+			Projects map[string]struct{} `json:"projects"`
+		}
+
+		var angular AngularJSON
+		err = json.Unmarshal(angularJSON, &angular)
+		if err != nil {
+			println("failed to parse angular.json: " + err.Error())
+			*dir = optional.Some("")
+			return dir.Unwrap()
+		}
+
+		if len(angular.Projects) == 0 {
+			println("no projects found in angular.json")
+			*dir = optional.Some("")
+			return dir.Unwrap()
+		}
+
+		var projectName string
+		for name := range angular.Projects {
+			projectName = name
+			break
+		}
+
+		*dir = optional.Some("dist/" + projectName + "/browser")
+		return dir.Unwrap()
+	}
+
 	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
 		types.NodeProjectFrameworkVite:             "dist",
 		types.NodeProjectFrameworkUmi:              "dist",
@@ -641,9 +685,10 @@ func getServerless(ctx *nodePlanContext) bool {
 	framework := DetermineProjectFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs: true,
-		types.NodeProjectFrameworkNuxtJs: true,
-		types.NodeProjectFrameworkWaku:   true,
+		types.NodeProjectFrameworkNextJs:  true,
+		types.NodeProjectFrameworkNuxtJs:  true,
+		types.NodeProjectFrameworkWaku:    true,
+		types.NodeProjectFrameworkAngular: true,
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {
