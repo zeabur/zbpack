@@ -861,3 +861,21 @@ func TestEntry_Module(t *testing.T) {
 	assert.Equal(t, "src/owo/__main__.py", entry.File)
 	assert.Equal(t, "owo", entry.Module)
 }
+
+func TestEntry_Module_Root(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "owo/__main__.py", []byte(""), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	entry := DetermineEntry(ctx)
+	assert.Equal(t, EntryTypeModule, entry.Type)
+	assert.Equal(t, "owo/__main__.py", entry.File)
+	assert.Equal(t, "owo", entry.Module)
+}

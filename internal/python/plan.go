@@ -107,28 +107,45 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 	return fw.Unwrap()
 }
 
-// findEntryableModule finds the first occurrence of the module directory
+// findEntryModule finds the first occurrence of the module directory
 // with `__main__.py` under the project directory.
 //
+// We only support __main__ under `src` and root at this moment.
+//
 // The first return value is the module name; the second one is the original
-// file path.
-func findEntryableModule(ctx *pythonPlanContext) (string, string) {
-	// find projects by finding all src/<project_name>/__main__.py
-	srcDir, err := afero.ReadDir(ctx.Src, "src")
+// file path; the third one indicates if there are any match.
+func findEntryModule(ctx *pythonPlanContext) (string, string, bool) {
+	for _, folder := range []string{"", "src"} {
+		moduleName, filePath, found := findEntryModuleUnderFolder(ctx.Src, folder)
+		if found {
+			return moduleName, filePath, true
+		}
+	}
+
+	return "", "", false
+}
+
+func findEntryModuleUnderFolder(src afero.Fs, dir string) (string, string, bool) {
+	dir = strings.TrimSuffix(dir, "/") + "/"
+	if dir == "/" {
+		dir = ""
+	}
+
+	srcDir, err := afero.ReadDir(src, dir)
 	if err != nil {
-		return "", ""
+		return "", "", false
 	}
 
 	for _, dirs := range srcDir {
 		if dirs.IsDir() {
-			path := "src/" + dirs.Name() + "/__main__.py"
-			if utils.HasFile(ctx.Src, path) {
-				return dirs.Name(), path
+			path := dir + dirs.Name() + "/__main__.py"
+			if utils.HasFile(src, path) {
+				return dirs.Name(), path, true
 			}
 		}
 	}
 
-	return "", ""
+	return "", "", false
 }
 
 // DetermineEntry determines the entry of the Python project.
@@ -152,7 +169,7 @@ func DetermineEntry(ctx *pythonPlanContext) EntryInfo {
 		}
 	}
 
-	if module, filePath := findEntryableModule(ctx); module != "" && filePath != "" {
+	if module, filePath, found := findEntryModule(ctx); found {
 		info := EntryInfo{
 			Type:   EntryTypeModule,
 			Module: module,
@@ -223,7 +240,7 @@ func HasDependency(ctx *pythonPlanContext, dependency string) bool {
 	pm := DeterminePackageManager(ctx)
 
 	filesToFind := lo.Filter(
-		append([]string{getPmDeclarationFile(pm)}, getPmLockFile(pm)...),
+		append(getPmDeclarationFile(pm), getPmLockFile(pm)...),
 		func(s string, _ int) bool {
 			return s != ""
 		},
@@ -253,7 +270,7 @@ func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
-	if f := getPmDeclarationFile(pm); f != "" {
+	for _, f := range getPmDeclarationFile(pm) {
 		if weakHasStringsInFile(src, f, dependency) {
 			return true
 		}
@@ -499,7 +516,7 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	}
 
 	var filesToCopy []string
-	if decl := getPmDeclarationFile(pm); decl != "" {
+	for _, decl := range getPmDeclarationFile(pm) {
 		filesToCopy = append(filesToCopy, decl+"*")
 	}
 	if lock := getPmLockFile(pm); len(lock) > 0 {
