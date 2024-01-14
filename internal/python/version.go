@@ -2,6 +2,7 @@ package python
 
 import (
 	"log"
+	"regexp"
 
 	"github.com/Masterminds/semver/v3"
 )
@@ -24,10 +25,16 @@ var python3Versions = []*semver.Version{
 	semver.MustParse("3.11"),
 	semver.MustParse("3.12"),
 }
+var explicitVersionRegex = regexp.MustCompile(`^v?(\d+(?:\.\d+(?:\.\d+)?)?)$`)
 
 func getPython3Version(versionRange string) string {
 	if versionRange == "" {
 		return defaultPython3Version
+	}
+
+	// If there is an explicit version, we pick it.
+	if submatch := explicitVersionRegex.FindStringSubmatch(versionRange); len(submatch) > 1 {
+		return submatch[1]
 	}
 
 	// create a version constraint from versionRange
