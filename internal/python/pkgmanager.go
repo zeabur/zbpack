@@ -74,17 +74,17 @@ func getPmStartCmdPrefix(pm types.PythonPackageManager) string {
 	return ""
 }
 
-func getPmDeclarationFile(pm types.PythonPackageManager) string {
+func getPmDeclarationFile(pm types.PythonPackageManager) []string {
 	switch pm {
 	case types.PythonPackageManagerPip:
-		return "requirements.txt"
+		return []string{"requirements.txt", "pyproject.toml" /* newer projects */}
 	case types.PythonPackageManagerPipenv:
-		return "Pipfile"
+		return []string{"Pipfile"}
 	case types.PythonPackageManagerPoetry, types.PythonPackageManagerPdm:
-		return "pyproject.toml"
+		return []string{"pyproject.toml"}
 	}
 
-	return ""
+	return nil
 }
 
 func getPmLockFile(pm types.PythonPackageManager) []string {
