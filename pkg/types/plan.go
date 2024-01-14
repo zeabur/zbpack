@@ -102,6 +102,7 @@ const (
 	PythonPackageManagerPoetry  PythonPackageManager = "poetry"
 	PythonPackageManagerPipenv  PythonPackageManager = "pipenv"
 	PythonPackageManagerPdm     PythonPackageManager = "pdm"
+	PythonPackageManagerRye     PythonPackageManager = "rye"
 )
 
 type SwiftFramework string

@@ -116,6 +116,7 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
 		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
 		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
+		{types.PythonPackageManagerRye, "pyproject.toml", "[tool.rye]", "requirements.lock"},
 	}
 
 	if packageManager, err := cpm.Take(); err == nil {
@@ -554,6 +555,8 @@ func determinePythonVersion(ctx *pythonPlanContext) string {
 		return determinePythonVersionWithPoetry(ctx)
 	case types.PythonPackageManagerPdm:
 		return determinePythonVersionWithPdm(ctx)
+	case types.PythonPackageManagerRye:
+		return determinePythonVersionWithRye(ctx)
 	default:
 		return defaultPython3Version
 	}
@@ -590,6 +593,29 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 	if len(submatchs) > 1 {
 		version := submatchs[1]
 		return getPython3Version(version)
+	}
+
+	return defaultPython3Version
+}
+
+func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
+	// We read from `.python-version`.
+	// The format of `.python-version` is:
+	//
+	//		[distribution@][version]
+	//
+	// We extract the version part only.
+	src := ctx.Src
+	regex := regexp.MustCompile(`(?:.+?@)?([\d.]+)`)
+
+	content, err := afero.ReadFile(src, ".python-version")
+	if err != nil {
+		return defaultPython3Version
+	}
+
+	match := regex.FindSubmatch(content)
+	if len(match) > 1 {
+		return getPython3Version(string(match[1]))
 	}
 
 	return defaultPython3Version

@@ -45,5 +45,6 @@ func getPython3Version(versionRange string) string {
 	}
 
 	// when no version satisfies the constraint, return the default version
+	log.Printf("no version satisfies the constraint %s", versionRange)
 	return defaultPython3Version
 }

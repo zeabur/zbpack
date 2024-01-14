@@ -14,6 +14,7 @@ func getPmInitCmd(pm types.PythonPackageManager) string {
 		return "pip install poetry"
 	case types.PythonPackageManagerPdm:
 		return "pip install pdm"
+	case types.PythonPackageManagerRye: // managed with pip
 	}
 
 	return ""
@@ -31,6 +32,7 @@ func getPmAddCmd(pm types.PythonPackageManager, deps ...string) string {
 		return "poetry add " + strings.Join(deps, " ")
 	case types.PythonPackageManagerPdm:
 		return "pdm add " + strings.Join(deps, " ")
+	case types.PythonPackageManagerRye: // managed with pip
 	}
 
 	return "pip install " + strings.Join(deps, " ")
@@ -46,6 +48,8 @@ func getPmInstallCmd(pm types.PythonPackageManager) string {
 		return "poetry install"
 	case types.PythonPackageManagerPdm:
 		return "pdm install"
+	case types.PythonPackageManagerRye:
+		return "sed '/-e/d' requirements.lock | pip install -r /dev/stdin"
 	}
 
 	return ""
@@ -56,6 +60,8 @@ func getPmPostInstallCmd(pm types.PythonPackageManager) string {
 	case types.PythonPackageManagerPip:
 		// bind project directory in site_packages
 		return "pip install -r requirements.txt"
+	case types.PythonPackageManagerRye:
+		return "pip install -r requirements.lock"
 	}
 
 	return ""
@@ -69,6 +75,8 @@ func getPmStartCmdPrefix(pm types.PythonPackageManager) string {
 		return "poetry run"
 	case types.PythonPackageManagerPdm:
 		return "pdm run"
+	case types.PythonPackageManagerRye:
+		return "" // unneeded
 	}
 
 	return ""
@@ -80,7 +88,7 @@ func getPmDeclarationFile(pm types.PythonPackageManager) string {
 		return "requirements.txt"
 	case types.PythonPackageManagerPipenv:
 		return "Pipfile"
-	case types.PythonPackageManagerPoetry, types.PythonPackageManagerPdm:
+	case types.PythonPackageManagerPoetry, types.PythonPackageManagerPdm, types.PythonPackageManagerRye:
 		return "pyproject.toml"
 	}
 
@@ -95,6 +103,8 @@ func getPmLockFile(pm types.PythonPackageManager) []string {
 		return []string{"poetry.lock"}
 	case types.PythonPackageManagerPdm:
 		return []string{"pdm.lock"}
+	case types.PythonPackageManagerRye:
+		return []string{"requirements.lock"}
 	}
 
 	return nil
