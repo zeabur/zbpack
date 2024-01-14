@@ -598,6 +598,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 // If empty string is returned, the service is not deployed as static files.
 func GetStaticOutputDir(ctx *nodePlanContext) string {
 	dir := &ctx.StaticOutputDir
+	source := ctx.Src
 
 	if outputDir, err := dir.Take(); err == nil {
 		return outputDir
@@ -608,10 +609,10 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	// the default output directory of Angular is `dist/<project-name>/browser`
 	// we need to find the project name from `angular.json`.
 	if framework == types.NodeProjectFrameworkAngular {
-		angularJSON, err := os.ReadFile("angular.json")
+		angularJSON, err := afero.ReadFile(source, "angular.json")
 		if err != nil {
 			println("failed to read angular.json: " + err.Error())
-			*dir = optional.Some("")
+			*dir = optional.Some("dist")
 			return dir.Unwrap()
 		}
 
@@ -623,13 +624,13 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		err = json.Unmarshal(angularJSON, &angular)
 		if err != nil {
 			println("failed to parse angular.json: " + err.Error())
-			*dir = optional.Some("")
+			*dir = optional.Some("dist")
 			return dir.Unwrap()
 		}
 
 		if len(angular.Projects) == 0 {
 			println("no projects found in angular.json")
-			*dir = optional.Some("")
+			*dir = optional.Some("dist")
 			return dir.Unwrap()
 		}
 
