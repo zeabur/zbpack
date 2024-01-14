@@ -597,14 +597,21 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 }
 
 func determineBuildCmd(ctx *pythonPlanContext) string {
+	commands := ""
+
 	staticInfo := DetermineStaticInfo(ctx)
 
 	if staticInfo.DjangoEnabled() {
 		// We need to collect static files if we are using Django.
-		return "RUN python manage.py collectstatic --noinput"
+		commands += "RUN python manage.py collectstatic --noinput\n"
 	}
 
-	return ""
+	packageManager := DeterminePackageManager(ctx)
+	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
+		commands = "RUN " + postInstallCmd + "\n"
+	}
+
+	return strings.TrimSpace(commands)
 }
 
 func determineStreamlitEntry(ctx *pythonPlanContext) string {
