@@ -22,7 +22,12 @@ func (i *identify) PlanType() types.PlanType {
 func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(
 		fs,
-		"app.py", "main.py", "app.py", "manage.py", "requirements.txt", "streamlit_app.py",
+		// DetermineEntry
+		"main.py", "app.py", "manage.py", "server.py", "src/main.py", "src/app.py",
+		// DetermineStreamlitEntry
+		"streamlit_app.py",
+		// getPmDeclarationFile
+		"requirements.txt", "Pipfile", "pyproject.toml",
 	)
 }
 
