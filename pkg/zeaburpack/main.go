@@ -211,7 +211,15 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
-	dotZeaburDirInOutput := path.Join(os.TempDir(), "zbpack/buildkit", ".zeabur")
+	dockerBuildOutput := path.Join(os.TempDir(), "zbpack/buildkit")
+
+	// To minimize the size of the function, remove some unnecessary files.
+	ignored := []string{".git", ".github", ".vscode", ".idea", ".gitignore", "Dockerfile", "LICENSE", "README.md", "Makefile", ".pre-commit-config.yaml"}
+	for _, i := range ignored {
+		_ = os.RemoveAll(path.Join(dockerBuildOutput, i))
+	}
+
+	dotZeaburDirInOutput := path.Join(dockerBuildOutput, ".zeabur")
 
 	stat, err := os.Stat(dotZeaburDirInOutput)
 	if err == nil && stat.IsDir() {
@@ -249,7 +257,8 @@ func Build(opt *BuildOptions) error {
 	}
 
 	if t == types.PlanTypePython && m["serverless"] == "true" {
-		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__py.func"))
+		funcPath := path.Join(*opt.Path, ".zeabur/output/functions/__py.func")
+		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), funcPath)
 		if err != nil {
 			println("Failed to copy serverless function: " + err.Error())
 		}
@@ -261,6 +270,29 @@ func Build(opt *BuildOptions) error {
 			if err != nil {
 				println("Failed to copy static directory: " + err.Error())
 			}
+		}
+
+		var venvPath string
+		dirs, err := os.ReadDir(funcPath)
+		if err == nil {
+			for _, dir := range dirs {
+				if !dir.IsDir() {
+					continue
+				}
+				readLib, err := os.Stat(path.Join(funcPath, dir.Name(), "lib", "python"+m["pythonVersion"], "site-packages"))
+				if err != nil || !readLib.IsDir() {
+					continue
+				}
+				venvPath = path.Join(funcPath, dir.Name())
+			}
+		}
+
+		if venvPath != "" {
+			oldSp := path.Join(*opt.Path, ".zeabur/output/functions/__py.func/.site-packages")
+			newSp := path.Join(venvPath, "lib", "python"+m["pythonVersion"], "site-packages")
+			_ = os.RemoveAll(oldSp)
+			_ = cp.Copy(newSp, oldSp)
+			_ = os.RemoveAll(venvPath)
 		}
 
 		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "python3"}
