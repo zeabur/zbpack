@@ -295,7 +295,8 @@ func Build(opt *BuildOptions) error {
 			_ = os.RemoveAll(venvPath)
 		}
 
-		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "python3"}
+		pythonVersionWithoutDot := strings.ReplaceAll(m["pythonVersion"], ".", "")
+		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "python" + pythonVersionWithoutDot}
 		if m["entry"] != "" {
 			funcConfig.Entry = m["entry"]
 		}
