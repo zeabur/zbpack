@@ -650,33 +650,7 @@ func getServerless(ctx *pythonPlanContext) bool {
 		return true
 	}
 
-	// Python's serverless is experimental, so we need to enable it explicitly.
-	if os.Getenv("ZBPACK_EXPERIMENTAL_SERVERLESS") != "1" {
-		return false
-	}
-
-	sl := &ctx.Serverless
-
-	if serverless, err := sl.Take(); err == nil {
-		return serverless
-	}
-
-	framework := DetermineFramework(ctx)
-
-	defaultServerless := map[types.PythonFramework]bool{
-		types.PythonFrameworkFlask:     true,
-		types.PythonFrameworkDjango:    true,
-		types.PythonFrameworkFastapi:   true,
-		types.PythonFrameworkStreamlit: true,
-	}
-
-	if serverless, ok := defaultServerless[framework]; ok {
-		*sl = optional.Some(serverless)
-		return sl.Unwrap()
-	}
-
-	*sl = optional.Some(false)
-	return sl.Unwrap()
+	return false
 }
 
 // GetMeta returns the metadata of a Python project.
