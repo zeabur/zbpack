@@ -87,17 +87,7 @@ type GetMetaOptions struct {
 }
 
 func getServerless(ctx *goPlanContext) bool {
-	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
-	if fcEnv == "true" || fcEnv == "1" {
-		return false
-	}
-
-	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
-	if zsEnv == "true" || zsEnv == "1" {
-		return true
-	}
-
-	return false
+	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
 }
 
 // GetMeta gets the metadata of the Go project.

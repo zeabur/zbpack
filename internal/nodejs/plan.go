@@ -3,7 +3,6 @@ package nodejs
 import (
 	"encoding/json"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -667,14 +666,8 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 func getServerless(ctx *nodePlanContext) bool {
-	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
-	if fcEnv == "true" || fcEnv == "1" {
-		return false
-	}
-
-	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
-	if zsEnv == "true" || zsEnv == "1" {
-		return true
+	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
+		return value
 	}
 
 	sl := &ctx.Serverless

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -640,17 +639,7 @@ type GetMetaOptions struct {
 }
 
 func getServerless(ctx *pythonPlanContext) bool {
-	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
-	if fcEnv == "true" || fcEnv == "1" {
-		return false
-	}
-
-	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
-	if zsEnv == "true" || zsEnv == "1" {
-		return true
-	}
-
-	return false
+	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
 }
 
 // GetMeta returns the metadata of a Python project.
