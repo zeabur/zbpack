@@ -11,8 +11,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	buildStage := `FROM docker.io/library/golang:` + meta["goVersion"] + `-alpine as builder
 RUN mkdir /src
 WORKDIR /src
-COPY go.mod ./
-COPY go.sum ./
+COPY go.mod go.sum* ./
 RUN go mod download
 COPY . /src/
 ENV CGO_ENABLED=0
