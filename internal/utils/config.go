@@ -14,11 +14,6 @@ import (
 // and ZBPACK_SERVERLESS environment variables.
 // If all of them are not set, it returns None for consumers to determine the default value.
 func GetExplicitServerlessConfig(config plan.ImmutableProjectConfiguration) optional.Option[bool] {
-	serverlessConfig := plan.Cast(config.Get("serverless"), cast.ToBoolE)
-	if value, err := serverlessConfig.Take(); err == nil {
-		return optional.Some(value)
-	}
-
 	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
 	if fcEnv == "true" || fcEnv == "1" {
 		return optional.Some(true)
@@ -27,6 +22,11 @@ func GetExplicitServerlessConfig(config plan.ImmutableProjectConfiguration) opti
 	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
 	if zsEnv == "true" || zsEnv == "1" {
 		return optional.Some(true)
+	}
+
+	serverlessConfig := plan.Cast(config.Get("serverless"), cast.ToBoolE)
+	if value, err := serverlessConfig.Take(); err == nil {
+		return optional.Some(value)
 	}
 
 	return optional.None[bool]()
