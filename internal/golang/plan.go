@@ -2,17 +2,19 @@ package golang
 
 import (
 	"bufio"
-	"os"
 	"path"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type goPlanContext struct {
-	Src           afero.Fs
+	Src    afero.Fs
+	Config plan.ImmutableProjectConfiguration
+
 	SubmoduleName string
 
 	GoVersion optional.Option[string]
@@ -80,26 +82,21 @@ func getEntry(ctx *goPlanContext) string {
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src           afero.Fs
+	Config        plan.ImmutableProjectConfiguration
 	SubmoduleName string
 }
 
 func getServerless(ctx *goPlanContext) bool {
-	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
-	if fcEnv == "true" || fcEnv == "1" {
-		return false
-	}
-
-	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
-	if zsEnv == "true" || zsEnv == "1" {
-		return true
-	}
-
-	return false
+	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
 }
 
 // GetMeta gets the metadata of the Go project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	ctx := &goPlanContext{Src: opt.Src, SubmoduleName: opt.SubmoduleName}
+	ctx := &goPlanContext{
+		Src:           opt.Src,
+		Config:        opt.Config,
+		SubmoduleName: opt.SubmoduleName,
+	}
 	meta := types.PlanMeta{}
 
 	goVersion := getGoVersion(ctx)
