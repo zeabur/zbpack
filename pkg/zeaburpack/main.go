@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/nodejs/nuxtjs"
+	"github.com/zeabur/zbpack/internal/nodejs/remix"
 	"github.com/zeabur/zbpack/internal/nodejs/waku"
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -332,6 +333,16 @@ func Build(opt *BuildOptions) error {
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
 		err = nextjs.TransformServerless(*opt.Path)
+		if err != nil {
+			log.Println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkRemix) && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err = remix.TransformServerless(*opt.Path)
 		if err != nil {
 			log.Println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)

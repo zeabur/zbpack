@@ -690,6 +690,7 @@ func getServerless(ctx *nodePlanContext) bool {
 		types.NodeProjectFrameworkNuxtJs:  true,
 		types.NodeProjectFrameworkWaku:    true,
 		types.NodeProjectFrameworkAngular: true,
+		types.NodeProjectFrameworkRemix:   true,
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {
