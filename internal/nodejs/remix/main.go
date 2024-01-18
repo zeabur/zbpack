@@ -2,6 +2,7 @@
 package remix
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,6 +13,9 @@ import (
 	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/pkg/types"
 )
+
+//go:embed index.js
+var indexJs string
 
 // TransformServerless will transform the build output of Remix app to the serverless build output format of Zeabur
 func TransformServerless(workdir string) error {
@@ -91,10 +95,7 @@ func TransformServerless(workdir string) error {
 		return fmt.Errorf("copy package.json: %w", err)
 	}
 
-	indexjs := `import entry from './build/server-build-nodejs-eyJydW50aW1lIjoibm9kZWpzIn0.mjs';
-export default entry;`
-
-	err = os.WriteFile(path.Join(zeaburOutputDir, "functions/index.func/index.mjs"), []byte(indexjs), 0644)
+	err = os.WriteFile(path.Join(zeaburOutputDir, "functions/index.func/index.mjs"), []byte(indexJs), 0644)
 	if err != nil {
 		return fmt.Errorf("write index.mjs: %w", err)
 	}
