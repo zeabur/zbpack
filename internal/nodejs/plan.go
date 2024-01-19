@@ -369,7 +369,7 @@ func getNodeVersion(versionConstraint string) string {
 	// Use regex to find a version if the constraint
 	// has only one version condition and only limited
 	// in a major version.
-	var versionRegex = regexp.MustCompile(`^(?P<op>[~=^]?)(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*|\*)\.(?P<patch>0|[1-9]\d*|\*)$`)
+	var versionRegex = regexp.MustCompile(`^v?(?P<op>[~=^]?)(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*|\*)\.(?P<patch>0|[1-9]\d*|\*)$`)
 	if matched := versionRegex.FindStringSubmatch(versionConstraint); matched != nil {
 		op := matched[1]
 		major := matched[2]

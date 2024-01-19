@@ -76,3 +76,8 @@ func TestGetNodeVersion_NvmRcLatest(t *testing.T) {
 	v := getNodeVersion("node")
 	assert.Equal(t, strconv.FormatUint(maxNodeVersion, 10), v)
 }
+
+func TestGetNodeVersion_VPrefixedVersion(t *testing.T) {
+	v := getNodeVersion("v20.11.0")
+	assert.Equal(t, "20.11.0", v)
+}
