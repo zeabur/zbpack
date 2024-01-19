@@ -1,6 +1,8 @@
 package zeaburpack
 
 import (
+	"os"
+	"path"
 	"strings"
 
 	"github.com/samber/lo"
@@ -36,6 +38,18 @@ type PlanOptions struct {
 
 // Plan returns the build plan and metadata.
 func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	if opt.Path == nil || *opt.Path == "" {
+		opt.Path = &wd
+	} else if !strings.HasPrefix(*opt.Path, "/") {
+		p := path.Join(wd, *opt.Path)
+		opt.Path = &p
+	}
+
 	var src afero.Fs
 	if strings.HasPrefix(*opt.Path, "https://github.com") {
 		var err error
