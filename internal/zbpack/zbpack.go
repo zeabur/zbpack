@@ -90,7 +90,7 @@ func build(path string) error {
 		log.Fatalln(err)
 	}
 
-	trueValue := true
+	log.Printf("using submoduleName: %s", submoduleName)
 
 	return zeaburpack.Build(
 		&zeaburpack.BuildOptions{
@@ -107,6 +107,8 @@ func plan(path string) error {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	log.Printf("using submoduleName: %s", submoduleName)
 
 	githubToken := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if strings.HasPrefix(path, "https://github.com") && githubToken == "" {
