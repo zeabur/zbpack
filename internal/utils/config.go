@@ -16,7 +16,7 @@ import (
 func GetExplicitServerlessConfig(config plan.ImmutableProjectConfiguration) optional.Option[bool] {
 	fcEnv := os.Getenv("FORCE_CONTAINERIZED")
 	if fcEnv == "true" || fcEnv == "1" {
-		return optional.Some(true)
+		return optional.Some(false)
 	}
 
 	zsEnv := os.Getenv("ZBPACK_SERVERLESS")
