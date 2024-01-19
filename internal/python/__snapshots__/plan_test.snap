@@ -1,278 +1,18 @@
 
-[TestDetermineInstallCmd_Snapshot/pipenv-with-wsgi - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install gunicorn
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-wsgi - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add gunicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-none - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-none - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
-COPY requirements.txt* .
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/pip-none - 1]
-COPY requirements.txt* .
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
-COPY requirements.txt* .
-RUN pip install uvicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add uvicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-with-fastapi - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install uvicorn
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-wsgi - 1]
-RUN pip install gunicorn
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
-RUN pip install uvicorn
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-none - 1]
-RUN echo "skip install"
----
-
-[TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
-pipenv run gunicorn --bind :8080 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/unknown-none - 1]
-python app.py
----
-
-[TestDetermineStartCmd_Snapshot/poetry-with-fastapi - 1]
-poetry run uvicorn wsgi.py --host 0.0.0.0 --port 8080
----
-
-[TestDetermineStartCmd_Snapshot/unknown-with-fastapi - 1]
-uvicorn wsgi.py --host 0.0.0.0 --port 8080
----
-
-[TestDetermineStartCmd_Snapshot/pip-none - 1]
-python app.py
----
-
-[TestDetermineStartCmd_Snapshot/unknown-with-wsgi - 1]
-gunicorn --bind :8080 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/pip-with-wsgi - 1]
-gunicorn --bind :8080 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/poetry-none - 1]
-poetry run python app.py
----
-
-[TestDetermineStartCmd_Snapshot/pip-with-fastapi - 1]
-uvicorn wsgi.py --host 0.0.0.0 --port 8080
----
-
-[TestDetermineStartCmd_Snapshot/pipenv-none - 1]
-pipenv run python app.py
----
-
-[TestDetermineStartCmd_Snapshot/pipenv-with-fastapi - 1]
-pipenv run uvicorn wsgi.py --host 0.0.0.0 --port 8080
----
-
-[TestDetermineStartCmd_Snapshot/poetry-with-wsgi - 1]
-poetry run gunicorn --bind :8080 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/pipenv-with-static - 1]
-/usr/sbin/nginx && pipenv run gunicorn --bind :8000 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/pip-with-static - 1]
-/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/unknown-with-static - 1]
-/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
----
-
-[TestDetermineStartCmd_Snapshot/poetry-with-static - 1]
-/usr/sbin/nginx && poetry run gunicorn --bind :8000 wsgi.py
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx-django - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add gunicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add gunicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
-COPY requirements.txt* .
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-static-django - 1]
-COPY requirements.txt* .
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-static-django - 1]
-RUN pip install gunicorn
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-static-django - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add gunicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx-django - 1]
-RUN pip install gunicorn
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx - 1]
-RUN pip install gunicorn
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx-django - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install gunicorn
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install gunicorn
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx-django - 1]
-COPY requirements.txt* .
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-with-static-django - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install gunicorn
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
-RUN pip install pipenv
-COPY Pipfile* Pipfile.lock* .
-RUN pipenv install
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
-COPY requirements.txt* .
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
-RUN echo "skip install"
----
-
-[TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
-RUN pip install poetry
-COPY pyproject.toml* poetry.lock* .
-RUN poetry add uvicorn
-RUN poetry install
----
-
-[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
-RUN pip install uvicorn
----
-
-[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
-COPY requirements.txt* .
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
----
-
-[TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
-RUN pip install pdm
-COPY pyproject.toml* pdm.lock* .
-RUN pdm install
----
-
 [TestDetermineInstallCmd_Snapshot/pdm-none - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
 RUN pdm install
 ---
 
-[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx-django - 1]
-RUN pip install gunicorn
----
-
-[TestDetermineInstallCmd_Snapshot/pdm-with-static-nginx-django - 1]
+[TestDetermineInstallCmd_Snapshot/pdm-with-fastapi - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
-RUN pdm add gunicorn
+RUN pdm add uvicorn
 RUN pdm install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pdm-with-static-django - 1]
-RUN pip install pdm
-COPY pyproject.toml* pdm.lock* .
-RUN pdm add gunicorn
-RUN pdm install
----
-
-[TestDetermineInstallCmd_Snapshot/pdm-with-wsgi - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
 RUN pdm add gunicorn
@@ -286,11 +26,70 @@ RUN pdm add gunicorn
 RUN pdm install
 ---
 
-[TestDetermineInstallCmd_Snapshot/pdm-with-fastapi - 1]
+[TestDetermineInstallCmd_Snapshot/pdm-with-static-nginx-django - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
-RUN pdm add uvicorn
+RUN pdm add gunicorn
 RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pdm-with-wsgi - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm add gunicorn
+RUN pdm install
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-none - 1]
+COPY requirements.txt* .
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
+COPY requirements.txt* .
+RUN pip install uvicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-static-django - 1]
+COPY requirements.txt* .
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
+COPY requirements.txt* .
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-static-nginx-django - 1]
+COPY requirements.txt* .
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
+COPY requirements.txt* .
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
+COPY requirements.txt* .
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-none - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-fastapi - 1]
@@ -300,17 +99,51 @@ RUN pipenv install uvicorn
 RUN pipenv install
 ---
 
+[TestDetermineInstallCmd_Snapshot/pipenv-with-static-django - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install gunicorn
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install gunicorn
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-static-nginx-django - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install gunicorn
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-wsgi - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install gunicorn
+RUN pipenv install
+---
+
 [TestDetermineInstallCmd_Snapshot/poetry-none - 1]
 RUN pip install poetry
 COPY pyproject.toml* poetry.lock* .
 RUN poetry install
 ---
 
-[TestDetermineInstallCmd_Snapshot/pdm-with-streamlit-entry - 1]
-RUN pip install pdm
-COPY pyproject.toml* pdm.lock* .
-RUN pdm add streamlit
-RUN pdm install
+[TestDetermineInstallCmd_Snapshot/poetry-with-fastapi - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add uvicorn
+RUN poetry install
 ---
 
 [TestDetermineInstallCmd_Snapshot/poetry-with-static-django - 1]
@@ -318,4 +151,123 @@ RUN pip install poetry
 COPY pyproject.toml* poetry.lock* .
 RUN poetry add gunicorn
 RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add gunicorn
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-static-nginx-django - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add gunicorn
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-streamlit-entry - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/poetry-with-wsgi - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry add gunicorn
+RUN poetry install
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-none - 1]
+RUN echo "skip install"
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-fastapi - 1]
+RUN pip install uvicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-static-django - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-static-nginx-django - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
+RUN echo "skip install"
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-wsgi - 1]
+RUN pip install gunicorn
+---
+
+[TestDetermineStartCmd_Snapshot/pip-none - 1]
+python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/pip-with-fastapi - 1]
+uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/pip-with-static - 1]
+/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/pip-with-wsgi - 1]
+gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-none - 1]
+pipenv run python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-with-fastapi - 1]
+pipenv run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-with-static - 1]
+/usr/sbin/nginx && pipenv run gunicorn --bind :8000 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
+pipenv run gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-none - 1]
+poetry run python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-with-fastapi - 1]
+poetry run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-with-static - 1]
+/usr/sbin/nginx && poetry run gunicorn --bind :8000 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/poetry-with-wsgi - 1]
+poetry run gunicorn --bind :8080 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-none - 1]
+python app.py
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-with-fastapi - 1]
+uvicorn wsgi.py --host 0.0.0.0 --port 8080
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-with-static - 1]
+/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
+---
+
+[TestDetermineStartCmd_Snapshot/unknown-with-wsgi - 1]
+gunicorn --bind :8080 wsgi.py
 ---

@@ -1,6 +1,7 @@
 package php_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -8,6 +9,15 @@ import (
 	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/pkg/types"
 )
+
+func TestMain(m *testing.M) {
+	v := m.Run()
+
+	// After all tests have run `go-snaps` will sort snapshots
+	snaps.Clean(m, snaps.CleanOpts{Sort: true})
+
+	os.Exit(v)
+}
 
 func TestTemplate(t *testing.T) {
 	t.Parallel()

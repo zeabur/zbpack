@@ -2,6 +2,7 @@ package python
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,6 +13,15 @@ import (
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
+
+func TestMain(m *testing.M) {
+	v := m.Run()
+
+	// After all tests have run `go-snaps` will sort snapshots
+	snaps.Clean(m, snaps.CleanOpts{Sort: true})
+
+	os.Exit(v)
+}
 
 func TestPackageManager_Pip(t *testing.T) {
 	fs := afero.NewMemMapFs()
