@@ -1,4 +1,79 @@
 
+[TestTemplate_BuildCmd_Bun - 1]
+# Install bun if we need it
+FROM oven/bun:1.0 as bun-runtime
+FROM node:18 as build
+
+ENV PORT=8080
+WORKDIR /src
+# Copy the bun binary from the bun-runtime stage directly.
+# A bit hacky but it works.
+COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
+COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
+
+# Check if we have 'corepack' available; if none, we
+# install corepack@0.10.0.
+RUN which corepack || npm install -g --force corepack@0.10.0
+RUN corepack enable
+
+RUN bun install
+
+COPY . .
+
+# Build if we can build it
+
+
+EXPOSE 8080
+CMD bun start main.ts
+
+---
+
+[TestTemplate_BuildCmd_NOutputDir - 1]
+FROM node:18 as build
+
+ENV PORT=8080
+WORKDIR /src
+
+# Check if we have 'corepack' available; if none, we
+# install corepack@0.10.0.
+RUN which corepack || npm install -g --force corepack@0.10.0
+RUN corepack enable
+
+RUN yarn install
+
+COPY . .
+
+# Build if we can build it
+RUN yarn build
+
+EXPOSE 8080
+CMD yarn start
+
+---
+
+[TestTemplate_BuildCmd_OutputDir - 1]
+FROM node:18 as build
+
+ENV PORT=8080
+WORKDIR /src
+
+# Check if we have 'corepack' available; if none, we
+# install corepack@0.10.0.
+RUN which corepack || npm install -g --force corepack@0.10.0
+RUN corepack enable
+
+RUN yarn install
+
+COPY . .
+
+# Build if we can build it
+RUN yarn build
+
+EXPOSE 8080
+CMD yarn start
+
+---
+
 [TestTemplate_NBuildCmd_NOutputDir - 1]
 FROM node:18 as build
 
@@ -65,80 +140,5 @@ COPY . .
 
 EXPOSE 8080
 CMD yarn start
-
----
-
-[TestTemplate_BuildCmd_NOutputDir - 1]
-FROM node:18 as build
-
-ENV PORT=8080
-WORKDIR /src
-
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
-RUN yarn install
-
-COPY . .
-
-# Build if we can build it
-RUN yarn build
-
-EXPOSE 8080
-CMD yarn start
-
----
-
-[TestTemplate_BuildCmd_OutputDir - 1]
-FROM node:18 as build
-
-ENV PORT=8080
-WORKDIR /src
-
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
-RUN yarn install
-
-COPY . .
-
-# Build if we can build it
-RUN yarn build
-
-EXPOSE 8080
-CMD yarn start
-
----
-
-[TestTemplate_BuildCmd_Bun - 1]
-# Install bun if we need it
-FROM oven/bun:1.0 as bun-runtime
-FROM node:18 as build
-
-ENV PORT=8080
-WORKDIR /src
-# Copy the bun binary from the bun-runtime stage directly.
-# A bit hacky but it works.
-COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
-COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
-
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
-RUN bun install
-
-COPY . .
-
-# Build if we can build it
-
-
-EXPOSE 8080
-CMD bun start main.ts
 
 ---
