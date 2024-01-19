@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
@@ -15,7 +16,9 @@ import (
 var (
 	// info option is used to analyze and print project information.
 	info bool
-	cmd  = &cobra.Command{
+	// userSubmoduleName option is used to specify the submodule name of this project manually
+	userSubmoduleName string
+	cmd               = &cobra.Command{
 		Use:   "zbpack",
 		Short: "Zbpack is a tool to help you analyze your project and build Docker image in one click.",
 		Long: "Zbpack is a powerful tool that not only analyzes your project for dependencies and requirements, " +
@@ -34,6 +37,7 @@ var (
 
 func init() {
 	cmd.PersistentFlags().BoolVarP(&info, "info", "i", false, "only print project information")
+	cmd.PersistentFlags().StringVar(&userSubmoduleName, "submodule", "", "submodule (service) name. by default, it is picked from the directory name.")
 	cmd.SetUsageTemplate(usageTemplate)
 }
 
@@ -87,12 +91,12 @@ func build(path string) error {
 		log.Fatalln(err)
 	}
 
-	trueValue := true
+	log.Printf("using submoduleName: %s", submoduleName)
 
 	return zeaburpack.Build(
 		&zeaburpack.BuildOptions{
 			Path:          &path,
-			Interactive:   &trueValue,
+			Interactive:   lo.ToPtr(true),
 			SubmoduleName: &submoduleName,
 		},
 	)
@@ -104,6 +108,8 @@ func plan(path string) error {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	log.Printf("using submoduleName: %s", submoduleName)
 
 	githubToken := os.Getenv("GITHUB_ACCESS_TOKEN")
 	if strings.HasPrefix(path, "https://github.com") && githubToken == "" {
