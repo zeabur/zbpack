@@ -15,7 +15,9 @@ import (
 var (
 	// info option is used to analyze and print project information.
 	info bool
-	cmd  = &cobra.Command{
+	// userSubmoduleName option is used to specify the submodule name of this project manually
+	userSubmoduleName string
+	cmd               = &cobra.Command{
 		Use:   "zbpack",
 		Short: "Zbpack is a tool to help you analyze your project and build Docker image in one click.",
 		Long: "Zbpack is a powerful tool that not only analyzes your project for dependencies and requirements, " +
@@ -34,6 +36,7 @@ var (
 
 func init() {
 	cmd.PersistentFlags().BoolVarP(&info, "info", "i", false, "only print project information")
+	cmd.PersistentFlags().StringVar(&userSubmoduleName, "submodule", "", "submodule (service) name. by default, it is picked from the directory name.")
 	cmd.SetUsageTemplate(usageTemplate)
 }
 

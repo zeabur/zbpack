@@ -38,6 +38,10 @@ Use "{{.CommandPath}} [command] --help" for more information about a command.{{e
 
 // GetSubmoduleName is used to get submodule name from path.
 func GetSubmoduleName(path string) (submoduleName string, err error) {
+	if userSubmoduleName != "" {
+		return userSubmoduleName, nil
+	}
+
 	var absPath string
 	if strings.HasPrefix(path, "https://") {
 		absPath = path
