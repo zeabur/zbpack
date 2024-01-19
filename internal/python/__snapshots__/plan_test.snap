@@ -48,42 +48,42 @@ RUN pdm install
 
 [TestDetermineInstallCmd_Snapshot/pip-none - 1]
 COPY requirements.txt* .
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-fastapi - 1]
 COPY requirements.txt* .
 RUN pip install uvicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-django - 1]
 COPY requirements.txt* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx - 1]
 COPY requirements.txt* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-static-nginx-django - 1]
 COPY requirements.txt* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
 COPY requirements.txt* .
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-wsgi - 1]
 COPY requirements.txt* .
 RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-none - 1]
