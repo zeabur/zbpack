@@ -1,12 +1,22 @@
 package nodejs_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/internal/nodejs"
 )
+
+func TestMain(m *testing.M) {
+	v := m.Run()
+
+	// After all tests have run `go-snaps` will sort snapshots
+	snaps.Clean(m, snaps.CleanOpts{Sort: true})
+
+	os.Exit(v)
+}
 
 func TestTemplate_NBuildCmd_NOutputDir(t *testing.T) {
 	ctx := nodejs.TemplateContext{
