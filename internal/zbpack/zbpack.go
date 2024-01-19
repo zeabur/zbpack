@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
@@ -95,7 +96,7 @@ func build(path string) error {
 	return zeaburpack.Build(
 		&zeaburpack.BuildOptions{
 			Path:          &path,
-			Interactive:   &trueValue,
+			Interactive:   lo.ToPtr(true),
 			SubmoduleName: &submoduleName,
 		},
 	)
