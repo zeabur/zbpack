@@ -52,7 +52,7 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		OutputDir:   meta["outputDir"],
 
 		// The flag specific to planner/bun.
-		Bun: meta["bun"] == "true",
+		Bun: meta["bun"] == "true" || meta["packageManager"] == "bun",
 	}
 
 	return context

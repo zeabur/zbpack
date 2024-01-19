@@ -95,6 +95,11 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 		return pm.Unwrap()
 	}
 
+	if utils.HasFile(src, "bun.lockb") {
+		*pm = optional.Some(types.NodePackageManagerBun)
+		return pm.Unwrap()
+	}
+
 	*pm = optional.Some(types.NodePackageManagerUnknown)
 	return pm.Unwrap()
 }
