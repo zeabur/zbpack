@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 )
 
 // referenceConstructor constructs the standardized image references
