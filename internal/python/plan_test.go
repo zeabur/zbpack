@@ -105,6 +105,33 @@ license = {text = "MIT"}
 	assert.Equal(t, types.PythonPackageManagerPdm, pm)
 }
 
+func TestPackageManager_Rye(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "flask>=2.3.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+`)), 0o644)
+	_ = afero.WriteFile(fs, "requirements.lock", nil, 0o644)
+
+	ctx := &pythonPlanContext{
+		Src: fs,
+	}
+	pm := DeterminePackageManager(ctx)
+
+	assert.Equal(t, types.PythonPackageManagerRye, pm)
+}
+
 func TestPackageManager_PoetryWithOldRequirements(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
@@ -737,6 +764,32 @@ license = {text = "MIT"}`), 0o644)
 	ctx := &pythonPlanContext{
 		Src:            fs,
 		PackageManager: optional.Some(types.PythonPackageManagerPdm),
+	}
+
+	assert.True(t, HasDependencyWithFile(ctx, "flask"))
+	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Rye(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "", email = ""},
+]
+dependencies = [
+    "flask>=2.3.2",
+]
+requires-python = ">=3.8"
+license = {text = "MIT"}`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerRye),
 	}
 
 	assert.True(t, HasDependencyWithFile(ctx, "flask"))

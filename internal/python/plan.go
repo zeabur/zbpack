@@ -116,6 +116,7 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
 		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
 		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
+		{types.PythonPackageManagerRye, "pyproject.toml", "[tool.rye]", "requirements.lock"},
 	}
 
 	if packageManager, err := cpm.Take(); err == nil {
@@ -554,6 +555,8 @@ func determinePythonVersion(ctx *pythonPlanContext) string {
 		return determinePythonVersionWithPoetry(ctx)
 	case types.PythonPackageManagerPdm:
 		return determinePythonVersionWithPdm(ctx)
+	case types.PythonPackageManagerRye:
+		return determinePythonVersionWithRye(ctx)
 	default:
 		return defaultPython3Version
 	}
@@ -595,15 +598,45 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 	return defaultPython3Version
 }
 
+func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
+	// We read from `.python-version`.
+	// The format of `.python-version` is:
+	//
+	//		[distribution@][version]
+	//
+	// We extract the version part only.
+	src := ctx.Src
+	regex := regexp.MustCompile(`(?:.+?@)?([\d.]+)`)
+
+	content, err := afero.ReadFile(src, ".python-version")
+	if err != nil {
+		return defaultPython3Version
+	}
+
+	match := regex.FindSubmatch(content)
+	if len(match) > 1 {
+		return getPython3Version(string(match[1]))
+	}
+
+	return defaultPython3Version
+}
+
 func determineBuildCmd(ctx *pythonPlanContext) string {
+	commands := ""
+
 	staticInfo := DetermineStaticInfo(ctx)
 
 	if staticInfo.DjangoEnabled() {
 		// We need to collect static files if we are using Django.
-		return "RUN python manage.py collectstatic --noinput"
+		commands += "RUN python manage.py collectstatic --noinput\n"
 	}
 
-	return ""
+	packageManager := DeterminePackageManager(ctx)
+	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
+		commands = "RUN " + postInstallCmd + "\n"
+	}
+
+	return strings.TrimSpace(commands)
 }
 
 func determineStreamlitEntry(ctx *pythonPlanContext) string {
