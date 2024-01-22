@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 )
 
 // referenceConstructor constructs the standardized image references
@@ -12,14 +12,14 @@ import (
 // a proxy registry to the image reference.
 type referenceConstructor struct {
 	// proxyRegistry indicates the registry to be used for the image.
-	// It is designed for Harbor's Proxy Cache (ref 1).
+	// It is designed for Harbor's Proxy Cache (Ref 1).
 	//
 	// It will be prepended to any image in zeaburpack. If an image
-	// contains domain in the image name, the proxy registry will not
+	// contains a domain in the image name, the proxy registry will not
 	// be applied to the image (however, if the domain is `docker.io`,
-	// it will be still replaced).
+	// it will still be replaced).
 	//
-	// (ref 1) https://goharbor.io/docs/2.1.0/administration/configure-proxy-cache/
+	// (Ref 1) https://goharbor.io/docs/2.1.0/administration/configure-proxy-cache/
 	proxyRegistry *string
 
 	// stage is a special image reference that will not be extended
@@ -67,7 +67,7 @@ func (rc *referenceConstructor) Construct(rawRefString string) string {
 		return rawRefString
 	}
 
-	// If the image reference contains domain, we don't need to
+	// If the image reference contains a domain, we don't need to
 	// apply the proxy registry (unless the domain is `docker.io`).
 	imageRef, ok := ref.(reference.Named)
 	if !ok {
