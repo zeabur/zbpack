@@ -48,6 +48,7 @@ server { \
     }"> /etc/nginx/conf.d/default.conf ` + ` && rm -rf /var/lib/apt/lists/*
 ` + installCmd + `
 COPY . .
+` + buildCmd + `
 EXPOSE 8080
 CMD ` + startCmd
 	} else {
