@@ -228,6 +228,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isVocs := packageJSON.Dependencies["vocs"]; isVocs {
+		*fw = optional.Some(types.NodeProjectFrameworkVocs)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.NodeProjectFrameworkNone)
 	return fw.Unwrap()
 }
@@ -659,6 +664,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		types.NodeProjectFrameworkSliDev:           "dist",
 		types.NodeProjectFrameworkDocusaurus:       "build",
 		types.NodeProjectFrameworkSolidStartStatic: "dist/public",
+		types.NodeProjectFrameworkVocs:             "docs/dist",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
