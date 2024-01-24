@@ -72,6 +72,7 @@ const (
 	NodeProjectFrameworkSolidStartStatic NodeProjectFramework = "solid-start-static"
 	NodeProjectFrameworkNueJs            NodeProjectFramework = "nuejs"
 	NodeProjectFrameworkVocs             NodeProjectFramework = "vocs"
+	NodeProjectFrameworkRspress          NodeProjectFramework = "rspress"
 )
 
 //revive:enable:exported

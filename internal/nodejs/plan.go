@@ -233,6 +233,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isRspress := packageJSON.Dependencies["rspress"]; isRspress {
+		*fw = optional.Some(types.NodeProjectFrameworkRspress)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.NodeProjectFrameworkNone)
 	return fw.Unwrap()
 }
@@ -665,6 +670,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		types.NodeProjectFrameworkDocusaurus:       "build",
 		types.NodeProjectFrameworkSolidStartStatic: "dist/public",
 		types.NodeProjectFrameworkVocs:             "docs/dist",
+		types.NodeProjectFrameworkRspress:          "doc_build",
 	}
 
 	if outputDir, ok := defaultStaticOutputDirs[framework]; ok {
