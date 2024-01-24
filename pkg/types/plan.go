@@ -65,6 +65,7 @@ const (
 	NodeProjectFrameworkVitepress        NodeProjectFramework = "vitepress"
 	NodeProjectFrameworkAstroStatic      NodeProjectFramework = "astro-static"
 	NodeProjectFrameworkAstroSSR         NodeProjectFramework = "astro-ssr"
+	NodeProjectFrameworkAstroStarlight   NodeProjectFramework = "astro-starlight"
 	NodeProjectFrameworkSliDev           NodeProjectFramework = "sli.dev"
 	NodeProjectFrameworkDocusaurus       NodeProjectFramework = "docusaurus"
 	NodeProjectFrameworkSolidStart       NodeProjectFramework = "solid-start"

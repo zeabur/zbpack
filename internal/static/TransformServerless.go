@@ -49,6 +49,7 @@ func isMpaFramework(framework string) bool {
 		types.NodeProjectFrameworkHexo,
 		types.NodeProjectFrameworkVitepress,
 		types.NodeProjectFrameworkAstroStatic,
+		types.NodeProjectFrameworkAstroStarlight,
 		types.NodeProjectFrameworkSolidStartStatic,
 		types.NodeProjectFrameworkVocs,
 		types.NodeProjectFrameworkRspress,
