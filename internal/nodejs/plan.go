@@ -124,6 +124,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 			return fw.Unwrap()
 		}
 
+		if _, isAstroStarlight := packageJSON.Dependencies["@astrojs/starlight"]; isAstroStarlight {
+			*fw = optional.Some(types.NodeProjectFrameworkAstroStarlight)
+			return fw.Unwrap()
+		}
+
 		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
 		return fw.Unwrap()
 	}
@@ -666,6 +671,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		types.NodeProjectFrameworkHexo:             "public",
 		types.NodeProjectFrameworkVitepress:        "docs/.vitepress/dist",
 		types.NodeProjectFrameworkAstroStatic:      "dist",
+		types.NodeProjectFrameworkAstroStarlight:   "dist",
 		types.NodeProjectFrameworkSliDev:           "dist",
 		types.NodeProjectFrameworkDocusaurus:       "build",
 		types.NodeProjectFrameworkSolidStartStatic: "dist/public",
