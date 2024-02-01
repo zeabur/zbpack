@@ -173,21 +173,6 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
-	if _, isVitepress := packageJSON.DevDependencies["vitepress"]; isVitepress {
-		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
-		return fw.Unwrap()
-	}
-
-	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
-		*fw = optional.Some(types.NodeProjectFrameworkWaku)
-		return fw.Unwrap()
-	}
-
-	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
-		*fw = optional.Some(types.NodeProjectFrameworkVite)
-		return fw.Unwrap()
-	}
-
 	if _, isUmi := packageJSON.Dependencies["umi"]; isUmi {
 		*fw = optional.Some(types.NodeProjectFrameworkUmi)
 		return fw.Unwrap()
@@ -218,8 +203,13 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
-	if _, isNuxtJs := packageJSON.DevDependencies["nuxt"]; isNuxtJs {
-		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
+	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
+		*fw = optional.Some(types.NodeProjectFrameworkWaku)
+		return fw.Unwrap()
+	}
+
+	if _, isVitepress := packageJSON.DevDependencies["vitepress"]; isVitepress {
+		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
 	}
 
@@ -240,6 +230,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 
 	if _, isRspress := packageJSON.Dependencies["rspress"]; isRspress {
 		*fw = optional.Some(types.NodeProjectFrameworkRspress)
+		return fw.Unwrap()
+	}
+
+	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
+		*fw = optional.Some(types.NodeProjectFrameworkVite)
 		return fw.Unwrap()
 	}
 
