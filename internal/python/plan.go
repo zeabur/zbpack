@@ -627,6 +627,10 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 	packageManager := DeterminePackageManager(ctx)
 	staticInfo := DetermineStaticInfo(ctx)
 
+	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
+		commands += "RUN " + postInstallCmd + "\n"
+	}
+
 	if staticInfo.DjangoEnabled() {
 		prefix := getPmStartCmdPrefix(packageManager)
 		if prefix != "" {
@@ -634,10 +638,6 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		}
 		// We need to collect static files if we are using Django.
 		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
-	}
-
-	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
-		commands = "RUN " + postInstallCmd + "\n"
 	}
 
 	return strings.TrimSpace(commands)
