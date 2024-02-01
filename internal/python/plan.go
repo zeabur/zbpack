@@ -624,14 +624,18 @@ func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
 func determineBuildCmd(ctx *pythonPlanContext) string {
 	commands := ""
 
+	packageManager := DeterminePackageManager(ctx)
 	staticInfo := DetermineStaticInfo(ctx)
 
 	if staticInfo.DjangoEnabled() {
+		prefix := getPmStartCmdPrefix(packageManager)
+		if prefix != "" {
+			prefix += " " // ex. poetry run
+		}
 		// We need to collect static files if we are using Django.
-		commands += "RUN python manage.py collectstatic --noinput\n"
+		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
 	}
 
-	packageManager := DeterminePackageManager(ctx)
 	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
 		commands = "RUN " + postInstallCmd + "\n"
 	}
