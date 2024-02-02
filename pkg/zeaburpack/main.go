@@ -412,7 +412,7 @@ func Build(opt *BuildOptions) error {
 	if opt.Interactive != nil && *opt.Interactive {
 		handleLog("\n\033[32mBuild successful\033[0m\n")
 		if m["serverless"] == "true" {
-			handleLog("\033[90m" + "To deploy the serverless function, please use function-runtime" + "\033[0m")
+			handleLog("\033[90m" + "To deploy the serverless function, please check .zeabur directory" + "\033[0m")
 		} else {
 			handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
 			if (t == types.PlanTypeNodejs && m["outputDir"] != "") || t == types.PlanTypeStatic {
