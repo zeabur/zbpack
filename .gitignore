@@ -2,4 +2,5 @@
 bin
 .DS_Store
 tests/*/.zeabur
+tests/*/*/.zeabur
 zbpack
