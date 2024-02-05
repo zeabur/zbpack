@@ -32,23 +32,24 @@ RUN mkdir -p /app/bin \
   # move the binary to the root of the container
   && (cp target/release/* /app/bin || true)
 
+# {{if not (eq .serverless "true")}}
 FROM docker.io/library/debian:bookworm-slim AS runtime
 
 # {{if eq .NeedOpenssl "yes"}}
 RUN apt-get update \
   && apt-get install -y openssl \
   && rm -rf /var/lib/apt/lists/*
-# {{ end }}
-
-ENV BINDIR="/app/bin"
-ENV BINNAME="{{ .BinName }}"
-ENV EXEFILE="${BINDIR}/${BINNAME}"
+{{ end }}
 
 RUN useradd -m -s /bin/bash zeabur
 COPY --from=builder --chown=zeabur:zeabur /app /app
 
 USER zeabur
 WORKDIR /app
+
+ENV BINDIR="/app/bin"
+ENV BINNAME="{{ .BinName }}"
+ENV EXEFILE="${BINDIR}/${BINNAME}"
 
 RUN if [ ! -x "${EXEFILE}" ]; then \
     find . -type f -executable -print | head -n 1 > EXEFILE; \
@@ -57,3 +58,7 @@ RUN if [ ! -x "${EXEFILE}" ]; then \
   fi
 
 CMD "$(cat EXEFILE)"
+# {{ else }}
+FROM scratch
+COPY --from=builder /app/bin/{{ .BinName }} main
+# {{ end }}

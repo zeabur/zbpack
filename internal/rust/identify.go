@@ -28,6 +28,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		GetMetaOptions{
 			Src:           options.Source,
 			SubmoduleName: options.SubmoduleName,
+			Config:        options.Config,
 		},
 	)
 }

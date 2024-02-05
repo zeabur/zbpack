@@ -232,6 +232,7 @@ func Build(opt *BuildOptions) error {
 	}
 
 	if t == types.PlanTypeGo && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
 		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__go.func"))
 		if err != nil {
 			println("Failed to copy serverless function: " + err.Error())
@@ -257,7 +258,35 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
+	if t == types.PlanTypeRust && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__rs.func"))
+		if err != nil {
+			println("Failed to copy serverless function: " + err.Error())
+		}
+
+		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "binary", Entry: "./main"}
+
+		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__rs.func"))
+		if err != nil {
+			handleLog("Failed to write function config to \".zeabur/output/functions/__rs.func\": " + err.Error())
+		}
+
+		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__rs"}}}
+
+		configBytes, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	if t == types.PlanTypePython && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
 		funcPath := path.Join(*opt.Path, ".zeabur/output/functions/__py.func")
 		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), funcPath)
 		if err != nil {
@@ -382,11 +411,15 @@ func Build(opt *BuildOptions) error {
 
 	if opt.Interactive != nil && *opt.Interactive {
 		handleLog("\n\033[32mBuild successful\033[0m\n")
-		handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
-		if (t == types.PlanTypeNodejs && m["outputDir"] != "") || t == types.PlanTypeStatic {
-			handleLog("npx serve .zeabur/output/static")
+		if m["serverless"] == "true" {
+			handleLog("\033[90m" + "The compiled serverless function has been saved in the .zeabur directory." + "\033[0m")
 		} else {
-			handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+			handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
+			if (t == types.PlanTypeNodejs && m["outputDir"] != "") || t == types.PlanTypeStatic {
+				handleLog("npx serve .zeabur/output/static")
+			} else {
+				handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+			}
 		}
 	}
 
