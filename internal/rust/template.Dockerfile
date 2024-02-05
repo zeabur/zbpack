@@ -58,9 +58,9 @@ RUN useradd -m -s /bin/bash zeabur
 USER zeabur
 WORKDIR /app
 
-COPY --from=builder --chown=zeabur:zeabur /app/bin/server ./bin/server
+COPY --from=builder --chown=zeabur:zeabur /app/bin/server /app/bin/server
 
-CMD ["./bin/server"]
+CMD ["/app/bin/server"]
 # {{ else }}
 FROM scratch
 COPY --from=builder /app/bin/server main
