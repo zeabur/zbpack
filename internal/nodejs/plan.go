@@ -202,6 +202,10 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
 		return fw.Unwrap()
 	}
+	if _, isNuxtJs := packageJSON.DevDependencies["nuxt"]; isNuxtJs {
+		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
+		return fw.Unwrap()
+	}
 
 	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
 		*fw = optional.Some(types.NodeProjectFrameworkWaku)
