@@ -134,8 +134,14 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	return dependencies
 }
 
+var baseExt = []string{
+	// php applications often access MySQL databases
+	"pdo", "pdo_mysql", "mysqli",
+}
+
+// DeterminePHPExtensions determines the required PHP extensions from composer.json of the project.
 func DeterminePHPExtensions(source afero.Fs) []string {
-	var extensions []string
+	extensions := slices.Clone(baseExt)
 
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
