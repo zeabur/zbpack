@@ -26,9 +26,12 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		serverMode = "swoole"
 	}
 
-	installCMD := fmt.Sprintf(`
+	installCMD := ""
+	if meta["deps"] != "" {
+		installCMD += fmt.Sprintf(`
 RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
 `, meta["deps"])
+	}
 	if projectProperty&types.PHPPropertyComposer != 0 {
 		installCMD += "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n"
 	}
