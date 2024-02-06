@@ -26,15 +26,18 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		serverMode = "swoole"
 	}
 
-	installCMD := fmt.Sprintf(`
-RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
+	environmentInstallCmd := "\n"
+	if meta["deps"] != "" {
+		environmentInstallCmd += fmt.Sprintf(`RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
 `, meta["deps"])
+	}
 	if projectProperty&types.PHPPropertyComposer != 0 {
-		installCMD += `
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+		environmentInstallCmd += "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n"
+	}
+	if meta["exts"] != "" {
+		environmentInstallCmd += `ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-`
+RUN docker-php-ext-install ` + meta["exts"] + "\n"
 	}
 
 	// copy source code to /var/www/public, which is Nginx root directory
@@ -63,20 +66,10 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 `
 	}
 
-	// install dependencies with composer
-	composerInstallCmd := "\n"
+	// install project dependencies
+	projectInstallCmd := "\n"
 	if projectProperty&types.PHPPropertyComposer != 0 {
-		composerInstallCmd = `
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
-RUN composer install --optimize-autoloader --no-dev
-`
+		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
 
 	startCmd := `
@@ -90,9 +83,9 @@ CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--p
 	}
 
 	dockerFile := getPhpImage +
-		installCMD +
+		environmentInstallCmd +
 		copyCommand +
-		composerInstallCmd +
+		projectInstallCmd +
 		startCmd
 
 	return dockerFile, nil

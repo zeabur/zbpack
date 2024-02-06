@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -96,14 +98,14 @@ var depMap = map[string][]string{
 	"ext-gmp":     {"libgmp-dev"},
 }
 
-var baseDep = []string{"libicu-dev", "jq", "pkg-config", "unzip", "git"}
+var baseDep = []string{"libicu-dev", "pkg-config", "unzip", "git"}
 
 // DetermineAptDependencies determines the required apt dependencies of the project.
 //
 // We install Nginx server unless server is "swoole".
 func DetermineAptDependencies(source afero.Fs, server string) []string {
 	// deep copy the base dependencies
-	dependencies := append([]string{}, baseDep...)
+	dependencies := slices.Clone(baseDep)
 
 	// If Octane Server is not "swoole", we should install Nginx.
 	//
@@ -130,6 +132,34 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	}
 
 	return dependencies
+}
+
+var baseExt = []string{
+	// php applications often access MySQL databases
+	"pdo", "pdo_mysql", "mysqli",
+}
+
+// DeterminePHPExtensions determines the required PHP extensions from composer.json of the project.
+func DeterminePHPExtensions(source afero.Fs) []string {
+	extensions := slices.Clone(baseExt)
+
+	composerJSON, err := parseComposerJSON(source)
+	if err != nil {
+		return extensions
+	}
+
+	if composerJSON.Require == nil {
+		return extensions
+	}
+
+	for dep := range *composerJSON.Require {
+		extName, ok := strings.CutPrefix(dep, "ext-")
+		if ok {
+			extensions = append(extensions, strings.ToLower(extName))
+		}
+	}
+
+	return lo.Uniq(extensions)
 }
 
 // DetermineApplication determines what application the project is using.

@@ -34,6 +34,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(options.Source)
 	deps := DetermineAptDependencies(options.Source, server)
+	exts := DeterminePHPExtensions(options.Source)
 	app, property := DetermineApplication(options.Source)
 
 	// Some meta will be added to the plan dynamically later.
@@ -41,6 +42,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		"framework":  string(framework),
 		"phpVersion": phpVersion,
 		"deps":       strings.Join(deps, " "),
+		"exts":       strings.Join(exts, " "),
 		"app":        string(app),
 		"property":   PropertyToString(property),
 	}
