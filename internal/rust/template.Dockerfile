@@ -42,7 +42,7 @@ RUN if [ ! -x "${EXEFILE}" ]; then \
     echo "${EXEFILE}" > EXEFILE; \
   fi
 
-RUN mv ${EXEFILE} /app/bin/server
+RUN mv $(cat EXEFILE) /app/bin/server
 
 # {{if not (eq .serverless "true")}}
 FROM docker.io/library/debian:bookworm-slim AS runtime
