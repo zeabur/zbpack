@@ -34,8 +34,14 @@ func TestTemplate(t *testing.T) {
 		string(types.PHPFrameworkCodeigniter),
 	}
 	deps := []string{
+		"",
 		"nginx",
 		"nginx owo",
+	}
+	exts := []string{
+		"",
+		"aaa",
+		"aaa bbb",
 	}
 	property := []string{
 		php.PropertyToString(types.PHPPropertyNone),
@@ -55,40 +61,46 @@ func TestTemplate(t *testing.T) {
 				f := f
 				for _, p := range property {
 					p := p
-					t.Run(v+"-"+f+"-"+d+"-"+p, func(t *testing.T) {
-						t.Parallel()
+					for _, e := range exts {
+						e := e
 
-						dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
-							"phpVersion": v,
-							"framework":  f,
-							"deps":       d,
-							"app":        string(types.PHPApplicationDefault),
-							"property":   p,
+						t.Run(v+"-"+f+"-"+d+"-"+p+"-"+e, func(t *testing.T) {
+							t.Parallel()
+
+							dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
+								"phpVersion": v,
+								"framework":  f,
+								"deps":       d,
+								"exts":       e,
+								"app":        string(types.PHPApplicationDefault),
+								"property":   p,
+							})
+
+							assert.NoError(t, err)
+							snaps.MatchSnapshot(t, dockerfile)
 						})
 
-						assert.NoError(t, err)
-						snaps.MatchSnapshot(t, dockerfile)
-					})
+						if f == string(types.PHPFrameworkLaravel) {
+							for _, o := range octaneServer {
+								o := o
 
-					if f == string(types.PHPFrameworkLaravel) {
-						for _, o := range octaneServer {
-							o := o
+								t.Run(v+"-"+f+"-"+d+"-"+p+"-"+e+"+os-"+o, func(t *testing.T) {
+									t.Parallel()
 
-							t.Run(v+"-"+f+"-"+d+"-"+p+"+os-"+o, func(t *testing.T) {
-								t.Parallel()
+									dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
+										"phpVersion":   v,
+										"framework":    f,
+										"deps":         d,
+										"exts":         e,
+										"app":          string(types.PHPApplicationDefault),
+										"property":     p,
+										"octaneServer": o,
+									})
 
-								dockerfile, err := php.GenerateDockerfile(types.PlanMeta{
-									"phpVersion":   v,
-									"framework":    f,
-									"deps":         d,
-									"app":          string(types.PHPApplicationDefault),
-									"property":     p,
-									"octaneServer": o,
+									assert.NoError(t, err)
+									snaps.MatchSnapshot(t, dockerfile)
 								})
-
-								assert.NoError(t, err)
-								snaps.MatchSnapshot(t, dockerfile)
-							})
+							}
 						}
 					}
 				}
