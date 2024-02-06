@@ -15,6 +15,22 @@ CMD nginx; php-fpm
 
 ---
 
+[TestTemplate/7-codeigniter-nginx,owo-0 - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
+
+---
+
 [TestTemplate/7-codeigniter-nginx,owo-1 - 1]
 FROM docker.io/library/php:7-fpm
 
@@ -30,14 +46,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/7-codeigniter-nginx,owo-1 - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -75,14 +104,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -105,7 +126,39 @@ CMD nginx; php-fpm
 
 ---
 
+[TestTemplate/7-laravel-nginx,owo-0 - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
+
+---
+
 [TestTemplate/7-laravel-nginx,owo-0+os- - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/7-laravel-nginx,owo-0+os-roadrunner - 1]
 FROM docker.io/library/php:7-fpm
 
 RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
@@ -166,14 +219,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -195,14 +240,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -224,14 +261,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -251,14 +280,6 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
@@ -342,14 +363,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/7-laravel-nginx-1 - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -371,14 +405,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -400,14 +426,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/7-laravel-nginx-1+os-roadrunner - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -427,17 +466,25 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
+
+---
+
+[TestTemplate/7-none-nginx,owo-0 - 1]
+FROM docker.io/library/php:7-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www/public
+WORKDIR /var/www/public
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
 
 ---
 
@@ -472,14 +519,6 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -517,14 +556,6 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -562,14 +593,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -607,14 +630,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -652,14 +667,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -697,15 +704,23 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.1-laravel-nginx,owo-0 - 1]
+FROM docker.io/library/php:8.1-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 
 CMD nginx; php-fpm
 
@@ -788,14 +803,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.1-laravel-nginx,owo-1 - 1]
+FROM docker.io/library/php:8.1-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -817,14 +845,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -846,14 +866,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -873,14 +885,6 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
@@ -949,6 +953,34 @@ CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--p
 
 ---
 
+[TestTemplate/8.1-laravel-nginx-0+os-swoole - 1]
+FROM docker.io/phpswoole/swoole:php8.1
+RUN docker-php-ext-install pcntl
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+
+CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
+
+---
+
+[TestTemplate/8.1-laravel-nginx-0+os-swoole - 1]
+FROM docker.io/phpswoole/swoole:php8.1
+RUN docker-php-ext-install pcntl
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+
+CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
+
+---
+
 [TestTemplate/8.1-laravel-nginx-1 - 1]
 FROM docker.io/library/php:8.1-fpm
 
@@ -964,14 +996,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.1-laravel-nginx-1 - 1]
+FROM docker.io/library/php:8.1-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -993,14 +1038,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1022,14 +1059,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1049,14 +1078,6 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
@@ -1094,14 +1115,6 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1139,14 +1152,6 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1184,14 +1189,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1229,14 +1226,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1274,14 +1263,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1319,14 +1300,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1334,6 +1307,22 @@ CMD nginx; php-fpm
 ---
 
 [TestTemplate/8.2-laravel-nginx,owo-0 - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-laravel-nginx,owo-0+os- - 1]
 FROM docker.io/library/php:8.2-fpm
 
 RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
@@ -1410,14 +1399,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-laravel-nginx,owo-1 - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1439,14 +1441,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1468,14 +1462,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1495,14 +1481,6 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
@@ -1526,6 +1504,22 @@ CMD nginx; php-fpm
 ---
 
 [TestTemplate/8.2-laravel-nginx-0+os- - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-laravel-nginx-0+os-roadrunner - 1]
 FROM docker.io/library/php:8.2-fpm
 
 RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
@@ -1586,14 +1580,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1615,14 +1601,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1644,14 +1622,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-laravel-nginx-1+os-roadrunner - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1671,14 +1662,6 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync
 COPY --chown=www-data:www-data . /var/www
 WORKDIR /var/www
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
@@ -1716,14 +1699,6 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1761,15 +1736,23 @@ WORKDIR /var/www/public
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-thinkphp-nginx,owo-0 - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx,owo && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 
 CMD nginx; php-fpm
 
@@ -1806,14 +1789,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1851,14 +1826,27 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
+RUN composer install --optimize-autoloader --no-dev
+
+CMD nginx; php-fpm
+
+---
+
+[TestTemplate/8.2-thinkphp-nginx-1 - 1]
+FROM docker.io/library/php:8.2-fpm
+
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync
+
+COPY --chown=www-data:www-data . /var/www
+WORKDIR /var/www
+
+RUN rm /etc/nginx/sites-enabled/default
+RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n    location / {\n        try_files \$uri \$uri/ /index.php?\$query_string;\n        gzip_static on;\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
+
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
@@ -1880,14 +1868,6 @@ WORKDIR /var/www
 RUN rm /etc/nginx/sites-enabled/default
 RUN echo "server {\n    listen 8080;\n    root /var/www/public;\n\n    add_header X-Frame-Options "SAMEORIGIN";\n    add_header X-Content-Type-Options "nosniff";\n\n    index index.php index.html;\n    charset utf-8;\n\n    location = /favicon.ico { access_log off; log_not_found off; }\n    location = /robots.txt  { access_log off; log_not_found off; }\n\n    error_page 404 /index.php;\n\n    location ~ \.php\$ {\n        try_files \$uri =404;\n        fastcgi_split_path_info ^(.+\.php)(/.+)\$;\n        fastcgi_pass 127.0.0.1:9000;\n        fastcgi_index index.php;\n        include fastcgi_params;\n        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;\n        fastcgi_param PATH_INFO \$fastcgi_path_info;\n        fastcgi_buffering off;\n    }\n\n location / {\n     if (!-e \$request_filename){\n         rewrite ^(.*)\$ /index.php?s=\$1 last; break;\n     }\n }\n\n    location ~ /\.(?!well-known).* {\n        deny all;\n    }\n}\n" >> /etc/nginx/sites-enabled/default
 
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
 RUN composer install --optimize-autoloader --no-dev
 
 CMD nginx; php-fpm
