@@ -64,13 +64,13 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 `
 	}
 
-	// install dependencies with composer
-	composerInstallCmd := "\n"
+	// install dependencies
+	installCmd := "\n"
+	if meta["exts"] != "" {
+		installCmd += `RUN docker-php-ext-install ` + meta["exts"] + "\n"
+	}
 	if projectProperty&types.PHPPropertyComposer != 0 {
-		if meta["exts"] != "" {
-			composerInstallCmd += `RUN docker-php-ext-install ` + meta["exts"] + "\n"
-		}
-		composerInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
+		installCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
 
 	startCmd := `
@@ -86,7 +86,7 @@ CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--p
 	dockerFile := getPhpImage +
 		installCMD +
 		copyCommand +
-		composerInstallCmd +
+		installCmd +
 		startCmd
 
 	return dockerFile, nil
