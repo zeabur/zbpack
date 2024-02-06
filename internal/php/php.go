@@ -66,17 +66,10 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 	// install dependencies with composer
 	composerInstallCmd := "\n"
 	if projectProperty&types.PHPPropertyComposer != 0 {
-		composerInstallCmd = `
-RUN  echo '#!/bin/sh\n\
-extensions=$(cat composer.json | jq -r ".require | to_entries[] | select(.key | startswith(\"ext-\")) | .key[4:]")\n\
-for ext in $extensions; do\n\
-    echo "Installing PHP extension: $ext"\n\
-    docker-php-ext-install $ext\n\
-done' > /usr/local/bin/install_php_extensions.sh \
-    && chmod +x /usr/local/bin/install_php_extensions.sh \
-    && /usr/local/bin/install_php_extensions.sh
-RUN composer install --optimize-autoloader --no-dev
-`
+		if meta["exts"] != "" {
+			composerInstallCmd += `RUN docker-php-ext-install ` + meta["exts"] + "\n"
+		}
+		composerInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
 
 	startCmd := `
