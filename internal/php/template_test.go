@@ -35,7 +35,7 @@ func TestTemplate(t *testing.T) {
 	}
 	deps := []string{
 		"nginx",
-		"nginx,owo",
+		"nginx owo",
 	}
 	property := []string{
 		php.PropertyToString(types.PHPPropertyNone),
