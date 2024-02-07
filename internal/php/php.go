@@ -37,7 +37,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	if meta["exts"] != "" {
 		environmentInstallCmd += `ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && sync
-RUN docker-php-ext-install ` + meta["exts"] + "\n"
+RUN install-php-extensions ` + meta["exts"] + "\n"
 	}
 
 	// copy source code to /var/www/public, which is Nginx root directory
