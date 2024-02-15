@@ -884,3 +884,60 @@ st.write(x, "squared is", x * x)`), 0o644)
 	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
 	assert.Equal(t, "zeabur_streamlit_demo.py", ctx.StreamlitEntry.Unwrap())
 }
+
+func TestDetermineWsgi(t *testing.T) {
+	t.Parallel()
+
+	matchedCases := []string{
+		"app = FastAPI()",
+		"    app = FastAPI()",
+		"app = FastAPI(\n\t# test\n)",
+		"app=FastAPI(\n\tname='app'\n)",
+	}
+
+	notMatchedCases := []string{
+		"app = FastAPI",
+		"# FastAPI test",
+		"# app = FastAPI test",
+		"app=FastAPI",
+	}
+
+	for _, c := range matchedCases {
+		c := c
+
+		t.Run("matched-"+c, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "main.py", []byte(c), 0o644)
+
+			ctx := &pythonPlanContext{
+				Src:            fs,
+				Config:         plan.NewProjectConfigurationFromFs(fs, ""),
+				PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+				Framework:      optional.Some(types.PythonFrameworkFastapi),
+			}
+
+			assert.Equal(t, "main:app", DetermineWsgi(ctx))
+		})
+	}
+
+	for _, c := range notMatchedCases {
+		c := c
+		t.Run("not-matched-"+c, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "main.py", []byte(c), 0o644)
+
+			ctx := &pythonPlanContext{
+				Src:            fs,
+				Config:         plan.NewProjectConfigurationFromFs(fs, ""),
+				PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+				Framework:      optional.Some(types.PythonFrameworkFastapi),
+			}
+
+			assert.Equal(t, "", DetermineWsgi(ctx))
+		})
+	}
+}
