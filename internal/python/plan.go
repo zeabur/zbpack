@@ -252,7 +252,7 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 		if constructor != "" {
 			entryFile := DetermineEntry(ctx)
 
-			re := regexp.MustCompile(`(\w+)\s*=\s*` + constructor + `\([^)]*\)`)
+			re := regexp.MustCompile(`(\w+)\s*=\s*` + constructor + `\(`)
 			content, err := afero.ReadFile(src, entryFile)
 			if err != nil {
 				return ""
