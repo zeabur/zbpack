@@ -1,8 +1,10 @@
 package zeaburpack
 
 import (
+	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
@@ -45,7 +47,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 
 	if opt.Path == nil || *opt.Path == "" {
 		opt.Path = &wd
-	} else if !strings.HasPrefix(*opt.Path, "/") {
+	} else if !filepath.IsAbs(*opt.Path) && !strings.HasPrefix(*opt.Path, "https://") {
 		p := path.Join(wd, *opt.Path)
 		opt.Path = &p
 	}
