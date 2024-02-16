@@ -55,7 +55,8 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		var err error
 		src, err = getGitHubSourceFromURL(*opt.Path, *opt.AccessToken)
 		if err != nil {
-			panic(err)
+			log.Printf("unexpected github source: %v\n", err)
+			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}
 		}
 	} else {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
