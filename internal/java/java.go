@@ -12,6 +12,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	framework := meta["framework"]
 	jdkVersion := meta["jdk"]
 	targetExt := meta["targetExt"]
+	javaArgs := meta["javaArgs"]
 
 	isMaven := projectType == string(types.JavaProjectTypeMaven)
 	isGradle := projectType == string(types.JavaProjectTypeGradle)
@@ -42,20 +43,17 @@ RUN gradle build -x test
 	startCmd := ""
 	wildcardFilename := "*." + targetExt
 
-	if isMaven {
-		startCmd = "CMD java -jar target/" + wildcardFilename
-	}
-
-	if isGradle {
-		startCmd = "CMD java -jar build/libs/" + wildcardFilename
-	}
-
-	if isMaven && isSpringBoot {
+	switch {
+	case javaArgs != "":
+		startCmd = "CMD java " + javaArgs
+	case isMaven && isSpringBoot:
 		startCmd = "CMD java -Dserver.port=$PORT -jar target/" + wildcardFilename
-	}
-
-	if isGradle && isSpringBoot {
+	case isGradle && isSpringBoot:
 		startCmd = "CMD java -Dserver.port=$PORT -jar build/libs/" + wildcardFilename
+	case isMaven:
+		startCmd = "CMD java -jar target/" + wildcardFilename
+	case isGradle:
+		startCmd = "CMD java -jar build/libs/" + wildcardFilename
 	}
 
 	dockerfile += startCmd
