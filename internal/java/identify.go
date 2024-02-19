@@ -2,6 +2,7 @@ package java
 
 import (
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -32,12 +33,19 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	jdkVersion := DetermineJDKVersion(projectType, options.Source)
 	targetExt := DetermineTargetExt(options.Source)
 
-	return types.PlanMeta{
+	planMeta := types.PlanMeta{
 		"type":      string(projectType),
 		"framework": string(framework),
 		"targetExt": targetExt,
 		"jdk":       jdkVersion,
 	}
+
+	javaArgs := plan.Cast(options.Config.Get("javaArgs"), cast.ToStringE)
+	if args, err := javaArgs.Take(); err == nil {
+		planMeta["javaArgs"] = args
+	}
+
+	return planMeta
 }
 
 var _ plan.Identifier = (*identify)(nil)
