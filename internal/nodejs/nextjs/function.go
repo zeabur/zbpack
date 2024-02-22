@@ -35,9 +35,15 @@ func constructNextFunction(zeaburOutputDir, tmpDir string) error {
 		return fmt.Errorf("copy .next: %w", err)
 	}
 
-	err = cp.Copy(path.Join(tmpDir, "package.json"), path.Join(p, "package.json"))
+	content, err := os.ReadFile(path.Join(tmpDir, "package.json"))
 	if err != nil {
-		return fmt.Errorf("copy package.json: %w", err)
+		return fmt.Errorf("read package.json: %w", err)
+	}
+
+	content = []byte(strings.ReplaceAll(string(content), `"type": "module",`, ""))
+	err = os.WriteFile(path.Join(p, "package.json"), content, 0644)
+	if err != nil {
+		return fmt.Errorf("write package.json: %w", err)
 	}
 
 	// https://github.com/i18next/next-i18next
