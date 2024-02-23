@@ -25,6 +25,14 @@ const (
 	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
 	PlanTypeSwift  PlanType = "swift"
+	PlanTypeDart   PlanType = "dart"
+)
+
+type DartFramework string
+
+const (
+	DartFrameworkFlutter DartFramework = "flutter"
+	DartFrameworkNone    DartFramework = "none"
 )
 
 //revive:enable:exported
