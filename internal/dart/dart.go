@@ -1,3 +1,4 @@
+// Package dart provides a Dart packer.
 package dart
 
 import (
