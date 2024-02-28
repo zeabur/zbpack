@@ -224,6 +224,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 	const (
 		WithWsgi              = "with-wsgi"
 		WithFastapi           = "with-fastapi"
+		WithTornado           = "with-tornado"
 		WithStaticDjango      = "with-static-django"
 		WithStaticNginx       = "with-static-nginx"
 		WithStaticNginxDjango = "with-static-nginx-django"
@@ -242,6 +243,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		for _, mode := range []string{
 			WithWsgi,
 			WithFastapi,
+			WithTornado,
 			WithStaticNginx,
 			WithStaticDjango,
 			WithStaticNginxDjango,
@@ -271,6 +273,10 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 					ctx.Framework = optional.Some(types.PythonFrameworkFastapi)
 				} else {
 					ctx.Framework = optional.Some(types.PythonFrameworkNone)
+				}
+
+				if mode == WithTornado {
+					ctx.Framework = optional.Some(types.PythonFrameworkTornado)
 				}
 
 				if mode == WithStaticNginx {
@@ -742,6 +748,32 @@ build-backend = "poetry.core.masonry.api"`), 0o644)
 
 	assert.True(t, HasDependencyWithFile(ctx, "fastapi"))
 	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+}
+
+func TestHasDependencyWithFile_Poetry_Tornado(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+[tool.poetry]
+name = "tornado-example"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+tornado = "^6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
+	}
+	assert.True(t, HasDependencyWithFile(ctx, "tornado"))
+	assert.False(t, HasDependencyWithFile(ctx, "foo"))
 }
 
 func TestHasDependencyWithFile_Pdm(t *testing.T) {
