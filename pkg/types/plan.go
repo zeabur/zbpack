@@ -94,6 +94,7 @@ const (
 	PythonFrameworkFlask   PythonFramework = "flask"
 	PythonFrameworkDjango  PythonFramework = "django"
 	PythonFrameworkFastapi PythonFramework = "fastapi"
+	PythonFrameworkTornado PythonFramework = "tornado"
 	PythonFrameworkSanic   PythonFramework = "sanic"
 	PythonFrameworkNone    PythonFramework = "none"
 
