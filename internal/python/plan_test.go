@@ -224,6 +224,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 	const (
 		WithWsgi              = "with-wsgi"
 		WithFastapi           = "with-fastapi"
+		WithTornado           = "with-tornado"
 		WithStaticDjango      = "with-static-django"
 		WithStaticNginx       = "with-static-nginx"
 		WithStaticNginxDjango = "with-static-nginx-django"
@@ -242,6 +243,7 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 		for _, mode := range []string{
 			WithWsgi,
 			WithFastapi,
+			WithTornado,
 			WithStaticNginx,
 			WithStaticDjango,
 			WithStaticNginxDjango,
@@ -271,6 +273,10 @@ func TestDetermineInstallCmd_Snapshot(t *testing.T) {
 					ctx.Framework = optional.Some(types.PythonFrameworkFastapi)
 				} else {
 					ctx.Framework = optional.Some(types.PythonFrameworkNone)
+				}
+
+				if mode == WithTornado {
+					ctx.Framework = optional.Some(types.PythonFrameworkTornado)
 				}
 
 				if mode == WithStaticNginx {

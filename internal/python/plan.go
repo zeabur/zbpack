@@ -66,6 +66,11 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
+	if HasDependencyWithFile(ctx, "tornado") {
+		*fw = optional.Some(types.PythonFrameworkTornado)
+		return fw.Unwrap()
+	}
+
 	if HasDependencyWithFile(ctx, "sanic") {
 		*fw = optional.Some(types.PythonFrameworkSanic)
 		return fw.Unwrap()
@@ -245,6 +250,8 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 			constructor = "Flask"
 		case types.PythonFrameworkFastapi:
 			constructor = "FastAPI"
+		case types.PythonFrameworkTornado:
+			constructor = "Tornado"
 		case types.PythonFrameworkSanic:
 			constructor = "Sanic"
 		}
