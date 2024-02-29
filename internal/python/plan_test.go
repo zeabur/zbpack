@@ -750,32 +750,6 @@ build-backend = "poetry.core.masonry.api"`), 0o644)
 	assert.False(t, HasDependencyWithFile(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Poetry_Tornado(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
-[tool.poetry]
-name = "tornado-example"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-tornado = "^6.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"`), 0o644)
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
-	}
-	assert.True(t, HasDependencyWithFile(ctx, "tornado"))
-	assert.False(t, HasDependencyWithFile(ctx, "foo"))
-}
-
 func TestHasDependencyWithFile_Pdm(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
