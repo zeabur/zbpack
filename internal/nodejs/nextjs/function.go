@@ -56,7 +56,7 @@ func constructNextFunction(zeaburOutputDir, tmpDir string) error {
 	}
 
 	var deps []string
-	err = filepath.Walk(path.Join(tmpDir, ".next"), func(p string, info os.FileInfo, err error) error {
+	err = filepath.Walk(path.Join(tmpDir, ".next"), func(p string, _ os.FileInfo, _ error) error {
 		if strings.HasSuffix(p, ".nft.json") {
 			type nftJSON struct {
 				Files []string `json:"files"`
