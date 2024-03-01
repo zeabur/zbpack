@@ -31,7 +31,7 @@ var (
 			}
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return run(args)
 		},
 	}
