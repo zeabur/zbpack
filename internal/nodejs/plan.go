@@ -766,18 +766,24 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 	meta["buildCmd"] = buildCmd
 
-	if opt.OutputDir != nil && *opt.OutputDir != "" {
-		if strings.HasPrefix(*opt.OutputDir, "/") {
-			meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
-		} else {
-			meta["outputDir"] = *opt.OutputDir
+	// only set outputDir if there is no custom start command (because if there is, it shouldn't be a static project)
+	if opt.CustomStartCmd == nil || *opt.CustomStartCmd == "" {
+
+		if opt.OutputDir != nil && *opt.OutputDir != "" {
+			if strings.HasPrefix(*opt.OutputDir, "/") {
+				meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
+			} else {
+				meta["outputDir"] = *opt.OutputDir
+			}
+			return meta
 		}
-		return meta
-	}
-	staticOutputDir := GetStaticOutputDir(ctx)
-	if staticOutputDir != "" {
-		meta["outputDir"] = staticOutputDir
-		return meta
+
+		staticOutputDir := GetStaticOutputDir(ctx)
+		if staticOutputDir != "" {
+			meta["outputDir"] = staticOutputDir
+			return meta
+		}
+
 	}
 
 	startCmd := GetStartCmd(ctx)
