@@ -84,3 +84,28 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	t, m := planner.Plan()
 	return t, m
 }
+
+// PlanAndOutputDockerfile output dockerfile.
+func PlanAndOutputDockerfile(opt PlanOptions) error {
+	t, m := Plan(opt)
+	dockerfile, err := generateDockerfile(
+		&generateDockerfileOptions{
+			HandleLog: func(log string) {
+				println(log)
+			},
+			planType: t,
+			planMeta: m,
+		},
+	)
+	if err != nil {
+		log.Printf("Failed to generate Dockerfile: " + err.Error())
+		return err
+	}
+	println(dockerfile)
+	// Remove .zeabur directory if exists
+	if err := os.RemoveAll(path.Join(*opt.Path, ".zeabur")); err != nil {
+		log.Printf("Failed to remove .zeabur directory: %s\n", err)
+		return err
+	}
+	return nil
+}
