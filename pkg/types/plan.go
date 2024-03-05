@@ -71,6 +71,7 @@ const (
 	NodeProjectFrameworkNestJs           NodeProjectFramework = "nest.js"
 	NodeProjectFrameworkHexo             NodeProjectFramework = "hexo"
 	NodeProjectFrameworkVitepress        NodeProjectFramework = "vitepress"
+	NodeProjectFrameworkAstro            NodeProjectFramework = "astro"
 	NodeProjectFrameworkAstroStatic      NodeProjectFramework = "astro-static"
 	NodeProjectFrameworkAstroSSR         NodeProjectFramework = "astro-ssr"
 	NodeProjectFrameworkAstroStarlight   NodeProjectFramework = "astro-starlight"

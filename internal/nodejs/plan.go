@@ -119,6 +119,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 	}
 
 	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
+		if _, hasZeaburAdapter := packageJSON.Dependencies["@zeabur/astro-adapter"]; hasZeaburAdapter {
+			*fw = optional.Some(types.NodeProjectFrameworkAstro)
+			return fw.Unwrap()
+		}
+
 		if _, isAstroSSR := packageJSON.Dependencies["@astrojs/node"]; isAstroSSR {
 			*fw = optional.Some(types.NodeProjectFrameworkAstroSSR)
 			return fw.Unwrap()
@@ -703,6 +708,7 @@ func getServerless(ctx *nodePlanContext) bool {
 	defaultServerless := map[types.NodeProjectFramework]bool{
 		types.NodeProjectFrameworkNextJs:  true,
 		types.NodeProjectFrameworkNuxtJs:  true,
+		types.NodeProjectFrameworkAstro:   true,
 		types.NodeProjectFrameworkWaku:    true,
 		types.NodeProjectFrameworkAngular: true,
 		types.NodeProjectFrameworkRemix:   true,
