@@ -709,6 +709,7 @@ func getServerless(ctx *nodePlanContext) bool {
 		types.NodeProjectFrameworkNextJs:  true,
 		types.NodeProjectFrameworkNuxtJs:  true,
 		types.NodeProjectFrameworkAstro:   true,
+		types.NodeProjectFrameworkSvelte:  true,
 		types.NodeProjectFrameworkWaku:    true,
 		types.NodeProjectFrameworkAngular: true,
 		types.NodeProjectFrameworkRemix:   true,
