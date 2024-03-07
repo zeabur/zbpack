@@ -96,6 +96,7 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 	majorMask := uint32((1 << 31) - 1 ^ (1 << 17) - 1)
 	noMinorFlag := uint32(1 << 16)
 	initializedFlag := uint32(1 << 31)
+	minus := false // for less-than operator, we should minus one bit
 
 	for _, r := range constraintList {
 		cleanR := r
@@ -107,6 +108,7 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 		if majorSpecifierRegex.MatchString(r) {
 			cleanR = majorSpecifierRegex.ReplaceAllString(r, "")
 			majorOnly = true
+			minus = r[0] == '<' && r[1] != '='
 		}
 
 		parsedVersion, err := SplitVersion(cleanR)
@@ -139,12 +141,17 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 	}
 
 	major := (determinedVersion & majorMask) >> 18
-	majorString := strconv.FormatUint(uint64(major), 10)
 	if determinedVersion&noMinorFlag != 0 {
+		if minus && major > 0 {
+			major--
+		}
+
+		majorString := strconv.FormatUint(uint64(major), 10)
 		return majorString
 	}
 
 	minor := determinedVersion & minorMask
+	majorString := strconv.FormatUint(uint64(major), 10)
 	minorString := strconv.FormatUint(uint64(minor), 10)
 	return majorString + "." + minorString
 }

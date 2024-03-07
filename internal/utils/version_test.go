@@ -184,7 +184,12 @@ func TestConstraintToVersion_GreaterThanOrEqual(t *testing.T) {
 
 func TestConstraintToVersion_LessThan(t *testing.T) {
 	v := utils.ConstraintToVersion("<8.0", "7")
-	assert.Equal(t, "8", v)
+	assert.Equal(t, "7", v)
+}
+
+func TestConstraintToVersion_LessThanB(t *testing.T) {
+	v := utils.ConstraintToVersion("<8", "7")
+	assert.Equal(t, "7", v)
 }
 
 func TestConstraintToVersion_LessThanOrEqual(t *testing.T) {
