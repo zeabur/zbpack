@@ -11,13 +11,13 @@ import (
 // Version represents a semver version.
 type Version struct {
 	// Major version.
-	Major int
+	Major uint32
 	// Minor version.
-	Minor int
+	Minor uint32
 	// MinorSet indicates if the minor version is set.
 	MinorSet bool
 	// Patch version.
-	Patch int
+	Patch uint32
 	// PatchSet indicates if the patch version is set.
 	PatchSet bool
 	// Prerelease version. Empty = not set.
@@ -38,38 +38,40 @@ func SplitVersion(version string) (Version, error) {
 
 	parts := strings.SplitN(version, ".", 3)
 	for i := 0; i < len(parts); i++ {
-		var err error
-
 		if parts[i] == "*" {
 			break // ignorable
 		}
 
 		switch i {
 		case 0: // major
-			parsedVersion.Major, err = strconv.Atoi(parts[i])
+			parsedVersionMajor, err := strconv.ParseUint(parts[i], 10, 32)
 			if err != nil {
 				return parsedVersion, err
 			}
+			parsedVersion.Major = uint32(parsedVersionMajor)
 		case 1: // minor
-			parsedVersion.Minor, err = strconv.Atoi(parts[i])
+			parsedVersionMinor, err := strconv.ParseUint(parts[i], 10, 32)
 			if err != nil {
 				return parsedVersion, err
 			}
+			parsedVersion.Minor = uint32(parsedVersionMinor)
 			parsedVersion.MinorSet = true
 		case 2: // patch
 			patchStr, prereleaseStr, ok := strings.Cut(parts[i], "-")
 			if ok {
-				parsedVersion.Patch, err = strconv.Atoi(patchStr)
+				parsedVersionPatch, err := strconv.ParseUint(patchStr, 10, 32)
 				if err != nil {
 					return parsedVersion, err
 				}
+				parsedVersion.Patch = uint32(parsedVersionPatch)
 				parsedVersion.PatchSet = true
 				parsedVersion.Prerelease = prereleaseStr
 			} else {
-				parsedVersion.Patch, err = strconv.Atoi(parts[i])
+				parsedVersionPatch, err := strconv.ParseUint(parts[i], 10, 32)
 				if err != nil {
 					return parsedVersion, err
 				}
+				parsedVersion.Patch = uint32(parsedVersionPatch)
 				parsedVersion.PatchSet = true
 			}
 		}
@@ -123,13 +125,13 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 
 		thisVersion := uint32(0)
 		if !majorOnly {
-			minorBit := uint32(parsedVersion.Minor) & minorMask
+			minorBit := parsedVersion.Minor & minorMask
 			thisVersion |= minorBit
 		} else {
 			thisVersion |= noMinorFlag
 		}
 
-		majorBit := (uint32(parsedVersion.Major) << 18) & majorMask
+		majorBit := (parsedVersion.Major << 18) & majorMask
 		thisVersion |= majorBit | initializedFlag
 		if thisVersion > determinedVersion {
 			determinedVersion = thisVersion
