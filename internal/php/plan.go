@@ -1,19 +1,16 @@
 package php
 
 import (
-	"fmt"
-	"log"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-// DefaultPHPVersion represents the default PHP version.
+// DefaultPHPVersion is the default PHP version.
 const DefaultPHPVersion = "8"
 
 // GetPHPVersion gets the php version of the project.
@@ -28,54 +25,7 @@ func GetPHPVersion(source afero.Fs) string {
 		return DefaultPHPVersion
 	}
 
-	isVersion, _ := regexp.MatchString(`^\d+(\.\d+){0,2}$`, versionRange)
-	if isVersion {
-		return getMajorVersion(versionRange)
-	}
-
-	ranges := strings.Split(versionRange, " ")
-	for _, r := range ranges {
-		if strings.HasPrefix(r, ">=") {
-			minVerString := strings.TrimPrefix(r, ">=")
-			return getMajorVersion(minVerString)
-		}
-
-		if strings.HasPrefix(r, ">") {
-			minVerString := strings.TrimPrefix(r, ">")
-			value, err := strconv.ParseFloat(minVerString, 64)
-			if err != nil {
-				log.Println("parse php version error", err)
-				continue
-			}
-			value += 0.1
-			minVerString = fmt.Sprintf("%f", value)
-			return getMajorVersion(minVerString)
-		}
-
-		if strings.HasPrefix(r, "<=") {
-			maxVerString := strings.TrimPrefix(r, "<=")
-			return getMajorVersion(maxVerString)
-		}
-
-		if strings.HasPrefix(r, "<") {
-			maxVerString := strings.TrimPrefix(r, "<=")
-			value, err := strconv.ParseFloat(maxVerString, 64)
-			if err != nil {
-				log.Println("parse php version error", err)
-				continue
-			}
-			value -= 0.1
-
-			maxVerString = fmt.Sprintf("%f", value)
-			return getMajorVersion(maxVerString)
-		}
-	}
-
-	return DefaultPHPVersion
-}
-
-func getMajorVersion(version string) string {
-	return strings.Split(version, ".")[0]
+	return utils.ConstraintToVersion(versionRange, DefaultPHPVersion)
 }
 
 // DetermineProjectFramework determines the framework of the project.
