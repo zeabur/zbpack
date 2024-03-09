@@ -31,8 +31,9 @@ const (
 type DartFramework string
 
 const (
-	DartFrameworkFlutter DartFramework = "flutter"
-	DartFrameworkNone    DartFramework = "none"
+	DartFrameworkFlutter   DartFramework = "flutter"
+	DartFrameworkServerpod DartFramework = "serverpod"
+	DartFrameworkNone      DartFramework = "none"
 )
 
 //revive:enable:exported

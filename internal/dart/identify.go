@@ -35,6 +35,10 @@ func determineFramework(source afero.Fs) types.DartFramework {
 		return types.DartFrameworkFlutter
 	}
 
+	if strings.Contains(string(file), "serverpod") {
+		return types.DartFrameworkServerpod
+	}
+
 	return types.DartFrameworkNone
 }
 
