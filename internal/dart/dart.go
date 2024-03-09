@@ -27,14 +27,6 @@ WORKDIR /app
 COPY . .
 RUN dart pub get
 RUN dart compile exe bin/main.dart -o bin/main
-
-FROM busybox:1.36.1-glibc
-
-COPY --from=build /runtime/ /
-COPY --from=build /app/bin/main /app/bin/main
-COPY --from=build /app/config/ config/
-COPY --from=build /app/web/ web/
-
 CMD app/bin/main
 `, nil
 	}
