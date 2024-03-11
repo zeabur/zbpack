@@ -8,17 +8,20 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// DefaultRubyVersion is the default Ruby version of Zeabur.
+const DefaultRubyVersion = "3.3";
+
 // DetermineRubyVersion determines the version of Ruby used in the project.
 func DetermineRubyVersion(source afero.Fs) string {
 	reg := regexp.MustCompile(`ruby ["'](\d+\.\d+\.\d+)["']`)
 	sourceFile, err := afero.ReadFile(source, "Gemfile")
 	if err != nil {
-		return ""
+		return DefaultRubyVersion
 	}
 
 	matches := reg.FindStringSubmatch(string(sourceFile))
 	if len(matches) < 2 {
-		return ""
+		return DefaultRubyVersion
 	}
 
 	return matches[1]
