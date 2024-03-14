@@ -3,6 +3,7 @@ package pythonproc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 
@@ -11,13 +12,22 @@ import (
 )
 
 func init() {
-	zbaction.RegisterProcedure("zbpack/python/prepare", func(_ zbaction.ProcStepArgs) (zbaction.ProcedureStep, error) {
-		return &PrepareAction{}, nil
+	zbaction.RegisterProcedure("zbpack/python/prepare", func(args zbaction.ProcStepArgs) (zbaction.ProcedureStep, error) {
+		pythonVersion := args["python-version"]
+		if pythonVersion == "" {
+			return nil, fmt.Errorf("python-version is not set")
+		}
+
+		return &PrepareAction{
+			PythonVersion: zbaction.NewArgumentStr(pythonVersion),
+		}, nil
 	})
 }
 
 // PrepareAction is a procedure that prepares a Python environment.
-type PrepareAction struct{}
+type PrepareAction struct {
+	PythonVersion zbaction.Argument[string]
+}
 
 // Run prepares a Python environment and writes it as a job variable.
 func (p PrepareAction) Run(ctx context.Context, sc *zbaction.StepContext) (zbaction.CleanupFn, error) {
@@ -33,10 +43,13 @@ func (p PrepareAction) Run(ctx context.Context, sc *zbaction.StepContext) (zbact
 	})
 
 	// Create virtualenv in this directory.
-	cmd := exec.CommandContext(ctx, "uv", "venv", venvPath)
+	pythonVersion := p.PythonVersion.Value(sc.ExpandString)
+	slog.Info("creating virtual environment", slog.String("pythonVersion", pythonVersion))
+	cmd := exec.CommandContext(ctx, "uv", "venv", "-p", pythonVersion, venvPath)
 	cmd.Dir = sc.Root()
 	cmd.Stdout = sc.Stdout()
 	cmd.Stderr = sc.Stderr()
+	cmd.Env = zbaction.ListEnvironmentVariables(sc.VariableContainer()).ToList()
 	if err := cmd.Run(); err != nil {
 		return cleanupFn, fmt.Errorf("create venv: %w", err)
 	}

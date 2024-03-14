@@ -835,6 +835,9 @@ func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) 
 			Name: "Prepare environments",
 			RunnableStep: zbaction.ProcStep{
 				Uses: "zbpack/python/prepare",
+				With: zbaction.ProcStepArgs{
+					"python-version": pythonVersion,
+				},
 			},
 		},
 		{
