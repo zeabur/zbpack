@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pelletier/go-toml"
 	zbaction "github.com/zeabur/action"
 	"github.com/zeabur/zbpack/internal/python/venv"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -141,6 +142,16 @@ func getRequirementContent(pm types.PythonPackageManager, sc *zbaction.StepConte
 		if err != nil {
 			return "", fmt.Errorf("read requirements.lock: %w", err)
 		}
+
+		// get the project name
+		tomlTree, err := toml.LoadFile("pyproject.toml")
+		if err != nil {
+			return "", fmt.Errorf("read pyproject.toml: %w", err)
+		}
+		projectName := tomlTree.Get("project.name").(string)
+
+		// replace "-e file:." as "<project-name> @ file:."
+		content = []byte(strings.ReplaceAll(string(content), "-e file:.", projectName+" @ file:."))
 
 		return string(content), nil
 	}

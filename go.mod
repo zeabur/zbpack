@@ -10,11 +10,11 @@ require (
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/alessio/shellescape v1.4.2 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/containerd/cgroups v1.1.0 // indirect
 	github.com/containerd/containerd v1.7.13 // indirect
@@ -129,7 +129,6 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.5.0
@@ -140,6 +139,7 @@ require (
 	github.com/moznion/go-optional v0.11.0
 	github.com/otiai10/copy v1.14.0
 	github.com/pan93412/envexpander v1.1.0
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.39.0
 	github.com/samber/mo v1.11.0

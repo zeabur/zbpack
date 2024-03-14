@@ -836,7 +836,8 @@ func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) 
 			RunnableStep: zbaction.ProcStep{
 				Uses: "zbpack/python/prepare",
 				With: zbaction.ProcStepArgs{
-					"python-version": pythonVersion,
+					"package-manager": string(packageManager),
+					"python-version":  pythonVersion,
 				},
 			},
 		},
