@@ -5,46 +5,24 @@ import (
 	"fmt"
 	"maps"
 	"path/filepath"
-	"strings"
 	"sync"
 
-	"log/slog"
-
 	zbaction "github.com/zeabur/action"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // VirtualEnvironmentContext is the context of a virtual environment.
 type VirtualEnvironmentContext struct {
-	PackageManager types.PythonPackageManager
-	Path           string
-	PathGetter     func() (string, error)
+	Path string
 }
 
 // GetPath returns the Path of the virtual environment.
-func (v VirtualEnvironmentContext) GetPath() (string, error) {
-	if v.Path != "" {
-		return v.Path, nil
-	}
-
-	if v.PathGetter == nil {
-		return "", fmt.Errorf("no path are given")
-	}
-
-	path, err := v.PathGetter()
-	if err != nil {
-		return "", fmt.Errorf("calling PathGetter(): %w", err)
-	}
-	v.Path = strings.TrimSpace(path)
-	return v.Path, nil
+func (v VirtualEnvironmentContext) GetPath() string {
+	return v.Path
 }
 
 // GetSitePackagesDirectory returns the site-packages directory of the virtual environment.
 func (v VirtualEnvironmentContext) GetSitePackagesDirectory() (string, error) {
-	path, err := v.GetPath()
-	if err != nil {
-		return "", fmt.Errorf("get path: %w", err)
-	}
+	path := v.GetPath()
 
 	sitePackagesPath, err := filepath.Glob(filepath.Join(path, "lib/*/site-packages"))
 	if err != nil || len(sitePackagesPath) == 0 {
@@ -54,27 +32,11 @@ func (v VirtualEnvironmentContext) GetSitePackagesDirectory() (string, error) {
 	return sitePackagesPath[0], nil
 }
 
-// GetPackageManager returns the PackageManager of the virtual environment.
-func (v VirtualEnvironmentContext) GetPackageManager() types.PythonPackageManager {
-	return v.PackageManager
-}
-
 // PutEnv puts the virtual environment into the environment variables.
 //
 // It acts like `bin/activate` command.
 func (v VirtualEnvironmentContext) PutEnv(currentEnv zbaction.EnvironmentVariables) zbaction.EnvironmentVariables {
-	if v.GetPackageManager() != types.PythonPackageManagerPip {
-		// Only the vanilla PIP requires such a hack.
-		// For other package managers, using their built-in commands is enough.
-		return currentEnv
-	}
-
-	path, err := v.GetPath()
-	if err != nil {
-		slog.Warn("failed to get the path of the virtual environment – fallback", slog.String("error", err.Error()))
-		return currentEnv
-	}
-
+	path := v.GetPath()
 	newEnv := maps.Clone(currentEnv)
 
 	// VIRTUAL_ENV will be read by cpython/launcher.c and used to set sys.prefix.

@@ -363,6 +363,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zeabur/action v0.0.14 h1:2VCGcQ5u6lOKcYvNta9lL+/vcFmxmFRtav8TEiVBkvs=
 github.com/zeabur/action v0.0.14/go.mod h1:8jNs5BsknHzCpFvAFT/0gfpCbmwjGf5FI4Q1pfKqrFg=
+github.com/zeabur/action v0.0.15 h1:PGYwdqjcsw13HftzHL38vD/BpjmgZWxF2d96Hh/dius=
+github.com/zeabur/action v0.0.15/go.mod h1:8jNs5BsknHzCpFvAFT/0gfpCbmwjGf5FI4Q1pfKqrFg=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
 go.opencensus.io v0.24.0/go.mod h1:vNK8G9p7aAivkbmorf4v+7Hgx+Zs0yY+0fOtgBfjQKo=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.48.0 h1:P+/g8GpuJGYbOp2tAdKrIPUX9JO02q8Q0YNlHolpibA=

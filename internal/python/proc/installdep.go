@@ -3,6 +3,8 @@ package pythonproc
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -28,7 +30,7 @@ type InstallDependenciesAction struct {
 	ExtraDependencies zbaction.Argument[[]string]
 }
 
-// Run installs the listed and projects dependencies.
+// Run install the listed and projects dependencies.
 func (a InstallDependenciesAction) Run(ctx context.Context, sc *zbaction.StepContext) (zbaction.CleanupFn, error) {
 	packageManager := a.PackageManager.Value(sc.ExpandString)
 	extraDependencies := a.ExtraDependencies.Value(sc.ExpandString)
@@ -40,11 +42,18 @@ func (a InstallDependenciesAction) Run(ctx context.Context, sc *zbaction.StepCon
 		return nil, fmt.Errorf("get venv context: %w", err)
 	}
 
+	// Get requirements.txt content
+	requirementContent, err := getRequirementContent(packageManager, sc)
+	if err != nil {
+		return nil, fmt.Errorf("get requirement content: %w", err)
+	}
+	slog.Info("requirement", slog.String("content", requirementContent))
+
 	cmdEnv := venvContext.PutEnv(zbaction.ListEnvironmentVariables(sc.VariableContainer())).ToList()
 
 	// Install the extra dependencies first.
 	if len(extraDependencies) > 1 {
-		exe, args := getAddCommand(packageManager, extraDependencies...)
+		exe, args := getAddCommand(extraDependencies...)
 		cmd := exec.CommandContext(ctx, exe, args...)
 		cmd.Dir = sc.Root()
 		cmd.Stdout = sc.Stdout()
@@ -57,9 +66,10 @@ func (a InstallDependenciesAction) Run(ctx context.Context, sc *zbaction.StepCon
 
 	// Install the project dependencies.
 	{
-		exe, args := getInstallCommand(packageManager)
+		exe, args := getInstallCommand()
 		cmd := exec.CommandContext(ctx, exe, args...)
 		cmd.Dir = sc.Root()
+		cmd.Stdin = strings.NewReader(requirementContent)
 		cmd.Stdout = sc.Stdout()
 		cmd.Stderr = sc.Stderr()
 		cmd.Env = cmdEnv
@@ -88,33 +98,60 @@ func mapPackageManager(pm string) types.PythonPackageManager {
 	}
 }
 
-func getAddCommand(pm types.PythonPackageManager, deps ...string) (string, []string) {
+func getRequirementContent(pm types.PythonPackageManager, sc *zbaction.StepContext) (string, error) {
 	switch pm {
+	case types.PythonPackageManagerPip:
+		content, err := os.ReadFile("requirements.txt")
+		if err != nil {
+			return "", fmt.Errorf("read requirements.txt: %w", err)
+		}
+		return string(content), nil
 	case types.PythonPackageManagerPipenv:
-		return "pipenv", append([]string{"install"}, deps...)
+		cmd := exec.Command("pipenv", "requirements")
+		cmd.Dir = sc.Root()
+
+		content, err := cmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("exec pipenv requirements: %w", err)
+		}
+
+		return string(content), nil
 	case types.PythonPackageManagerPoetry:
-		return "poetry", append([]string{"add"}, deps...)
+		cmd := exec.Command("poetry", "export", "--without-hashes")
+		cmd.Dir = sc.Root()
+
+		content, err := cmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("exec poetry export: %w", err)
+		}
+
+		return string(content), nil
 	case types.PythonPackageManagerPdm:
-		return "pdm", append([]string{"add"}, deps...)
+		cmd := exec.Command("pdm", "export", "--no-hashes", "--no-markers")
+		cmd.Dir = sc.Root()
+
+		content, err := cmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("exec pdm export: %w", err)
+		}
+
+		return string(content), nil
 	case types.PythonPackageManagerRye:
-		return "rye", append([]string{"add"}, deps...)
-	default:
-		// our hacked rye uses pip to install dependencies.
-		return "uv", append([]string{"pip", "install"}, deps...)
+		content, err := os.ReadFile("requirements.lock")
+		if err != nil {
+			return "", fmt.Errorf("read requirements.lock: %w", err)
+		}
+
+		return string(content), nil
 	}
+
+	return "", fmt.Errorf("unsupported package manager: %s", pm)
 }
 
-func getInstallCommand(pm types.PythonPackageManager) (string, []string) {
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		return "pipenv", []string{"install"}
-	case types.PythonPackageManagerPoetry:
-		return "poetry", []string{"install", "--no-root"}
-	case types.PythonPackageManagerPdm:
-		return "pdm", []string{"install"}
-	case types.PythonPackageManagerRye:
-		return "rye", []string{"sync", "--no-dev", "--no-lock"}
-	default:
-		return "uv", []string{"pip", "install", "-r", "requirements.txt"}
-	}
+func getAddCommand(deps ...string) (string, []string) {
+	return "uv", append([]string{"pip", "install"}, deps...)
+}
+
+func getInstallCommand() (string, []string) {
+	return "uv", []string{"pip", "install", "-r", "-"}
 }

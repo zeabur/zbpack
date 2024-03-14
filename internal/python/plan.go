@@ -818,6 +818,10 @@ func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) 
 			Expr:        fmt.Sprintf("matchVersion('python', '^%s')", pythonVersion),
 			Description: lo.ToPtr(fmt.Sprintf("Python version must be greater than %s", pythonVersion)),
 		},
+		{
+			Expr:        "match('" + string(packageManager) + "')",
+			Description: lo.ToPtr("The Python package manager " + string(packageManager) + " must be installed"),
+		},
 	}
 
 	steps := []zbaction.Step{
@@ -831,9 +835,6 @@ func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) 
 			Name: "Prepare environments",
 			RunnableStep: zbaction.ProcStep{
 				Uses: "zbpack/python/prepare",
-				With: zbaction.ProcStepArgs{
-					"package-manager": string(packageManager),
-				},
 			},
 		},
 		{
@@ -853,16 +854,12 @@ func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) 
 			Name: "Build Django static files",
 			RunnableStep: zbaction.ProcStep{
 				Uses: "zbpack/python/build-django-static",
-				With: zbaction.ProcStepArgs{
-					"package-manager": string(packageManager),
-				},
 			},
 		})
 	}
 
 	runtimeDependencies := determineRuntimeDependencies(planCtx)
 	dockerBuildArgs := zbaction.ProcStepArgs{
-		"package-manager":      string(packageManager),
 		"runtime-dependencies": strings.Join(runtimeDependencies, " "),
 		"entrypoint":           entry,
 		"entrypoint-type":      string(entryType),

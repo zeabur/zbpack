@@ -19,8 +19,6 @@ import (
 
 func init() {
 	zbaction.RegisterProcedure("zbpack/python/bundle-docker", func(args zbaction.ProcStepArgs) (zbaction.ProcedureStep, error) {
-		pm := args["package-manager"]
-
 		entrypoint, ok := args["entrypoint"]
 		if !ok {
 			return nil, zbaction.NewErrRequiredArgument("entrypoint")
@@ -42,7 +40,6 @@ func init() {
 		}
 
 		return &BundleDockerAction{
-			PackageManager:      zbaction.NewArgument(pm, mapPackageManager),
 			RuntimeDependencies: zbaction.NewArgument(args["runtime-dependencies"], strings.Fields),
 			Entrypoint:          zbaction.NewArgumentStr(entrypoint),
 			EntrypointType: zbaction.NewArgument(entrypointType, func(t string) types.PythonEntrypointType {
@@ -67,8 +64,6 @@ func init() {
 
 // BundleDockerAction is a procedure that bundles the current project as a Docker image.
 type BundleDockerAction struct {
-	// PackageManager is the package manager to use.
-	PackageManager zbaction.Argument[types.PythonPackageManager]
 	// RuntimeDependencies is the list of runtime packages to install.
 	RuntimeDependencies zbaction.Argument[[]string]
 
@@ -210,10 +205,7 @@ func (a BundleDockerAction) Run(ctx context.Context, sc *zbaction.StepContext) (
 
 	}
 
-	venvPath, err := venvContext.GetPath()
-	if err != nil {
-		return nil, fmt.Errorf("get venv path: %w", err)
-	}
+	venvPath := venvContext.GetPath()
 
 	binariesInVenv, err := os.ReadDir(filepath.Join(venvPath, "bin"))
 	if err != nil {
@@ -262,16 +254,19 @@ func (a BundleDockerAction) Run(ctx context.Context, sc *zbaction.StepContext) (
 
 	// Get the runtime dependencies.
 	runtimeDependencies := a.RuntimeDependencies.Value(sc.ExpandString)
-	runtimeDependenciesDockerCmd := "RUN apt update && "
+	var runtimeDependenciesDockerCmd string
 	if len(runtimeDependencies) > 0 {
+		runtimeDependenciesDockerCmd += "RUN apt update && "
 		runtimeDependenciesDockerCmd += "apt install -y " + strings.Join(runtimeDependencies, " ") + " "
+		runtimeDependenciesDockerCmd += "&& rm -rf /var/lib/apt/lists/*"
 	}
-	runtimeDependenciesDockerCmd += "&& rm -rf /var/lib/apt/lists/*"
 
 	// Write the Dockerfile.
 	dockerfileBuilder := strings.Builder{}
 	dockerfileBuilder.WriteString("FROM python:" + pythonVersion + "-slim\n")
-	dockerfileBuilder.WriteString(runtimeDependenciesDockerCmd + "\n")
+	if len(runtimeDependenciesDockerCmd) > 0 {
+		dockerfileBuilder.WriteString(runtimeDependenciesDockerCmd + "\n")
+	}
 	dockerfileBuilder.WriteString("COPY . /\n")
 	dockerfileBuilder.WriteString("WORKDIR /app\n")
 	dockerfileBuilder.WriteString(dockerCmd + "\n")

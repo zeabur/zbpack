@@ -17,6 +17,10 @@ import (
 	_ "github.com/zeabur/zbpack/internal/action"
 	_ "github.com/zeabur/zbpack/internal/golang/proc"
 	_ "github.com/zeabur/zbpack/internal/python/proc"
+
+	// module: action – environment
+	_ "github.com/zeabur/zbpack/internal/golang/env"
+	_ "github.com/zeabur/zbpack/internal/python/env"
 )
 
 // ValidateEnvironment checks if the environment matches the requirements.

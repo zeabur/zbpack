@@ -10,25 +10,19 @@ import (
 
 	zbaction "github.com/zeabur/action"
 	"github.com/zeabur/zbpack/internal/python/venv"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func init() {
-	zbaction.RegisterProcedure("zbpack/python/build-django-static", func(args zbaction.ProcStepArgs) (zbaction.ProcedureStep, error) {
-		return &BuildDjangoStaticAction{
-			PackageManager: zbaction.NewArgument(args["package-manager"], mapPackageManager),
-		}, nil
+	zbaction.RegisterProcedure("zbpack/python/build-django-static", func(_ zbaction.ProcStepArgs) (zbaction.ProcedureStep, error) {
+		return &BuildDjangoStaticAction{}, nil
 	})
 }
 
 // BuildDjangoStaticAction is a procedure that builds the static files for a Django project.
-type BuildDjangoStaticAction struct {
-	PackageManager zbaction.Argument[types.PythonPackageManager]
-}
+type BuildDjangoStaticAction struct{}
 
 // Run builds the static files for a Django project.
 func (b BuildDjangoStaticAction) Run(ctx context.Context, sc *zbaction.StepContext) (zbaction.CleanupFn, error) {
-	packageManager := b.PackageManager.Value(sc.ExpandString)
 	djangoStaticBuildCommand := []string{"python", "manage.py", "collectstatic", "--noinput"}
 
 	// Retrieve a virtual environment.
@@ -42,13 +36,8 @@ func (b BuildDjangoStaticAction) Run(ctx context.Context, sc *zbaction.StepConte
 
 	// Run the command.
 	{
-		exe, args := getRunCommand(packageManager)
-		if exe == "" {
-			exe = execLookup(djangoStaticBuildCommand[0], cmdEnv["PATH"])
-			args = djangoStaticBuildCommand[1:]
-		} else {
-			args = append(args, djangoStaticBuildCommand...)
-		}
+		exe := execLookup(djangoStaticBuildCommand[0], cmdEnv["PATH"])
+		args := djangoStaticBuildCommand[1:]
 
 		cmd := exec.CommandContext(ctx, exe, args...)
 		cmd.Dir = sc.Root()
@@ -61,21 +50,6 @@ func (b BuildDjangoStaticAction) Run(ctx context.Context, sc *zbaction.StepConte
 	}
 
 	return nil, nil
-}
-
-func getRunCommand(pm types.PythonPackageManager) (string, []string) {
-	switch pm {
-	case types.PythonPackageManagerPipenv:
-		return "pipenv", []string{"run"}
-	case types.PythonPackageManagerPoetry:
-		return "poetry", []string{"run"}
-	case types.PythonPackageManagerPdm:
-		return "pdm", []string{"run"}
-	case types.PythonPackageManagerRye:
-		return "rye", []string{"run"}
-	default:
-		return "", nil
-	}
 }
 
 func execLookup(exe string, pathList string) string {
