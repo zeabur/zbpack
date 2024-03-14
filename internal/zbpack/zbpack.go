@@ -2,14 +2,21 @@
 package zbpack
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
+	"github.com/moznion/go-optional"
 	"github.com/samber/lo"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	zbaction "github.com/zeabur/action"
+	pkgAction "github.com/zeabur/zbpack/pkg/action"
+	"github.com/zeabur/zbpack/pkg/action/executor"
 	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
 
@@ -35,6 +42,9 @@ var (
 			return run(args)
 		},
 	}
+
+	// enableAction indicates that we should switch to Action mode.
+	enableAction = os.Getenv("ACTION") == "true"
 )
 
 func init() {
@@ -63,8 +73,16 @@ func run(args []string) error {
 	}
 }
 
-// build is used to build Docker image and show build plan.
 func build(path string) error {
+	if enableAction {
+		return buildV2(path)
+	}
+
+	return buildV1(path)
+}
+
+// buildV1 is used to build Docker image and show build plan.
+func buildV1(path string) error {
 
 	// before start, check if buildctl is installed and buildkitd is running
 	err := exec.Command("buildctl", "debug", "workers").Run()
@@ -107,8 +125,47 @@ func build(path string) error {
 	)
 }
 
-// plan is used to analyze and print project information.
+// buildV2 is used to plan Action and build it with Zeabur Action executor (default settings).
+func buildV2(path string) error {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("get absolute path: %w", err)
+	}
+
+	fs := afero.NewBasePathFs(afero.NewOsFs(), absPath)
+
+	planType, action, err := zeaburpack.PlanAction(zeaburpack.PlanActionOptions{
+		Source:        fs,
+		SubmoduleName: optional.None[string](),
+	})
+	if err != nil {
+		return fmt.Errorf("plan action: %w", err)
+	}
+
+	zeaburpack.PrintPlanAndMeta(planType, action.Metadata, func(info string) { fmt.Println(info) })
+
+	// validate the environment first
+	if err := executor.ValidateEnvironment(action); err != nil {
+		return fmt.Errorf("validate environment: %w", err)
+	}
+
+	return executor.RunAction(
+		context.Background(), action,
+		pkgAction.WithArg(pkgAction.ArgLocalPath, absPath),
+		zbaction.WithCurrentEnvironmentVariable(),
+	)
+}
+
 func plan(path string) error {
+	if enableAction {
+		return planV2(path)
+	}
+
+	return planV1(path)
+}
+
+// planV1 is used to analyze and print project information in legacy planMeta mode.
+func planV1(path string) error {
 	submoduleName, err := GetSubmoduleName(path)
 	if err != nil {
 		log.Fatalln(err)
@@ -155,4 +212,28 @@ func PlanAndOutputDockerfile(path string) error {
 			AccessToken:   &githubToken,
 		},
 	)
+}
+
+// planV2 is used to analyze and print project information in the new Action mode.
+func planV2(path string) error {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("get absolute path: %w", err)
+	}
+
+	fs := afero.NewBasePathFs(afero.NewOsFs(), absPath)
+
+	planType, action, err := zeaburpack.PlanAction(zeaburpack.PlanActionOptions{
+		Source:        fs,
+		SubmoduleName: optional.None[string](),
+	})
+	if err != nil {
+		return fmt.Errorf("plan action: %w", err)
+	}
+
+	fmt.Printf("%#v", action)
+
+	zeaburpack.PrintPlanAndMeta(planType, action.Metadata, func(info string) { fmt.Println(info) })
+
+	return nil
 }

@@ -14,14 +14,15 @@ import (
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
+	zbaction "github.com/zeabur/action"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
-	Src            afero.Fs
-	Config         plan.ImmutableProjectConfiguration
+	plan.ProjectContext
+
 	PackageManager optional.Option[types.PythonPackageManager]
 	Framework      optional.Option[types.PythonFramework]
 	Entry          optional.Option[string]
@@ -39,7 +40,7 @@ const (
 
 // DetermineFramework determines the framework of the Python project.
 func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
-	src := ctx.Src
+	src := ctx.Source
 	fw := &ctx.Framework
 
 	if framework, err := fw.Take(); err == nil {
@@ -87,7 +88,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 
 // DetermineEntry determines the entry of the Python project.
 func DetermineEntry(ctx *pythonPlanContext) string {
-	src := ctx.Src
+	src := ctx.Source
 	et := &ctx.Entry
 
 	if entry, err := et.Take(); err == nil {
@@ -107,7 +108,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 
 // DeterminePackageManager determines the package manager of this Python project.
 func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager {
-	src := ctx.Src
+	src := ctx.Source
 	cpm := &ctx.PackageManager
 
 	// Pipfile > pyproject.toml > requirements.txt
@@ -155,7 +156,7 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 
 // HasDependency checks if the specified dependency is in the project.
 func HasDependency(ctx *pythonPlanContext, dependency string) bool {
-	src := ctx.Src
+	src := ctx.Source
 	pm := DeterminePackageManager(ctx)
 
 	filesToFind := lo.Filter(
@@ -186,7 +187,7 @@ func weakHasStringsInFiles(src afero.Fs, filelist []string, text string) bool {
 
 // HasDependencyWithFile checks if the specified dependency is in the file.
 func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
-	src := ctx.Src
+	src := ctx.Source
 	pm := DeterminePackageManager(ctx)
 
 	if f := getPmDeclarationFile(pm); f != "" {
@@ -213,7 +214,7 @@ func weakHasStringsInFile(src afero.Fs, file string, text string) bool {
 
 // DetermineWsgi determines the WSGI application filepath of a Python project.
 func DetermineWsgi(ctx *pythonPlanContext) string {
-	src := ctx.Src
+	src := ctx.Source
 	wa := &ctx.Wsgi
 
 	if wsgi, err := wa.Take(); err == nil {
@@ -340,7 +341,7 @@ func DetermineStaticInfo(ctx *pythonPlanContext) StaticInfo {
 	const defaultDjangoBaseDir = "/app/"
 	const defaultDjangoStaticHostDir = defaultDjangoBaseDir + "staticfiles/"
 
-	src := ctx.Src
+	src := ctx.Source
 	sp := &ctx.Static
 
 	if staticInfo, err := sp.Take(); err == nil {
@@ -501,6 +502,34 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 	return deps
 }
 
+func determineRuntimeDependencies(ctx *pythonPlanContext) []string {
+	var deps []string
+
+	// If we need to host static files, we need nginx.
+	staticPath := DetermineStaticInfo(ctx)
+	if staticPath.NginxEnabled() {
+		deps = append(deps, "nginx")
+	}
+
+	if HasDependency(ctx, "mysqlclient") {
+		deps = append(deps, "libmariadb3")
+	}
+
+	if HasDependency(ctx, "psycopg2") {
+		deps = append(deps, "libpq5")
+	}
+
+	if HasDependency(ctx, "pyzbar") {
+		deps = append(deps, "libzbar0")
+	}
+
+	if HasDependency(ctx, "chromadb") {
+		deps = append(deps, "g++-7")
+	}
+
+	return deps
+}
+
 func determineStartCmd(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
@@ -570,7 +599,7 @@ func determinePythonVersion(ctx *pythonPlanContext) string {
 }
 
 func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
-	src := ctx.Src
+	src := ctx.Source
 
 	content, err := afero.ReadFile(src, "pyproject.toml")
 	if err != nil {
@@ -588,7 +617,7 @@ func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
 }
 
 func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
-	src := ctx.Src
+	src := ctx.Source
 
 	content, err := afero.ReadFile(src, "pyproject.toml")
 	if err != nil {
@@ -612,7 +641,7 @@ func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
 	//		[distribution@][version]
 	//
 	// We extract the version part only.
-	src := ctx.Src
+	src := ctx.Source
 	regex := regexp.MustCompile(`(?:.+?@)?([\d.]+)`)
 
 	content, err := afero.ReadFile(src, ".python-version")
@@ -651,7 +680,7 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 }
 
 func determineStreamlitEntry(ctx *pythonPlanContext) string {
-	src := ctx.Src
+	src := ctx.Source
 	config := ctx.Config
 	se := &ctx.StreamlitEntry
 
@@ -691,8 +720,10 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta := types.PlanMeta{}
 
 	ctx := &pythonPlanContext{
-		Src:    opt.Src,
-		Config: opt.Config,
+		ProjectContext: plan.ProjectContext{
+			Source: opt.Src,
+			Config: opt.Config,
+		},
 	}
 
 	pm := DeterminePackageManager(ctx)
@@ -743,4 +774,119 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 
 	return meta
+}
+
+func (i *identify) PlanAction(ctx plan.ProjectContext) (zbaction.Action, error) {
+	planCtx := &pythonPlanContext{
+		ProjectContext: ctx,
+	}
+
+	pythonVersion := determinePythonVersion(planCtx)
+	framework := DetermineFramework(planCtx)
+	packageManager := DeterminePackageManager(planCtx)
+	staticInfo := DetermineStaticInfo(planCtx)
+
+	entry := DetermineEntry(planCtx)
+	entryType := types.PythonEntrypointTypeFile
+
+	if wsgi := DetermineWsgi(planCtx); wsgi != "" {
+		entry = wsgi
+		entryType = types.PythonEntrypointTypeWsgi
+	}
+
+	// use different entry or entryType for specific frameworks
+	switch framework {
+	case types.PythonFrameworkFastapi:
+		entryType = types.PythonEntrypointTypeAsgi
+	case types.PythonFrameworkStreamlit:
+		entry = determineStreamlitEntry(planCtx)
+		entryType = types.PythonEntrypointTypeStreamlit
+	case types.PythonFrameworkSanic:
+		entryType = types.PythonEntrypointTypeSanic
+	}
+
+	meta := map[string]string{
+		"pythonVersion":  pythonVersion,
+		"framework":      string(framework),
+		"packageManager": string(packageManager),
+		"entry":          entry,
+		"entryType":      string(entryType),
+	}
+
+	req := []zbaction.Requirement{
+		{
+			Expr:        fmt.Sprintf("matchVersion('python', '^%s')", pythonVersion),
+			Description: lo.ToPtr(fmt.Sprintf("Python version must be greater than %s", pythonVersion)),
+		},
+	}
+
+	steps := []zbaction.Step{
+		{
+			Name: "Checkout sources",
+			RunnableStep: zbaction.ProcStep{
+				Uses: "zbpack/checkout",
+			},
+		},
+		{
+			Name: "Prepare environments",
+			RunnableStep: zbaction.ProcStep{
+				Uses: "zbpack/python/prepare",
+				With: zbaction.ProcStepArgs{
+					"package-manager": string(packageManager),
+				},
+			},
+		},
+		{
+			Name: "Install dependencies",
+			RunnableStep: zbaction.ProcStep{
+				Uses: "zbpack/python/install-dependencies",
+				With: zbaction.ProcStepArgs{
+					"package-manager": string(packageManager),
+				},
+			},
+		},
+	}
+
+	if staticInfo.DjangoEnabled() {
+		// build Django static files
+		steps = append(steps, zbaction.Step{
+			Name: "Build Django static files",
+			RunnableStep: zbaction.ProcStep{
+				Uses: "zbpack/python/build-django-static",
+				With: zbaction.ProcStepArgs{
+					"package-manager": string(packageManager),
+				},
+			},
+		})
+	}
+
+	runtimeDependencies := determineRuntimeDependencies(planCtx)
+	dockerBuildArgs := zbaction.ProcStepArgs{
+		"package-manager":      string(packageManager),
+		"runtime-dependencies": strings.Join(runtimeDependencies, " "),
+		"entrypoint":           entry,
+		"entrypoint-type":      string(entryType),
+		"context":              "${context.root}",
+	}
+	if staticInfo.NginxEnabled() {
+		dockerBuildArgs["static-dir-map"] = staticInfo.StaticHostDir + ":" + staticInfo.StaticURLPath
+	}
+
+	steps = append(steps, zbaction.Step{
+		Name: "Bundle as Docker image",
+		RunnableStep: zbaction.ProcStep{
+			Uses: "zbpack/python/bundle-docker",
+			With: dockerBuildArgs,
+		},
+	})
+
+	return zbaction.Action{
+		Metadata:     meta,
+		Requirements: req,
+		Jobs: []zbaction.Job{
+			{
+				Steps: steps,
+			},
+		},
+	}, nil
 }

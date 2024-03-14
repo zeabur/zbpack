@@ -119,6 +119,23 @@ const (
 	PythonPackageManagerRye     PythonPackageManager = "rye"
 )
 
+// revive:enabled:exported
+
+// PythonEntrypointType is the type of the entrypoint.
+type PythonEntrypointType string
+
+//revive:disable:exported
+const (
+	PythonEntrypointTypeFile      PythonEntrypointType = "file"
+	PythonEntrypointTypeWsgi      PythonEntrypointType = "wsgi"
+	PythonEntrypointTypeAsgi      PythonEntrypointType = "asgi"
+	PythonEntrypointTypeStreamlit PythonEntrypointType = "streamlit"
+	PythonEntrypointTypeSanic     PythonEntrypointType = "sanic"
+)
+
+// revive:enabled:exported
+
+// SwiftFramework represents the framework of a Swift project.
 type SwiftFramework string
 
 //revive:disable:exported
