@@ -389,7 +389,7 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+	if m["outputDir"] != "" {
 		println("Transforming build output to serverless format ...")
 		err = static.TransformServerless(*opt.Path, m)
 		if err != nil {
