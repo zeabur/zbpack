@@ -420,6 +420,7 @@ func GetEntry(ctx *nodePlanContext) string {
 // GetInstallCmd gets the installation command of the Node.js project.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
+	src := ctx.Src
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -427,6 +428,12 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 
 	pkgManager := DeterminePackageManager(ctx)
 	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), cast.ToBoolE).TakeOr(true)
+
+	// monorepo
+	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
+		log.Println("Detected Monorepo. Disabling dependency caching.")
+		shouldCacheDependencies = false
+	}
 
 	var cmds []string
 	if shouldCacheDependencies {
