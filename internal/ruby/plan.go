@@ -9,7 +9,7 @@ import (
 )
 
 // DefaultRubyVersion is the default Ruby version of Zeabur.
-const DefaultRubyVersion = "3.3";
+const DefaultRubyVersion = "3.3"
 
 // DetermineRubyVersion determines the version of Ruby used in the project.
 func DetermineRubyVersion(source afero.Fs) string {
