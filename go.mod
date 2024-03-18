@@ -50,11 +50,10 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/containerd/console v1.0.3
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.5.0
-	github.com/evanw/esbuild v0.19.11
+	github.com/evanw/esbuild v0.20.2
 	github.com/gkampitakis/go-snaps v0.4.12
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.5.0
