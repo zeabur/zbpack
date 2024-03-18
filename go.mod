@@ -50,7 +50,6 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/containerd/console v1.0.3
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.5.0
@@ -66,6 +65,6 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	golang.org/x/oauth2 v0.16.0
+	golang.org/x/oauth2 v0.18.0
 	golang.org/x/text v0.14.0
 )
