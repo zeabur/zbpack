@@ -136,6 +136,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isAstro := packageJSON.DevDependencies["astro"]; isAstro {
+		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
+	}
+
 	if _, isAngular := packageJSON.Dependencies["@angular/core"]; isAngular {
 		*fw = optional.Some(types.NodeProjectFrameworkAngular)
 		return fw.Unwrap()
