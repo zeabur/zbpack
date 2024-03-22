@@ -15,6 +15,11 @@ func NewIdentifier() plan.Identifier {
 	return &identify{}
 }
 
+// NewActionIdentifier returns a new Golang action identifier.
+func NewActionIdentifier() plan.ActionIdentifier {
+	return &identify{}
+}
+
 func (i *identify) PlanType() types.PlanType {
 	return types.PlanTypeGo
 }
@@ -32,5 +37,3 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		},
 	)
 }
-
-var _ plan.Identifier = (*identify)(nil)

@@ -11,6 +11,7 @@ import (
 	cp "github.com/otiai10/copy"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
+	zbaction "github.com/zeabur/action"
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/nodejs/nuxtjs"
 	"github.com/zeabur/zbpack/internal/nodejs/remix"
@@ -70,6 +71,11 @@ type BuildOptions struct {
 
 	// PushImage is a flag to indicate if the image should be pushed to the registry.
 	PushImage bool
+
+	// ActionBuilder is a handler to build the given action.
+	//
+	// If this is `nil`, it uses the default action executor.
+	ActionBuilder *func(action zbaction.Action) error
 }
 
 // Build will analyze the project, determine the plan and build the image.

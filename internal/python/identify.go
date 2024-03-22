@@ -2,7 +2,6 @@ package python
 
 import (
 	"github.com/spf13/afero"
-
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -28,6 +27,18 @@ func (i *identify) Match(fs afero.Fs) bool {
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(GetMetaOptions{Src: options.Source, Config: options.Config})
+}
+
+// NewActionIdentifier returns a new Python action identifier.
+func NewActionIdentifier() plan.ActionIdentifier {
+	return &identify{}
+}
+
+func (i *identify) Planable(ctx plan.ProjectContext) bool {
+	return utils.HasFile(
+		ctx.Source,
+		"app.py", "main.py", "app.py", "manage.py", "requirements.txt", "streamlit_app.py",
+	)
 }
 
 var _ plan.Identifier = (*identify)(nil)

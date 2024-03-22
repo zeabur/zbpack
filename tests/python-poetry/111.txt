@@ -1,0 +1,1 @@
+numpy==1.24.3 ; python_version >= "3.8"
