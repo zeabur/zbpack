@@ -24,7 +24,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "gleam.toml")
 }
 
-func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
+func (i *identify) PlanMeta(_ plan.NewPlannerOptions) types.PlanMeta {
 	return types.PlanMeta{}
 }
 

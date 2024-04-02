@@ -7,7 +7,7 @@ import (
 )
 
 // GenerateDockerfile generates the Dockerfile for Gleam projects.
-func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+func GenerateDockerfile(_ types.PlanMeta) (string, error) {
 	return `FROM ghcr.io/gleam-lang/gleam:v1.0.0-erlang-alpine
 COPY . /build/
 RUN cd /build \
