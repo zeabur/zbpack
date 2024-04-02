@@ -19,7 +19,7 @@ func (i *identify) PlanType() types.PlanType {
 	return types.PlanTypeGleam
 }
 
-// Match returns true if mix.exs is found in the source
+// Match returns true if gleam.toml is found in the source
 func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "gleam.toml")
 }
