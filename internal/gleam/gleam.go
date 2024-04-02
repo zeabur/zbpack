@@ -1,4 +1,4 @@
-// Package gleam is the packer for Elixir projects.
+// Package gleam is the packer for Gleam projects.
 package gleam
 
 import (
