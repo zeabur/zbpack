@@ -33,6 +33,17 @@ COPY --from=builder /app/public /
 
 	}
 
+	if meta["framework"] == "mkdocs" {
+		return `FROM squidfunk/mkdocs-material as builder
+WORKDIR /docs
+COPY . .
+RUN mkdocs build
+
+FROM scratch as output
+COPY --from=builder /docs/site /
+`, nil
+	}
+
 	dockerfile := `FROM scratch as output
 COPY . /
 `
