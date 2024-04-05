@@ -37,6 +37,7 @@ COPY --from=builder /app/public /
 		return `FROM squidfunk/mkdocs-material as builder
 WORKDIR /docs
 COPY . .
+RUN if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 RUN mkdocs build
 
 FROM scratch as output
