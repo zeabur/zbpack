@@ -146,11 +146,11 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
-		buildKitCmd = append(buildKitCmd, "--import-cache type=registry,ref="+*opt.CacheFrom)
+		buildKitCmd = append(buildKitCmd, "--import-cache", "type=registry,ref="+*opt.CacheFrom)
 	}
 
 	if opt.CacheTo != nil && len(*opt.CacheTo) > 0 {
-		buildKitCmd = append(buildKitCmd, "--export-cache", *opt.CacheTo)
+		buildKitCmd = append(buildKitCmd, "--export-cache", "type=registry,ref="+*opt.CacheTo)
 	}
 
 	if opt.PlainDockerProgress {
