@@ -442,6 +442,9 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 
 	var cmds []string
 	if shouldCacheDependencies {
+		if utils.HasFile(src, "prisma") {
+			cmds = append(cmds, "COPY prisma prisma")
+		}
 		cmds = append(cmds, "COPY package.json* tsconfig.json* .npmrc* .")
 	} else {
 		cmds = append(cmds, "COPY . .")
