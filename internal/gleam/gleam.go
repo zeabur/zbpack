@@ -9,6 +9,9 @@ import (
 // GenerateDockerfile generates the Dockerfile for Gleam projects.
 func GenerateDockerfile(_ types.PlanMeta) (string, error) {
 	return `FROM ghcr.io/gleam-lang/gleam:v1.0.0-erlang-alpine
+RUN apk add --no-cache elixir
+RUN mix local.hex --force
+RUN mix local.rebar --force
 COPY . /build/
 RUN cd /build \
   && gleam export erlang-shipment \
