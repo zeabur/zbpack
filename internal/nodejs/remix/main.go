@@ -66,7 +66,10 @@ func TransformServerless(workdir string) error {
 	}
 
 	entry := "remix-serve ./build/index.js"
-	if _, err := os.Stat(path.Join(remixBuildDir, "server/index.mjs")); err == nil {
+	if _, err := os.Stat(path.Join(remixBuildDir, "server", "index.js")); err == nil {
+		entry = "remix-serve ./build/server/index.js"
+	}
+	if _, err := os.Stat(path.Join(remixBuildDir, "server", "index.mjs")); err == nil {
 		entry = "remix-serve ./build/server/index.mjs"
 	}
 
