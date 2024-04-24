@@ -62,9 +62,17 @@ func TransformServerless(workdir string) error {
 	}
 
 	_ = os.MkdirAll(path.Join(zeaburOutputDir, "functions/index.func"), 0755)
-	err = cp.Copy(remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"))
-	if err != nil {
-		return fmt.Errorf("copy waku's RSC function dir: %w", err)
+
+	if _, err := os.Stat(path.Join(remixBuildDir, "server")); err == nil {
+		err = cp.Copy(path.Join(remixBuildDir, "server"), path.Join(zeaburOutputDir, "functions/index.func/build"))
+		if err != nil {
+			return fmt.Errorf("copy %s to %s: %w", path.Join(remixBuildDir, "server"), path.Join(zeaburOutputDir, "functions/index.func/build"), err)
+		}
+	} else {
+		err = cp.Copy(remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"))
+		if err != nil {
+			return fmt.Errorf("copy %s to %s: %w", remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"), err)
+		}
 	}
 
 	fmt.Println("=> Copying node_modules")
