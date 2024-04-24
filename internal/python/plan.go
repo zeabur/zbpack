@@ -498,12 +498,12 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "g++-7")
 	}
 
-	if HasDependency(ctx, "playwright") {
+	if determinePlaywright(ctx) {
 		deps = append(
 			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
 			"libcups2", "libdbus-1-3", "libdrm2", "libxkbcommon-x11-0",
 			"libxcomposite-dev", "libxdamage1", "libxfixes-dev", "libxrandr2",
-			"libgbm-dev", "libasound2",
+			"libgbm-dev", "libasound2", "libpango-1.0-0", "libcairo-5c0",
 		)
 	}
 
@@ -656,6 +656,10 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
 	}
 
+	if determinePlaywright(ctx) {
+		commands += "RUN playwright install\n"
+	}
+
 	return strings.TrimSpace(commands)
 }
 
@@ -693,6 +697,10 @@ type GetMetaOptions struct {
 
 func getServerless(ctx *pythonPlanContext) bool {
 	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
+}
+
+func determinePlaywright(ctx *pythonPlanContext) bool {
+	return HasDependency(ctx, "playwright")
 }
 
 // GetMeta returns the metadata of a Python project.
