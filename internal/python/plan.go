@@ -746,6 +746,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		meta["start"] = startCmd
 	}
 
+	// if selenium, we need to install chromium
+	if HasDependency(ctx, "seleniumbase") || HasDependency(ctx, "selenium") {
+		meta["selenium"] = "true"
+	}
+
 	aptDeps := determineAptDependencies(ctx)
 	if len(aptDeps) > 0 {
 		meta["apt-deps"] = strings.Join(aptDeps, " ")
