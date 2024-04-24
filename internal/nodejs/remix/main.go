@@ -14,9 +14,6 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-//go:embed index.js
-var indexJs string
-
 // TransformServerless will transform the build output of Remix app to the serverless build output format of Zeabur
 func TransformServerless(workdir string) error {
 
@@ -63,16 +60,20 @@ func TransformServerless(workdir string) error {
 
 	_ = os.MkdirAll(path.Join(zeaburOutputDir, "functions/index.func"), 0755)
 
-	if _, err := os.Stat(path.Join(remixBuildDir, "server")); err == nil {
-		err = cp.Copy(path.Join(remixBuildDir, "server"), path.Join(zeaburOutputDir, "functions/index.func/build"))
-		if err != nil {
-			return fmt.Errorf("copy %s to %s: %w", path.Join(remixBuildDir, "server"), path.Join(zeaburOutputDir, "functions/index.func/build"), err)
-		}
-	} else {
-		err = cp.Copy(remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"))
-		if err != nil {
-			return fmt.Errorf("copy %s to %s: %w", remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"), err)
-		}
+	err = cp.Copy(remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"))
+	if err != nil {
+		return fmt.Errorf("copy %s to %s: %w", remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"), err)
+	}
+
+	entry := "remix-serve ./build/index.js"
+	if _, err := os.Stat(path.Join(remixBuildDir, "server/index.mjs")); err == nil {
+		entry = "remix-serve ./build/server/index.mjs"
+	}
+
+	funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "node20", Entry: entry}
+	err = funcConfig.WriteTo(path.Join(zeaburOutputDir, "functions/index.func"))
+	if err != nil {
+		return fmt.Errorf("Failed to write function config to \".zeabur/output/functions/index.func\": " + err.Error())
 	}
 
 	fmt.Println("=> Copying node_modules")
@@ -101,11 +102,6 @@ func TransformServerless(workdir string) error {
 	err = cp.Copy(path.Join(tmpDir, "package.json"), path.Join(zeaburOutputDir, "functions/index.func/package.json"))
 	if err != nil {
 		return fmt.Errorf("copy package.json: %w", err)
-	}
-
-	err = os.WriteFile(path.Join(zeaburOutputDir, "functions/index.func/index.mjs"), []byte(indexJs), 0644)
-	if err != nil {
-		return fmt.Errorf("write index.mjs: %w", err)
 	}
 
 	return nil
