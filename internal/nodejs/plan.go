@@ -8,7 +8,6 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
-	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -432,7 +431,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), cast.ToBoolE).TakeOr(true)
+	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(true)
 
 	// monorepo
 	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
