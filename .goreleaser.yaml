@@ -8,6 +8,7 @@ builds:
     - env:
           - CGO_ENABLED=0
       id: zbpack
+      main: ./cmd/zbpack
       binary: zbpack
       goos:
           - linux
