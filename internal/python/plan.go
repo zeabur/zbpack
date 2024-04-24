@@ -46,7 +46,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	if HasDependencyWithFile(ctx, "django") {
+	if HasExplicitDependency(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -56,27 +56,27 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "flask") {
+	if HasExplicitDependency(ctx, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "fastapi") {
+	if HasExplicitDependency(ctx, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "tornado") {
+	if HasExplicitDependency(ctx, "tornado") {
 		*fw = optional.Some(types.PythonFrameworkTornado)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "sanic") {
+	if HasExplicitDependency(ctx, "sanic") {
 		*fw = optional.Some(types.PythonFrameworkSanic)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "streamlit") {
+	if HasExplicitDependency(ctx, "streamlit") {
 		*fw = optional.Some(types.PythonFrameworkStreamlit)
 		return fw.Unwrap()
 	}
@@ -184,8 +184,8 @@ func weakHasStringsInFiles(src afero.Fs, filelist []string, text string) bool {
 	return false
 }
 
-// HasDependencyWithFile checks if the specified dependency is in the file.
-func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
+// HasExplicitDependency checks if the specified dependency is specified explicitly in the project.
+func HasExplicitDependency(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
