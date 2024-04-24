@@ -693,8 +693,8 @@ func TestHasDependencyWithFile_Pip(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "foo"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasExplicitDependency(ctx, "foo"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestHasDependencyWithFile_Pipenv(t *testing.T) {
@@ -717,8 +717,8 @@ pytest = "*"`), 0o644)
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "requests"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasExplicitDependency(ctx, "requests"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestHasDependencyWithFile_Poetry(t *testing.T) {
@@ -746,8 +746,8 @@ build-backend = "poetry.core.masonry.api"`), 0o644)
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "fastapi"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasExplicitDependency(ctx, "fastapi"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestHasDependencyWithFile_Pdm(t *testing.T) {
@@ -772,8 +772,8 @@ license = {text = "MIT"}`), 0o644)
 		PackageManager: optional.Some(types.PythonPackageManagerPdm),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "flask"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasExplicitDependency(ctx, "flask"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestHasDependencyWithFile_Rye(t *testing.T) {
@@ -798,8 +798,8 @@ license = {text = "MIT"}`), 0o644)
 		PackageManager: optional.Some(types.PythonPackageManagerRye),
 	}
 
-	assert.True(t, HasDependencyWithFile(ctx, "flask"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.True(t, HasExplicitDependency(ctx, "flask"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestHasDependencyWithFile_Unknown(t *testing.T) {
@@ -809,8 +809,8 @@ func TestHasDependencyWithFile_Unknown(t *testing.T) {
 		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
 	}
 
-	assert.False(t, HasDependencyWithFile(ctx, "flask"))
-	assert.False(t, HasDependencyWithFile(ctx, "bar"))
+	assert.False(t, HasExplicitDependency(ctx, "flask"))
+	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
 func TestDetermineStreamlitEntry_ByFile(t *testing.T) {
