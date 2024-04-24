@@ -498,6 +498,15 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "g++-7")
 	}
 
+	if HasDependency(ctx, "playwright") {
+		deps = append(
+			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
+			"libcups2", "libdbus-1-3", "libdrm2", "libxkbcommon-x11-0",
+			"libxcomposite-dev", "libxdamage1", "libxfixes-dev", "libxrandr2",
+			"libgbm-dev", "libasound2",
+		)
+	}
+
 	return deps
 }
 
