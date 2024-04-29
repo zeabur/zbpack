@@ -7,12 +7,6 @@ import (
 	"github.com/zeabur/zbpack/pkg/plan"
 )
 
-const (
-	ConfigBuildCommand = "build_command"
-	ConfigStartCommand = "start_command"
-	ConfigOutputDir    = "output_dir"
-)
-
 // ZbpackOptions is the union type of the pointer to PlanOptions and BuildOptions.
 type ZbpackOptions interface {
 	*PlanOptions | *BuildOptions
@@ -41,19 +35,19 @@ func UpdateOptionsOnConfig[T ZbpackOptions](options T, config plan.ImmutableProj
 	// The submodule-specific configuration (zbpack.[submodule].json)
 	// overrides the project configuration if defined.
 	if customBuildCommand.IsNil() {
-		value, err := plan.Cast(config.Get(ConfigBuildCommand), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take()
 		if err == nil {
 			customBuildCommand.Set(reflect.ValueOf(&value))
 		}
 	}
 	if customStartCommand.IsNil() {
-		value, err := plan.Cast(config.Get(ConfigStartCommand), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take()
 		if err == nil {
 			customStartCommand.Set(reflect.ValueOf(&value))
 		}
 	}
 	if outputDir.IsNil() {
-		value, err := plan.Cast(config.Get(ConfigOutputDir), cast.ToStringE).Take()
+		value, err := plan.Cast(config.Get(plan.ConfigOutputDir), cast.ToStringE).Take()
 		if err == nil {
 			outputDir.Set(reflect.ValueOf(&value))
 		}

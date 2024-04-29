@@ -167,3 +167,13 @@ func Cast[T any](value optional.Option[any], caster func(any) (T, error)) option
 
 	return optional.Some(cv)
 }
+
+// Common configuration keys.
+const (
+	// ConfigBuildCommand is the key for the build command in the project configuration.
+	ConfigBuildCommand = "build_command"
+	// ConfigStartCommand is the key for the start command in the project configuration.
+	ConfigStartCommand = "start_command"
+	// ConfigOutputDir is the key for the output directory in the project configuration.
+	ConfigOutputDir = "output_dir"
+)
