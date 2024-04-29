@@ -16,8 +16,8 @@ jobs:
         name: gofumpt
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-go@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-go@v5
               with:
                   go-version-file: "go.mod"
             - name: Install gofumpt
@@ -28,12 +28,12 @@ jobs:
         name: lint
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-go@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-go@v5
               with:
                   go-version-file: "go.mod"
             - name: golangci-lint
-              uses: golangci/golangci-lint-action@v3
+              uses: golangci/golangci-lint-action@v5
               with:
                   # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
                   version: latest

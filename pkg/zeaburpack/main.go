@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/codeclysm/extract/v3"
 	cp "github.com/otiai10/copy"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
@@ -213,12 +215,43 @@ func Build(opt *BuildOptions) error {
 	}
 
 	dockerBuildOutput := path.Join(os.TempDir(), "zbpack/buildkit")
+	// decompress TAR to the output directory
+	func() {
+		if err := os.MkdirAll(dockerBuildOutput, 0755); err != nil {
+			println("Failed to create output directory: " + err.Error())
+			return
+		}
 
-	// To minimize the size of the function, remove some unnecessary files.
-	ignored := []string{".git", ".github", ".vscode", ".idea", ".gitignore", "Dockerfile", "LICENSE", "README.md", "Makefile", ".pre-commit-config.yaml"}
-	for _, i := range ignored {
-		_ = os.RemoveAll(path.Join(dockerBuildOutput, i))
-	}
+		// decompress the given TAR file to the output directory
+		tarFile, err := os.Open(ServerlessTarPath)
+		if err != nil {
+			if m["serverless"] == "true" {
+				println("Failed to open TAR: " + err.Error())
+			}
+			return
+		}
+		defer func(tarFile *os.File) {
+			_ = tarFile.Close()
+
+			// clean up TAR file
+			_ = os.Remove(ServerlessTarPath)
+		}(tarFile)
+
+		err = extract.Tar(context.TODO(), tarFile, dockerBuildOutput, func(filename string) string {
+			switch filename {
+			case ".git", ".github", ".vscode", ".idea", ".gitignore",
+				"Dockerfile", "LICENSE", "README.md", "Makefile",
+				".pre-commit-config.yaml":
+				return "" // skip these files
+			default:
+				return filename
+			}
+		})
+		if err != nil {
+			println("Failed to decompress TAR: " + err.Error())
+			return
+		}
+	}()
 
 	dotZeaburDirInOutput := path.Join(dockerBuildOutput, ".zeabur")
 
@@ -389,7 +422,17 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeNodejs && m["outputDir"] != "" {
+	if m["outputDir"] != "" {
+		println("Transforming build output to serverless format ...")
+		err = static.TransformServerless(*opt.Path, m)
+		if err != nil {
+			println("Failed to transform serverless: " + err.Error())
+			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeDart && m["framework"] == string(types.DartFrameworkFlutter) {
 		println("Transforming build output to serverless format ...")
 		err = static.TransformServerless(*opt.Path, m)
 		if err != nil {

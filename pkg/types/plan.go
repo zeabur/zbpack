@@ -22,9 +22,19 @@ const (
 	PlanTypeRust   PlanType = "rust"
 	PlanTypeDotnet PlanType = "dotnet"
 	PlanTypeElixir PlanType = "elixir"
+	PlanTypeGleam  PlanType = "gleam"
 	PlanTypeBun    PlanType = "bun"
 	PlanTypeStatic PlanType = "static"
 	PlanTypeSwift  PlanType = "swift"
+	PlanTypeDart   PlanType = "dart"
+)
+
+type DartFramework string
+
+const (
+	DartFrameworkFlutter   DartFramework = "flutter"
+	DartFrameworkServerpod DartFramework = "serverpod"
+	DartFrameworkNone      DartFramework = "none"
 )
 
 //revive:enable:exported
@@ -63,6 +73,7 @@ const (
 	NodeProjectFrameworkNestJs           NodeProjectFramework = "nest.js"
 	NodeProjectFrameworkHexo             NodeProjectFramework = "hexo"
 	NodeProjectFrameworkVitepress        NodeProjectFramework = "vitepress"
+	NodeProjectFrameworkAstro            NodeProjectFramework = "astro"
 	NodeProjectFrameworkAstroStatic      NodeProjectFramework = "astro-static"
 	NodeProjectFrameworkAstroSSR         NodeProjectFramework = "astro-ssr"
 	NodeProjectFrameworkAstroStarlight   NodeProjectFramework = "astro-starlight"
@@ -86,6 +97,7 @@ const (
 	PythonFrameworkFlask   PythonFramework = "flask"
 	PythonFrameworkDjango  PythonFramework = "django"
 	PythonFrameworkFastapi PythonFramework = "fastapi"
+	PythonFrameworkTornado PythonFramework = "tornado"
 	PythonFrameworkSanic   PythonFramework = "sanic"
 	PythonFrameworkNone    PythonFramework = "none"
 

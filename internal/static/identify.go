@@ -1,10 +1,10 @@
 package static
 
 import (
-	"os"
 	"strings"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -24,7 +24,7 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "index.html", "hugo.toml", "config/_default/hugo.toml", "config.toml")
+	return utils.HasFile(fs, "index.html", "hugo.toml", "config/_default/hugo.toml", "config.toml", "mkdocs.yml")
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
@@ -33,13 +33,21 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		return types.PlanMeta{"framework": "hugo"}
 	}
 
+	if utils.HasFile(options.Source, "mkdocs.yml") {
+		return types.PlanMeta{"framework": "mkdocs"}
+	}
+
 	if utils.HasFile(options.Source, "config.toml") {
 		config, err := afero.ReadFile(options.Source, "config.toml")
 		if err == nil && strings.Contains(string(config), "base_url") {
 			ver := "0.18.0"
-			if os.Getenv("ZOLA_VERSION") != "" {
-				ver = os.Getenv("ZOLA_VERSION")
+
+			if userSetVersion, err := plan.Cast(
+				options.Config.Get("zola_version"), cast.ToStringE,
+			).Take(); err == nil {
+				ver = userSetVersion
 			}
+
 			return types.PlanMeta{"framework": "zola", "version": ver}
 		}
 	}

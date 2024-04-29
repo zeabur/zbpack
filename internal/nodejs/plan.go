@@ -3,14 +3,11 @@ package nodejs
 import (
 	"encoding/json"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
-	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -119,6 +116,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 	}
 
 	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
+		if _, hasZeaburAdapter := packageJSON.Dependencies["@zeabur/astro-adapter"]; hasZeaburAdapter {
+			*fw = optional.Some(types.NodeProjectFrameworkAstro)
+			return fw.Unwrap()
+		}
+
 		if _, isAstroSSR := packageJSON.Dependencies["@astrojs/node"]; isAstroSSR {
 			*fw = optional.Some(types.NodeProjectFrameworkAstroSSR)
 			return fw.Unwrap()
@@ -129,6 +131,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 			return fw.Unwrap()
 		}
 
+		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
+		return fw.Unwrap()
+	}
+
+	if _, isAstro := packageJSON.DevDependencies["astro"]; isAstro {
 		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
 		return fw.Unwrap()
 	}
@@ -368,15 +375,10 @@ func GetStartScript(ctx *nodePlanContext) string {
 }
 
 const defaultNodeVersion = "18"
-const minNodeVersion uint64 = 4
-const maxNodeVersion uint64 = 20
+const maxNodeVersion uint64 = 21
 const maxLtsNodeVersion uint64 = 18
 
 func getNodeVersion(versionConstraint string) string {
-	if versionConstraint == "" {
-		return defaultNodeVersion
-	}
-
 	// .nvmrc extensions
 	if versionConstraint == "node" {
 		return strconv.FormatUint(maxNodeVersion, 10)
@@ -385,57 +387,7 @@ func getNodeVersion(versionConstraint string) string {
 		return strconv.FormatUint(maxLtsNodeVersion, 10)
 	}
 
-	// Use regex to find a version if the constraint
-	// has only one version condition and only limited
-	// in a major version.
-	var versionRegex = regexp.MustCompile(`^v?(?P<op>[~=^]?)(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*|\*)\.(?P<patch>0|[1-9]\d*|\*)$`)
-	if matched := versionRegex.FindStringSubmatch(versionConstraint); matched != nil {
-		op := matched[1]
-		major := matched[2]
-		minor := matched[3]
-		patch := matched[4]
-
-		switch op {
-		case "", "=":
-			// Exact: Return MAJOR.MINOR.PATCH.
-			if patch != "*" {
-				return major + "." + minor + "." + patch
-			}
-
-			fallthrough
-		case "~":
-			// Tilde: Return MAJOR.MINOR.
-			if minor != "*" {
-				return major + "." + minor
-			}
-
-			fallthrough
-		case "^":
-			// Caret: Return MAJOR.
-			return major
-		}
-	}
-
-	/* Fallback: Use semver to find a version. Not reliable in tilde case. */
-
-	// create a version constraint from versionConstraint
-	constraint, err := semver.NewConstraint(versionConstraint)
-	if err != nil {
-		log.Println("invalid node version constraint", err)
-		return defaultNodeVersion
-	}
-
-	// find the latest version which satisfies the constraint
-	for ver := maxNodeVersion; ver >= minNodeVersion; ver-- {
-		upperVersion := semver.New(ver, 99, 99, "", "")
-
-		if constraint.Check(upperVersion) {
-			return strconv.FormatUint(ver, 10) // We only return the major version
-		}
-	}
-
-	// when no version satisfies the constraint, return the default version
-	return defaultNodeVersion
+	return utils.ConstraintToVersion(versionConstraint, defaultNodeVersion)
 }
 
 // GetNodeVersion gets the Node.js version of the project.
@@ -472,16 +424,26 @@ func GetEntry(ctx *nodePlanContext) string {
 // GetInstallCmd gets the installation command of the Node.js project.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
+	src := ctx.Src
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), cast.ToBoolE).TakeOr(true)
+	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(true)
+
+	// monorepo
+	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
+		log.Println("Detected Monorepo. Disabling dependency caching.")
+		shouldCacheDependencies = false
+	}
 
 	var cmds []string
 	if shouldCacheDependencies {
+		if utils.HasFile(src, "prisma") {
+			cmds = append(cmds, "COPY prisma prisma")
+		}
 		cmds = append(cmds, "COPY package.json* tsconfig.json* .npmrc* .")
 	} else {
 		cmds = append(cmds, "COPY . .")
@@ -703,6 +665,8 @@ func getServerless(ctx *nodePlanContext) bool {
 	defaultServerless := map[types.NodeProjectFramework]bool{
 		types.NodeProjectFrameworkNextJs:  true,
 		types.NodeProjectFrameworkNuxtJs:  true,
+		types.NodeProjectFrameworkAstro:   true,
+		types.NodeProjectFrameworkSvelte:  true,
 		types.NodeProjectFrameworkWaku:    true,
 		types.NodeProjectFrameworkAngular: true,
 		types.NodeProjectFrameworkRemix:   true,
@@ -766,18 +730,24 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 	meta["buildCmd"] = buildCmd
 
-	if opt.OutputDir != nil && *opt.OutputDir != "" {
-		if strings.HasPrefix(*opt.OutputDir, "/") {
-			meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
-		} else {
-			meta["outputDir"] = *opt.OutputDir
+	// only set outputDir if there is no custom start command (because if there is, it shouldn't be a static project)
+	if opt.CustomStartCmd == nil || *opt.CustomStartCmd == "" {
+
+		if opt.OutputDir != nil && *opt.OutputDir != "" {
+			if strings.HasPrefix(*opt.OutputDir, "/") {
+				meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
+			} else {
+				meta["outputDir"] = *opt.OutputDir
+			}
+			return meta
 		}
-		return meta
-	}
-	staticOutputDir := GetStaticOutputDir(ctx)
-	if staticOutputDir != "" {
-		meta["outputDir"] = staticOutputDir
-		return meta
+
+		staticOutputDir := GetStaticOutputDir(ctx)
+		if staticOutputDir != "" {
+			meta["outputDir"] = staticOutputDir
+			return meta
+		}
+
 	}
 
 	startCmd := GetStartCmd(ctx)

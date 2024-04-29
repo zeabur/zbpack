@@ -48,6 +48,17 @@ func DetermineFramework(pj types.JavaProjectType, src afero.Fs) types.JavaFramew
 				return types.JavaFrameworkSpringBoot
 			}
 		}
+
+		if utils.HasFile(src, "build.gradle.kts") {
+			gradle, err := afero.ReadFile(src, "build.gradle.kts")
+			if err != nil {
+				return types.JavaFrameworkNone
+			}
+
+			if strings.Contains(string(gradle), "org.springframework.boot") {
+				return types.JavaFrameworkSpringBoot
+			}
+		}
 	}
 
 	return types.JavaFrameworkNone

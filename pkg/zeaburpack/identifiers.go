@@ -2,10 +2,12 @@ package zeaburpack
 
 import (
 	"github.com/zeabur/zbpack/internal/bun"
+	"github.com/zeabur/zbpack/internal/dart"
 	"github.com/zeabur/zbpack/internal/deno"
 	dockerfilePkg "github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/dotnet"
 	"github.com/zeabur/zbpack/internal/elixir"
+	"github.com/zeabur/zbpack/internal/gleam"
 	"github.com/zeabur/zbpack/internal/golang"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
@@ -23,6 +25,7 @@ import (
 func SupportedIdentifiers() []plan.Identifier {
 	return []plan.Identifier{
 		dockerfilePkg.NewIdentifier(),
+		dart.NewIdentifier(),
 		php.NewIdentifier(),
 		ruby.NewIdentifier(),
 		bun.NewIdentifier(),
@@ -34,6 +37,7 @@ func SupportedIdentifiers() []plan.Identifier {
 		rust.NewIdentifier(),
 		dotnet.NewIdentifier(),
 		elixir.NewIdentifier(),
+		gleam.NewIdentifier(),
 		swift.NewIdentifier(),
 		static.NewIdentifier(),
 	}
