@@ -25,6 +25,9 @@ COPY . .
 {{ if and (eq .Framework "nuxt.js") .Serverless }}
 ENV NITRO_PRESET=node
 {{ end }}
+{{ if and (eq .Framework "nuxt.js") (not .Serverless) }}
+ENV NITRO_PRESET=node-server
+{{ end }}
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 {{ if .Serverless }}

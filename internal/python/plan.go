@@ -46,7 +46,7 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
-	if HasDependencyWithFile(ctx, "django") {
+	if HasExplicitDependency(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
 	}
@@ -56,22 +56,27 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "flask") {
+	if HasExplicitDependency(ctx, "flask") {
 		*fw = optional.Some(types.PythonFrameworkFlask)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "fastapi") {
+	if HasExplicitDependency(ctx, "fastapi") {
 		*fw = optional.Some(types.PythonFrameworkFastapi)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "sanic") {
+	if HasExplicitDependency(ctx, "tornado") {
+		*fw = optional.Some(types.PythonFrameworkTornado)
+		return fw.Unwrap()
+	}
+
+	if HasExplicitDependency(ctx, "sanic") {
 		*fw = optional.Some(types.PythonFrameworkSanic)
 		return fw.Unwrap()
 	}
 
-	if HasDependencyWithFile(ctx, "streamlit") {
+	if HasExplicitDependency(ctx, "streamlit") {
 		*fw = optional.Some(types.PythonFrameworkStreamlit)
 		return fw.Unwrap()
 	}
@@ -179,8 +184,8 @@ func weakHasStringsInFiles(src afero.Fs, filelist []string, text string) bool {
 	return false
 }
 
-// HasDependencyWithFile checks if the specified dependency is in the file.
-func HasDependencyWithFile(ctx *pythonPlanContext, dependency string) bool {
+// HasExplicitDependency checks if the specified dependency is specified explicitly in the project.
+func HasExplicitDependency(ctx *pythonPlanContext, dependency string) bool {
 	src := ctx.Src
 	pm := DeterminePackageManager(ctx)
 
@@ -245,6 +250,8 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 			constructor = "Flask"
 		case types.PythonFrameworkFastapi:
 			constructor = "FastAPI"
+		case types.PythonFrameworkTornado:
+			constructor = "Tornado"
 		case types.PythonFrameworkSanic:
 			constructor = "Sanic"
 		}
@@ -491,6 +498,15 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "g++-7")
 	}
 
+	if determinePlaywright(ctx) {
+		deps = append(
+			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
+			"libcups2", "libdbus-1-3", "libdrm2", "libxkbcommon-x11-0",
+			"libxcomposite-dev", "libxdamage1", "libxfixes-dev", "libxrandr2",
+			"libgbm-dev", "libasound2", "libpango-1.0-0", "libcairo-5c0",
+		)
+	}
+
 	return deps
 }
 
@@ -640,6 +656,10 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
 	}
 
+	if determinePlaywright(ctx) {
+		commands += "RUN playwright install\n"
+	}
+
 	return strings.TrimSpace(commands)
 }
 
@@ -677,6 +697,10 @@ type GetMetaOptions struct {
 
 func getServerless(ctx *pythonPlanContext) bool {
 	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
+}
+
+func determinePlaywright(ctx *pythonPlanContext) bool {
+	return HasDependency(ctx, "playwright")
 }
 
 // GetMeta returns the metadata of a Python project.
@@ -728,6 +752,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	startCmd := determineStartCmd(ctx)
 	if startCmd != "" {
 		meta["start"] = startCmd
+	}
+
+	// if selenium, we need to install chromium
+	if HasDependency(ctx, "seleniumbase") || HasDependency(ctx, "selenium") {
+		meta["selenium"] = "true"
 	}
 
 	aptDeps := determineAptDependencies(ctx)

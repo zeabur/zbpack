@@ -39,6 +39,12 @@ COPY pyproject.toml* pdm.lock* .
 RUN pdm install
 ---
 
+[TestDetermineInstallCmd_Snapshot/pdm-with-tornado - 1]
+RUN pip install pdm
+COPY pyproject.toml* pdm.lock* .
+RUN pdm install
+---
+
 [TestDetermineInstallCmd_Snapshot/pdm-with-wsgi - 1]
 RUN pip install pdm
 COPY pyproject.toml* pdm.lock* .
@@ -76,6 +82,11 @@ RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
 
 [TestDetermineInstallCmd_Snapshot/pip-with-streamlit-entry - 1]
+COPY requirements.txt* .
+RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
+---
+
+[TestDetermineInstallCmd_Snapshot/pip-with-tornado - 1]
 COPY requirements.txt* .
 RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin
 ---
@@ -121,6 +132,12 @@ RUN pipenv install
 ---
 
 [TestDetermineInstallCmd_Snapshot/pipenv-with-streamlit-entry - 1]
+RUN pip install pipenv
+COPY Pipfile* Pipfile.lock* .
+RUN pipenv install
+---
+
+[TestDetermineInstallCmd_Snapshot/pipenv-with-tornado - 1]
 RUN pip install pipenv
 COPY Pipfile* Pipfile.lock* .
 RUN pipenv install
@@ -173,6 +190,12 @@ COPY pyproject.toml* poetry.lock* .
 RUN poetry install
 ---
 
+[TestDetermineInstallCmd_Snapshot/poetry-with-tornado - 1]
+RUN pip install poetry
+COPY pyproject.toml* poetry.lock* .
+RUN poetry install
+---
+
 [TestDetermineInstallCmd_Snapshot/poetry-with-wsgi - 1]
 RUN pip install poetry
 COPY pyproject.toml* poetry.lock* .
@@ -201,6 +224,10 @@ RUN pip install gunicorn
 ---
 
 [TestDetermineInstallCmd_Snapshot/unknown-with-streamlit-entry - 1]
+RUN echo "skip install"
+---
+
+[TestDetermineInstallCmd_Snapshot/unknown-with-tornado - 1]
 RUN echo "skip install"
 ---
 

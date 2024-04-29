@@ -56,7 +56,7 @@ func TransformServerless(workdir string) error {
 	fmt.Println("=> Collect serverless function pages")
 
 	internalPages := []string{"_app.js", "_document.js", "_error.js"}
-	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(nextOutputServerPagesDir, func(path string, _ os.FileInfo, _ error) error {
 		if strings.HasSuffix(path, ".js") {
 			for _, internalPage := range internalPages {
 				if strings.HasSuffix(path, internalPage) {
@@ -70,7 +70,7 @@ func TransformServerless(workdir string) error {
 		return nil
 	})
 
-	_ = filepath.Walk(nextOutputServerAppDir, func(p string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(nextOutputServerAppDir, func(p string, _ os.FileInfo, _ error) error {
 
 		// if we found any page.js or route.js inside .next/server/app, this is a serverless function
 		if strings.HasSuffix(p, "page.js") || strings.HasSuffix(p, "route.js") {

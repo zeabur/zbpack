@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/iancoleman/strcase"
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -30,8 +32,9 @@ type ProjectConfiguration interface {
 	MutableProjectConfiguration
 }
 
-// ViperProjectConfiguration reads the extra configuration "zbpack.toml" from
-// the root directory of a project and turns it to a struct for easy access.
+// ViperProjectConfiguration reads the extra configuration from the environment
+// variable "ZBPACK_[CONFIG_KEY]" and "zbpack.toml" in the root directory of
+// a project and turns it to a struct for easy access.
 type ViperProjectConfiguration struct {
 	// root is the configuration for the `zbpack.json`.
 	root *viper.Viper
@@ -43,9 +46,35 @@ type ViperProjectConfiguration struct {
 
 // Get returns the value of the given key. If the key is not present, it returns None.
 func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[any] {
+	/* extra */
+
 	if val, ok := vpc.extra[key]; ok {
 		return optional.Some(val)
 	}
+
+	/* env */
+
+	// FORCE_CONTAINERIZED {"serverless": false}
+	if key == "serverless" {
+		if v, err := ToWeakBoolE(os.Getenv("FORCE_CONTAINERIZED")); err == nil && v {
+			return optional.Some[any](false)
+		}
+	}
+
+	// ZOLA_VERSION {"zola_version: "1.2.3"}
+	if key == "zolaVersion" || key == "zola_version" {
+		if val, ok := os.LookupEnv("ZOLA_VERSION"); ok {
+			return optional.Some[any](val)
+		}
+	}
+
+	// key.a.b.c -> ZBPACK_KEY_A_B_C
+	envKey := "ZBPACK_" + strcase.ToScreamingSnake(key)
+	if val, ok := os.LookupEnv(envKey); ok {
+		return optional.Some[any](val)
+	}
+
+	/* zbpack.json */
 
 	if vpc.submodule != nil && vpc.submodule.IsSet(key) {
 		return optional.Some(vpc.submodule.Get(key))

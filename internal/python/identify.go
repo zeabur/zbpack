@@ -20,6 +20,11 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
+	// some MkDocs projects may have requirements.txt, but it should be handled by static provider instead of Python
+	if utils.HasFile(fs, "mkdocs.yml") {
+		return false
+	}
+
 	return utils.HasFile(
 		fs,
 		"app.py", "main.py", "app.py", "manage.py", "requirements.txt", "streamlit_app.py",
