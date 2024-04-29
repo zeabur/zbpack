@@ -64,7 +64,7 @@ require (
 	github.com/evanw/esbuild v0.19.11
 	github.com/gkampitakis/go-snaps v0.5.4
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/moznion/go-optional v0.11.0
 	github.com/otiai10/copy v1.14.0
