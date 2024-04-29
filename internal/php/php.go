@@ -18,9 +18,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	// Custom server for Laravel Octane
 	switch meta["octaneServer"] {
-	case "": // ignore
-	case "roadrunner": // unimplemented
-	case "swoole":
+	case OctaneServerSwoole:
 		getPhpImage = "FROM docker.io/phpswoole/swoole:php" + phpVersion + "\n" +
 			"RUN docker-php-ext-install pcntl\n"
 		serverMode = "swoole"
@@ -72,15 +70,7 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
 
-	startCmd := `
-CMD nginx; php-fpm
-`
-	// Custom server for Laravel Octane
-	if serverMode == "swoole" {
-		startCmd = `
-CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8080"]
-`
-	}
+	startCmd := "\n" + "CMD " + meta["startCommand"] + "\n"
 
 	dockerFile := getPhpImage +
 		environmentInstallCmd +
