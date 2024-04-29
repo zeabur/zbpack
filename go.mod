@@ -54,7 +54,7 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.5.0
