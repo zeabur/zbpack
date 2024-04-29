@@ -1,12 +1,15 @@
 package php
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -84,7 +87,7 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	}
 
 	// loop through the composer.json dependencies and
-	// check if any dependency need some additional apt dependencies
+	// check if any dependency needs some additional apt dependencies
 	for dep := range *composerJSON.Require {
 		if val, ok := depMap[dep]; ok {
 			dependencies = append(dependencies, val...)
@@ -135,4 +138,44 @@ func DetermineApplication(source afero.Fs) (types.PHPApplication, types.PHPPrope
 	}
 
 	return types.PHPApplicationDefault, types.PHPPropertyComposer
+}
+
+// DetermineStartCommand determines the start command of the project.
+func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startCommand *string) string {
+	if startCommand != nil {
+		return *startCommand
+	}
+	if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+		return startCommand
+	}
+
+	octaneServerType := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
+	switch octaneServerType {
+	case OctaneServerRoadrunner: // unimplemented
+	case OctaneServerSwoole:
+		return "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080"
+	}
+
+	return "nginx; php-fpm"
+}
+
+const (
+	// OctaneServerRoadrunner indicates this Laravel Octane server uses RoadRunner.
+	OctaneServerRoadrunner = "roadrunner"
+	// OctaneServerSwoole indicates this Laravel Octane server uses Swoole.
+	OctaneServerSwoole = "swoole"
+)
+
+func castOctaneServer(i interface{}) (string, error) {
+	s, err := cast.ToStringE(i)
+	if err != nil {
+		return "", err
+	}
+
+	switch s {
+	case OctaneServerRoadrunner, OctaneServerSwoole:
+		return s, nil
+	default:
+		return "", fmt.Errorf("unknown octane server: %s", s)
+	}
 }

@@ -3,9 +3,11 @@ package php_test
 import (
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/internal/php"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -127,4 +129,57 @@ func TestDetermineApplication_AcgFaka(t *testing.T) {
 	app, kind := php.DetermineApplication(fs)
 	assert.Equal(t, app, types.PHPApplicationAcgFaka)
 	assert.NotEqual(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
+}
+
+func TestDetermineStartCommand_Default(t *testing.T) {
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	command := php.DetermineStartCommand(config, nil)
+
+	assert.Equal(t, "nginx; php-fpm", command)
+}
+
+func TestDetermineStartCommand_Swoole(t *testing.T) {
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerSwoole)
+	command := php.DetermineStartCommand(config, nil)
+
+	assert.Equal(t, "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080", command)
+}
+
+func TestDetermineStartCommand_Roadrunner(t *testing.T) {
+	// unimplemented, so it should fall back to the default command
+
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerRoadrunner)
+	command := php.DetermineStartCommand(config, nil)
+
+	assert.Equal(t, "nginx; php-fpm", command)
+}
+
+func TestDetermineStartCommand_UnknownOctane(t *testing.T) {
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	config.Set(php.ConfigLaravelOctaneServer, "unknown")
+	command := php.DetermineStartCommand(config, nil)
+
+	assert.Equal(t, "nginx; php-fpm", command)
+}
+
+func TestDetermineStartCommand_CustomInConfig(t *testing.T) {
+	const expectedCommand = "php artisan serve"
+
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	config.Set(plan.ConfigStartCommand, expectedCommand)
+
+	actualCommand := php.DetermineStartCommand(config, nil)
+
+	assert.Equal(t, expectedCommand, actualCommand)
+}
+
+func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
+	const expectedCommand = "php artisan serve"
+
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	actualCommand := php.DetermineStartCommand(config, lo.ToPtr(expectedCommand))
+
+	assert.Equal(t, expectedCommand, actualCommand)
 }
