@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/pan93412/envexpander"
+	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -35,6 +37,12 @@ type buildImageOptions struct {
 	// PushImage is a flag to indicate if the image should be pushed to the registry.
 	PushImage bool
 }
+
+// ServerlessTarPath is the path to the serverless output tar file
+var ServerlessTarPath = filepath.Join(
+	lo.Must(os.MkdirTemp("", "zbpack-buildkit-artifact-*")),
+	"serverless-output.tar",
+)
 
 func buildImage(opt *buildImageOptions) error {
 	// resolve env variable statically and don't depend on Dockerfile's order
@@ -130,7 +138,7 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" || opt.PlanType == types.PlanTypeStatic {
-		buildKitCmd = append(buildKitCmd, "--output", "type=local,dest="+path.Join(os.TempDir(), "zbpack/buildkit"))
+		buildKitCmd = append(buildKitCmd, "--output", "type=tar,dest="+ServerlessTarPath)
 	} else {
 		t := "image"
 		if !opt.PushImage {
@@ -146,11 +154,11 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	if opt.CacheFrom != nil && len(*opt.CacheFrom) > 0 {
-		buildKitCmd = append(buildKitCmd, "--import-cache type=registry,ref="+*opt.CacheFrom)
+		buildKitCmd = append(buildKitCmd, "--import-cache", "type=registry,ref="+*opt.CacheFrom)
 	}
 
 	if opt.CacheTo != nil && len(*opt.CacheTo) > 0 {
-		buildKitCmd = append(buildKitCmd, "--export-cache", *opt.CacheTo)
+		buildKitCmd = append(buildKitCmd, "--export-cache", "type=registry,ref="+*opt.CacheTo)
 	}
 
 	if opt.PlainDockerProgress {

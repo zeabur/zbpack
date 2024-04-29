@@ -7,6 +7,7 @@ import (
 	"github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/dotnet"
 	"github.com/zeabur/zbpack/internal/elixir"
+	"github.com/zeabur/zbpack/internal/gleam"
 	"github.com/zeabur/zbpack/internal/golang"
 	"github.com/zeabur/zbpack/internal/java"
 	"github.com/zeabur/zbpack/internal/nodejs"
@@ -35,6 +36,7 @@ func SupportedPackers() []packer.Packer {
 		rust.NewPacker(),
 		dotnet.NewPacker(),
 		elixir.NewPacker(),
+		gleam.NewPacker(),
 		swift.NewPacker(),
 		static.NewPacker(),
 	}
