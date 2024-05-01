@@ -18,6 +18,17 @@ const DefaultPHPVersion = "8"
 
 // GetPHPVersion gets the php version of the project.
 func GetPHPVersion(source afero.Fs) string {
+	compose, err := afero.ReadFile(source, "docker-compose.yml")
+	if err == nil && strings.Contains(string(compose), "vendor/laravel/sail/runtimes") {
+		lines := strings.Split(string(compose), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "vendor/laravel/sail/runtimes") {
+				parts := strings.Split(line, "/")
+				return parts[len(parts)-1]
+			}
+		}
+	}
+
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return DefaultPHPVersion
@@ -33,13 +44,6 @@ func GetPHPVersion(source afero.Fs) string {
 
 // DetermineProjectFramework determines the framework of the project.
 func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
-	if utils.HasFile(source, "docker-compose.yml") {
-		compose, err := afero.ReadFile(source, "docker-compose.yml")
-		if err == nil && strings.Contains(string(compose), "vendor/laravel/sail/runtimes") {
-			return types.PHPFrameworkLaravelSail
-		}
-	}
-
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return types.PHPFrameworkNone
@@ -104,7 +108,7 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	return dependencies
 }
 
-var baseExt = []string{"pdo", "pdo_mysql", "mysqli", "gd", "curl", "zip", "intl"}
+var baseExt = []string{"pdo", "pdo_mysql", "mysqli", "gd", "curl", "zip", "intl", "pcntl"}
 
 // DeterminePHPExtensions determines the required PHP extensions from composer.json of the project.
 func DeterminePHPExtensions(source afero.Fs) []string {
