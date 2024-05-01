@@ -159,6 +159,7 @@ type PHPFramework string
 //revive:disable:exported
 const (
 	PHPFrameworkLaravel     PHPFramework = "laravel"
+	PHPFrameworkLaravelSail PHPFramework = "laravel-sail"
 	PHPFrameworkNone        PHPFramework = "none"
 	PHPFrameworkThinkphp    PHPFramework = "thinkphp"
 	PHPFrameworkCodeigniter PHPFramework = "codeigniter"

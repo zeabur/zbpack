@@ -10,6 +10,10 @@ import (
 
 // GenerateDockerfile generates the Dockerfile for PHP projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
+	if meta["framework"] == string(types.PHPFrameworkLaravelSail) {
+		return meta["runtime"], nil
+	}
+
 	phpVersion := meta["phpVersion"]
 	projectProperty := PropertyFromString(meta["property"])
 	serverMode := "fpm"

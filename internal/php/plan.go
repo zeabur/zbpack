@@ -33,6 +33,13 @@ func GetPHPVersion(source afero.Fs) string {
 
 // DetermineProjectFramework determines the framework of the project.
 func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
+	if utils.HasFile(source, "docker-compose.yml") {
+		compose, err := afero.ReadFile(source, "docker-compose.yml")
+		if err == nil && strings.Contains(string(compose), "vendor/laravel/sail/runtimes") {
+			return types.PHPFrameworkLaravelSail
+		}
+	}
+
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return types.PHPFrameworkNone
