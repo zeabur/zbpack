@@ -30,6 +30,10 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	server := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
 
 	framework := DetermineProjectFramework(options.Source)
+	if framework == types.PHPFrameworkLaravelSail {
+		sailRuntime := determineSailRuntime(options.Source)
+		return types.PlanMeta{"framework": string(framework), "runtime": sailRuntime, "expose": "80"}
+	}
 
 	phpVersion := GetPHPVersion(options.Source)
 	deps := DetermineAptDependencies(options.Source, server)
