@@ -24,6 +24,7 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
+	// FIXME: should use config.Get("ignore_dockerfile") instead of os.Getnev directly.
 	if os.Getenv("ZBPACK_IGNORE_DOCKERFILE") == "true" {
 		return false
 	}

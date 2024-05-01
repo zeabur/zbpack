@@ -17,7 +17,16 @@ import (
 const DefaultPHPVersion = "8"
 
 // GetPHPVersion gets the php version of the project.
-func GetPHPVersion(source afero.Fs) string {
+func GetPHPVersion(config plan.ImmutableProjectConfiguration, source afero.Fs) string {
+
+	// Priority: config (environment variable) > docker-compose.yml > composer.json
+
+	// Get the PHP version from the config (php.version) or environment variable (ZBPACK_PHP_VERSION).
+	if phpVersion, err := plan.Cast(config.Get(ConfigPHPVersion), cast.ToStringE).Take(); err == nil {
+		return phpVersion
+	}
+
+	// if not found in the config or environment variable, try to get it from the docker-compose.yml because it may be a Laravel Sail project.
 	compose, err := afero.ReadFile(source, "docker-compose.yml")
 	if err == nil && strings.Contains(string(compose), "vendor/laravel/sail/runtimes") {
 		lines := strings.Split(string(compose), "\n")
@@ -28,6 +37,8 @@ func GetPHPVersion(source afero.Fs) string {
 			}
 		}
 	}
+
+	// if not found in the docker-compose.yml, try to get it from the "require.php" of composer.json.
 
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
