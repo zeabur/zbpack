@@ -2,6 +2,7 @@ package dockerfile
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -23,6 +24,10 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
+	if os.Getenv("ZBPACK_IGNORE_DOCKERFILE") == "true" {
+		return false
+	}
+
 	fileInfo, err := afero.ReadDir(fs, ".")
 	if err != nil {
 		log.Println("dockerfile: read dir:", err)
