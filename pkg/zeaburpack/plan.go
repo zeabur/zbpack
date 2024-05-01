@@ -78,7 +78,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 			OutputDir:          opt.OutputDir,
 			SubmoduleName:      submoduleName,
 		},
-		SupportedIdentifiers()...,
+		SupportedIdentifiers(config)...,
 	)
 
 	t, m := planner.Plan()

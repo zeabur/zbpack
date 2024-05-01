@@ -30,7 +30,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	server := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
 
 	framework := DetermineProjectFramework(options.Source)
-	phpVersion := GetPHPVersion(options.Source)
+	phpVersion := GetPHPVersion(config, options.Source)
 	deps := DetermineAptDependencies(options.Source, server)
 	exts := DeterminePHPExtensions(options.Source)
 	app, property := DetermineApplication(options.Source)

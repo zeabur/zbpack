@@ -4,7 +4,7 @@ import (
 	"github.com/zeabur/zbpack/internal/bun"
 	"github.com/zeabur/zbpack/internal/dart"
 	"github.com/zeabur/zbpack/internal/deno"
-	dockerfilePkg "github.com/zeabur/zbpack/internal/dockerfile"
+	"github.com/zeabur/zbpack/internal/dockerfile"
 	"github.com/zeabur/zbpack/internal/dotnet"
 	"github.com/zeabur/zbpack/internal/elixir"
 	"github.com/zeabur/zbpack/internal/gleam"
@@ -22,9 +22,8 @@ import (
 
 // SupportedIdentifiers returns all supported identifiers
 // note that they are in the order of priority
-func SupportedIdentifiers() []plan.Identifier {
-	return []plan.Identifier{
-		dockerfilePkg.NewIdentifier(),
+func SupportedIdentifiers(config plan.ImmutableProjectConfiguration) []plan.Identifier {
+	identifiers := []plan.Identifier{
 		dart.NewIdentifier(),
 		php.NewIdentifier(),
 		ruby.NewIdentifier(),
@@ -41,4 +40,11 @@ func SupportedIdentifiers() []plan.Identifier {
 		swift.NewIdentifier(),
 		static.NewIdentifier(),
 	}
+
+	// if ignore_dockerfile in config is true, or ZBPACK_IGNORE_DOCKERFILE is true, ignore dockerfile
+	if plan.Cast(config.Get("ignore_dockerfile"), plan.ToWeakBoolE).TakeOr(false) {
+		return identifiers
+	}
+
+	return append([]plan.Identifier{dockerfile.NewIdentifier()}, identifiers...)
 }

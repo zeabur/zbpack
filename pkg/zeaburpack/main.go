@@ -156,7 +156,7 @@ func Build(opt *BuildOptions) error {
 			CustomStartCommand: opt.CustomStartCommand,
 			OutputDir:          opt.OutputDir,
 		},
-		SupportedIdentifiers()...,
+		SupportedIdentifiers(config)...,
 	)
 
 	t, m := planner.Plan()
