@@ -1,6 +1,9 @@
 package dotnet
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/spf13/afero"
 
 	"github.com/zeabur/zbpack/internal/utils"
@@ -23,20 +26,44 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "Program.cs", "Startup.cs")
 }
 
+func (i *identify) findEntryPoint(fs afero.Fs) (string, error) {
+	files, err := afero.ReadDir(fs, ".")
+	if err != nil {
+		return "", err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		if strings.HasSuffix(file.Name(), ".csproj") {
+			return file.Name(), nil
+		}
+	}
+
+	return "", errors.New("no .csproj file found")
+}
+
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	sdkVer, err := DetermineSDKVersion(options.SubmoduleName, options.Source)
+	entryPoint, err := i.findEntryPoint(options.Source)
 	if err != nil {
 		panic(err)
 	}
 
-	framework, err := DetermineFramework(options.SubmoduleName, options.Source)
+	sdkVer, err := DetermineSDKVersion(entryPoint, options.Source)
+	if err != nil {
+		panic(err)
+	}
+
+	framework, err := DetermineFramework(entryPoint, options.Source)
 	if err != nil {
 		panic(err)
 	}
 
 	return types.PlanMeta{
 		"sdk":        sdkVer,
-		"entryPoint": options.SubmoduleName,
+		"entryPoint": entryPoint,
 		"framework":  framework,
 	}
 }
