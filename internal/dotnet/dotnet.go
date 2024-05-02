@@ -4,6 +4,7 @@ package dotnet
 import (
 	"bytes"
 	"embed"
+	"strings"
 	"text/template"
 
 	"github.com/zeabur/zbpack/pkg/packer"
@@ -37,7 +38,7 @@ func (c TemplateContext) Execute() (string, error) {
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	context := TemplateContext{
 		DotnetVer: meta["sdk"],
-		Out:       meta["entryPoint"],
+		Out:       strings.TrimSuffix(meta["entryPoint"], ".csproj"),
 	}
 
 	if framework := meta["framework"]; framework == "blazorwasm" {
