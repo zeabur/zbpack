@@ -65,5 +65,5 @@ func TestPlanMeta_Found(t *testing.T) {
 
 	assert.NotEmpty(t, planMeta)
 	assert.Equal(t, "7.0", planMeta["sdk"])
-	assert.Equal(t, "dotnetapp", planMeta["entryPoint"])
+	assert.Equal(t, "dotnetapp.csproj", planMeta["entryPoint"])
 }
