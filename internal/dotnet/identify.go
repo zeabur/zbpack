@@ -26,7 +26,11 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "Program.cs", "Startup.cs")
 }
 
-func (i *identify) findEntryPoint(fs afero.Fs) (string, error) {
+func (i *identify) findEntryPoint(fs afero.Fs, currentSubmoduleName string) (string, error) {
+	if exist, _ := afero.Exists(fs, currentSubmoduleName+".csproj"); exist {
+		return currentSubmoduleName + ".csproj", nil
+	}
+
 	files, err := afero.ReadDir(fs, ".")
 	if err != nil {
 		return "", err
@@ -46,7 +50,7 @@ func (i *identify) findEntryPoint(fs afero.Fs) (string, error) {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	entryPoint, err := i.findEntryPoint(options.Source)
+	entryPoint, err := i.findEntryPoint(options.Source, options.SubmoduleName)
 	if err != nil {
 		return plan.Continue()
 	}
