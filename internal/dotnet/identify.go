@@ -48,17 +48,17 @@ func (i *identify) findEntryPoint(fs afero.Fs) (string, error) {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	entryPoint, err := i.findEntryPoint(options.Source)
 	if err != nil {
-		panic(err)
+		return plan.Continue()
 	}
 
 	sdkVer, err := DetermineSDKVersion(entryPoint, options.Source)
 	if err != nil {
-		panic(err)
+		return plan.Continue()
 	}
 
 	framework, err := DetermineFramework(entryPoint, options.Source)
 	if err != nil {
-		panic(err)
+		return plan.Continue()
 	}
 
 	return types.PlanMeta{
