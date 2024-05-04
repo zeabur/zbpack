@@ -51,7 +51,7 @@ func (i *identify) findEntryPoint(
 	moduleFs := fs
 
 	if configSubmoduleDir, err := plan.Cast(
-		config.Get("dotnet.submoduleDir"), cast.ToStringE,
+		config.Get("dotnet.submodule_dir"), cast.ToStringE,
 	).Take(); err == nil && configSubmoduleDir != "" {
 		submoduleDir = configSubmoduleDir
 		moduleFs = afero.NewBasePathFs(fs, configSubmoduleDir)
