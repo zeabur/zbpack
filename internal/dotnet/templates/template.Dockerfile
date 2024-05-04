@@ -3,8 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:{{.DotnetVer}} AS build
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
-COPY **.csproj ./
+# it works only without a submodule
+{{ if .SubmoduleDir | eq "" }}
+COPY *.csproj ./
 RUN dotnet restore
+{{ end }}
 
 # copy everything else and build app
 COPY . ./
