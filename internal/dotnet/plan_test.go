@@ -23,7 +23,7 @@ func TestDetermineSDKVersion_Valid(t *testing.T) {
 
 	ver, err := DetermineSDKVersion("dotnetapp", fs)
 	assert.NoError(t, err)
-	assert.Equal(t, ver, "7.0")
+	assert.Equal(t, "7.0", ver)
 }
 
 func TestDetermineFramework_EmptyEntryPoint(t *testing.T) {
@@ -42,5 +42,5 @@ func TestDetermineFramework_Valid(t *testing.T) {
 
 	framework, err := DetermineFramework("dotnetapp", fs)
 	assert.NoError(t, err)
-	assert.Equal(t, framework, "console")
+	assert.Equal(t, "console", framework)
 }
