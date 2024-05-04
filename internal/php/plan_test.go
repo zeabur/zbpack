@@ -14,8 +14,9 @@ import (
 // TODO: coverage of GetPHPVersion
 func TestGetPHPVersion_NoComposer(t *testing.T) {
 	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-	v := php.GetPHPVersion(fs)
+	v := php.GetPHPVersion(config, fs)
 	assert.Equal(t, v, php.DefaultPHPVersion)
 }
 
@@ -24,8 +25,9 @@ func TestGetPHPVersion_NoVersion(t *testing.T) {
 	_ = afero.WriteFile(fs, "composer.json", []byte(`{
 		"name": "test"
 	}`), 0o644)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-	v := php.GetPHPVersion(fs)
+	v := php.GetPHPVersion(config, fs)
 	assert.Equal(t, v, php.DefaultPHPVersion)
 }
 
@@ -37,8 +39,9 @@ func TestGetPHPVersion_EmptyVersion(t *testing.T) {
 			"php": ""
 		}
 	}`), 0o644)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-	v := php.GetPHPVersion(fs)
+	v := php.GetPHPVersion(config, fs)
 	assert.Equal(t, v, php.DefaultPHPVersion)
 }
 
