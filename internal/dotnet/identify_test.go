@@ -31,6 +31,7 @@ func TestPlanMeta_NotFound(t *testing.T) {
 
 	options := plan.NewPlannerOptions{
 		Source:        fs,
+		Config:        plan.NewProjectConfigurationFromFs(fs, ""),
 		SubmoduleName: "",
 	}
 
@@ -57,6 +58,7 @@ func TestPlanMeta_Found(t *testing.T) {
 
 	options := plan.NewPlannerOptions{
 		Source:        fs,
+		Config:        plan.NewProjectConfigurationFromFs(fs, ""),
 		SubmoduleName: "dotnetapp",
 	}
 
@@ -64,6 +66,138 @@ func TestPlanMeta_Found(t *testing.T) {
 	planMeta := identifier.PlanMeta(options)
 
 	assert.NotEmpty(t, planMeta)
-	assert.Equal(t, planMeta["sdk"], "7.0")
-	assert.Equal(t, planMeta["entryPoint"], "dotnetapp")
+	assert.Equal(t, "7.0", planMeta["sdk"])
+	assert.Equal(t, "dotnetapp.csproj", planMeta["entryPoint"])
+}
+
+func TestPlanMeta_NoCsproj(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	identifier := NewIdentifier()
+
+	planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+		Source:        fs,
+		Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+		SubmoduleName: "test",
+	})
+
+	assert.Equal(t, plan.Continue(), planMeta)
+}
+
+func TestPlanMeta_MultipleCsproj(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "test.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+	_ = afero.WriteFile(fs, "test2.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+
+	t.Run("project", func(t *testing.T) {
+		t.Parallel()
+
+		identifier := NewIdentifier()
+		planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+			SubmoduleName: "test",
+		})
+
+		assert.Equal(t, "8.0", planMeta["sdk"])
+		assert.Equal(t, "test.csproj", planMeta["entryPoint"])
+	})
+
+	t.Run("project2", func(t *testing.T) {
+		t.Parallel()
+
+		identifier := NewIdentifier()
+		planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+			SubmoduleName: "test2",
+		})
+
+		assert.Equal(t, "7.0", planMeta["sdk"])
+		assert.Equal(t, "test2.csproj", planMeta["entryPoint"])
+	})
+}
+
+func TestPlanMeta_Monorepo(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "submodule1/submodule1.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+	_ = afero.WriteFile(fs, "submodule2/submodule2.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+	_ = afero.WriteFile(fs, "project.sln", []byte(``), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set("dotnet.submoduleDir", "submodule1")
+
+	identifier := NewIdentifier()
+	planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+		Source:        fs,
+		Config:        config,
+		SubmoduleName: "submodule1",
+	})
+
+	assert.Equal(t, "8.0", planMeta["sdk"])
+	assert.Equal(t, "submodule1.csproj", planMeta["entryPoint"])
+	assert.Equal(t, "submodule1", planMeta["submoduleDir"])
+}
+
+func TestPlanMeta_FindCsproj(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "test.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+
+	identifier := NewIdentifier()
+	planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+		Source:        fs,
+		Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+		SubmoduleName: "mySubmodule",
+	})
+
+	assert.Equal(t, "8.0", planMeta["sdk"])
+	assert.Equal(t, "test.csproj", planMeta["entryPoint"])
 }

@@ -21,9 +21,9 @@ func TestDetermineSDKVersion_Valid(t *testing.T) {
 
 	fs := afero.NewBasePathFs(afero.NewOsFs(), path)
 
-	ver, err := DetermineSDKVersion("dotnetapp", fs)
+	ver, err := DetermineSDKVersion("dotnetapp.csproj", fs)
 	assert.NoError(t, err)
-	assert.Equal(t, ver, "7.0")
+	assert.Equal(t, "7.0", ver)
 }
 
 func TestDetermineFramework_EmptyEntryPoint(t *testing.T) {
@@ -40,7 +40,7 @@ func TestDetermineFramework_Valid(t *testing.T) {
 
 	fs := afero.NewBasePathFs(afero.NewOsFs(), path)
 
-	framework, err := DetermineFramework("dotnetapp", fs)
+	framework, err := DetermineFramework("dotnetapp.csproj", fs)
 	assert.NoError(t, err)
-	assert.Equal(t, framework, "console")
+	assert.Equal(t, "console", framework)
 }
