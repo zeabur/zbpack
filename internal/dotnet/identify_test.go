@@ -162,7 +162,7 @@ func TestPlanMeta_Monorepo(t *testing.T) {
 	_ = afero.WriteFile(fs, "project.sln", []byte(``), 0o644)
 
 	config := plan.NewProjectConfigurationFromFs(fs, "")
-	config.Set("dotnet.submoduleDir", "submodule1")
+	config.Set("dotnet.submodule_dir", "submodule1")
 
 	identifier := NewIdentifier()
 	planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
