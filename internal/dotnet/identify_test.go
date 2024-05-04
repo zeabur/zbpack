@@ -67,3 +67,67 @@ func TestPlanMeta_Found(t *testing.T) {
 	assert.Equal(t, "7.0", planMeta["sdk"])
 	assert.Equal(t, "dotnetapp.csproj", planMeta["entryPoint"])
 }
+
+func TestPlanMeta_NoCsproj(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	identifier := NewIdentifier()
+
+	planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+		Source:        fs,
+		SubmoduleName: "test",
+	})
+
+	assert.Equal(t, plan.Continue(), planMeta)
+}
+
+func TestPlanMeta_MultipleCsproj(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "test.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+	_ = afero.WriteFile(fs, "test2.csproj", []byte(`<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+	<PropertyGroup>
+	  <OutputType>Exe</OutputType>
+	  <TargetFramework>net7.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <PublishRelease>true</PublishRelease>
+	</PropertyGroup>
+
+  </Project>`), 0o644)
+
+	t.Run("project", func(t *testing.T) {
+		t.Parallel()
+
+		identifier := NewIdentifier()
+		planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+			Source:        fs,
+			SubmoduleName: "test",
+		})
+
+		assert.Equal(t, "8.0", planMeta["sdk"])
+		assert.Equal(t, "test.csproj", planMeta["entryPoint"])
+	})
+
+	t.Run("project2", func(t *testing.T) {
+		t.Parallel()
+
+		identifier := NewIdentifier()
+		planMeta := identifier.PlanMeta(plan.NewPlannerOptions{
+			Source:        fs,
+			SubmoduleName: "test2",
+		})
+
+		assert.Equal(t, "7.0", planMeta["sdk"])
+		assert.Equal(t, "test2.csproj", planMeta["entryPoint"])
+	})
+}
