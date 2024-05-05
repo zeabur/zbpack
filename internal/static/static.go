@@ -8,11 +8,9 @@ import (
 
 // GenerateDockerfile generates the Dockerfile for static files.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-
 	if meta["framework"] == "hugo" {
-		return `FROM klakegg/hugo:ubuntu as builder
+		return `FROM hugomods/hugo:exts as builder
 WORKDIR /src
-RUN apt-get update && apt-get install -y git
 COPY . .
 RUN hugo --minify
 
@@ -30,7 +28,6 @@ RUN ["zola", "build"]
 FROM scratch as output
 COPY --from=builder /app/public /
 `, nil
-
 	}
 
 	if meta["framework"] == "mkdocs" {
