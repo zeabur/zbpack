@@ -4,3 +4,4 @@ bin
 tests/*/.zeabur
 tests/**/.zeabur
 zbpack
+dist/
