@@ -185,6 +185,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isUmi := packageJSON.Dependencies["@umijs/max"]; isUmi {
+		*fw = optional.Some(types.NodeProjectFrameworkUmi)
+		return fw.Unwrap()
+	}
+
 	if _, isNextJs := packageJSON.Dependencies["next"]; isNextJs {
 		*fw = optional.Some(types.NodeProjectFrameworkNextJs)
 		return fw.Unwrap()
