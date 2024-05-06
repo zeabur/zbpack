@@ -54,10 +54,6 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 
 	html, err := afero.ReadFile(options.Source, "index.html")
 
-	if err == nil && strings.Contains(string(html), "Hugo") {
-		return types.PlanMeta{"framework": "hugo"}
-	}
-
 	if err == nil && strings.Contains(string(html), "Hexo") {
 		return types.PlanMeta{"framework": "hexo"}
 	}
