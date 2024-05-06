@@ -461,7 +461,7 @@ func Build(opt *BuildOptions) error {
 			if (t == types.PlanTypeNodejs && m["outputDir"] != "") || t == types.PlanTypeStatic {
 				handleLog("npx serve .zeabur/output/static")
 			} else {
-				handleLog("docker run -p 8080:8080 -it " + *opt.ResultImage)
+				handleLog("docker run -p 8080:8080 -e PORT=8080 -it " + *opt.ResultImage)
 			}
 		}
 	}
