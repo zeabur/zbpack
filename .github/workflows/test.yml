@@ -23,3 +23,8 @@ jobs:
                 go-version-file: 'go.mod'
             - name: Run tests
               run: go test -v ./...
+            - name: Run GoReleaser
+              uses: goreleaser/goreleaser-action@v4
+              with:
+                  version: latest
+                  args: release --skip-publish --rm-dist --snapshot

@@ -6,7 +6,7 @@ toolchain go1.21.6
 
 require (
 	github.com/spf13/afero v1.11.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
@@ -57,7 +57,7 @@ require (
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
-	github.com/distribution/reference v0.5.0
+	github.com/distribution/reference v0.6.0
 	github.com/evanw/esbuild v0.20.2
 	github.com/gkampitakis/go-snaps v0.5.4
 	github.com/google/go-github/v53 v53.2.0
@@ -71,6 +71,6 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	golang.org/x/oauth2 v0.19.0
-	golang.org/x/text v0.14.0
+	golang.org/x/oauth2 v0.20.0
+	golang.org/x/text v0.15.0
 )
