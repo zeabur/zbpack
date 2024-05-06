@@ -6,6 +6,7 @@ import (
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/nodejs"
+	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -32,11 +33,21 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		Src:         opt.Src,
 	}
 
-	meta := nodejs.GetMeta(nodejs.GetMetaOptions(opt))
+	meta := types.PlanMeta{}
 
 	framework := DetermineFramework(ctx)
 	meta["framework"] = string(framework)
 
+	if framework == types.BunFrameworkHono {
+		entry := determineEntry(ctx)
+		if entry != "" {
+			meta["entry"] = entry
+		}
+
+		return meta
+	}
+
+	meta = nodejs.GetMeta(nodejs.GetMetaOptions(opt))
 	return meta
 }
 
@@ -64,6 +75,23 @@ func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isHono := packageJSON.Dependencies["hono"]; isHono {
+		*fw = optional.Some(types.BunFrameworkHono)
+		return fw.Unwrap()
+	}
+
 	*fw = optional.Some(types.BunFrameworkNone)
 	return fw.Unwrap()
+}
+
+func determineEntry(ctx *bunPlanContext) string {
+	possibleEntries := []string{"index.ts", "index.js", "src/index.ts", "src/index.js"}
+
+	for _, entry := range possibleEntries {
+		if utils.HasFile(ctx.Src, entry) {
+			return entry
+		}
+	}
+
+	return ""
 }

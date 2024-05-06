@@ -237,5 +237,6 @@ const (
 	BunFrameworkElysia BunFramework = "elysia"
 	BunFrameworkBaojs  BunFramework = "baojs"
 	BunFrameworkBagel  BunFramework = "bagel"
+	BunFrameworkHono   BunFramework = "hono"
 	BunFrameworkNone   BunFramework = "none"
 )
