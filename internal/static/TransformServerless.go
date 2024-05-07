@@ -88,6 +88,10 @@ func deleteHiddenFilesAndDirs(dirPath string) error {
 	}
 
 	for _, entry := range entries {
+		if entry.IsDir() && entry.Name() == ".well-known" {
+			continue
+		}
+
 		if strings.HasPrefix(entry.Name(), ".") {
 			entryPath := filepath.Join(dirPath, entry.Name())
 
