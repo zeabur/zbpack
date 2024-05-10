@@ -2,6 +2,7 @@ package bun
 
 import (
 	"log"
+	"strings"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
@@ -85,6 +86,10 @@ func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
 }
 
 func determineEntry(ctx *bunPlanContext) string {
+	if strings.HasPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot") {
+		return strings.TrimPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot ")
+	}
+
 	possibleEntries := []string{"index.ts", "index.js", "src/index.ts", "src/index.js"}
 
 	for _, entry := range possibleEntries {
