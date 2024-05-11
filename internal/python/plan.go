@@ -498,6 +498,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "g++-7")
 	}
 
+	if HasDependency(ctx, "pyaudio") {
+		deps = append(deps, "portaudio19-dev")
+	}
+
 	if determinePlaywright(ctx) {
 		deps = append(
 			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
