@@ -83,11 +83,6 @@ func buildImage(opt *buildImageOptions) error {
 	// build the dockerfile
 	dockerfileEnv := ""
 
-	// Inject CI env so everyone knows that we are a CI.
-	if _, ok := resolvedVars["CI"]; !ok {
-		dockerfileEnv += "ENV CI true\n"
-	}
-
 	for _, key := range sortedResolvedVarsKey {
 		value := resolvedVars[key]
 
