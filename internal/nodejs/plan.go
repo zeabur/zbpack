@@ -497,18 +497,34 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 
+	// if config has `nodejs.preserve_dev_deps` set to true or environment variable "ZBPACK_NODEJS_PRESERVE_DEV_DEPS" is set to true,
+	// we don't reinstall deps with `--production` flag after running build script
+	preserveDevDeps := plan.Cast(ctx.Config.Get("nodejs.preserve_dev_deps"), plan.ToWeakBoolE).TakeOr(false)
+
 	var buildCmd string
 	switch pkgManager {
 	case types.NodePackageManagerPnpm:
-		buildCmd = "pnpm run " + buildScript
+		buildCmd = "RUN pnpm run " + buildScript
+		if !preserveDevDeps {
+			buildCmd += "\nRUN rm -rf node_modules && pnpm install --production"
+		}
 	case types.NodePackageManagerNpm:
-		buildCmd = "npm run " + buildScript
+		buildCmd = "RUN npm run " + buildScript
+		if !preserveDevDeps {
+			buildCmd += "\nRUN rm -rf node_modules && npm install --omit=dev"
+		}
 	case types.NodePackageManagerBun:
-		buildCmd = "bun run " + buildScript
+		buildCmd = "RUN bun run " + buildScript
+		if !preserveDevDeps {
+			buildCmd += "\nRUN rm -rf node_modules && bun install --production"
+		}
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
-		buildCmd = "yarn " + buildScript
+		buildCmd = "RUN yarn " + buildScript
+		if !preserveDevDeps {
+			buildCmd += "\nRUN rm -rf node_modules && yarn install --production"
+		}
 	}
 
 	if buildScript == "" {
@@ -731,7 +747,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	buildCmd := GetBuildCmd(ctx)
 	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
-		buildCmd = *opt.CustomBuildCmd
+		buildCmd = "RUN " + *opt.CustomBuildCmd
 	}
 	meta["buildCmd"] = buildCmd
 
