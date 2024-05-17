@@ -500,15 +500,15 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	var buildCmd string
 	switch pkgManager {
 	case types.NodePackageManagerPnpm:
-		buildCmd = "pnpm run " + buildScript
+		buildCmd = "RUN pnpm run " + buildScript + "\nRUN rm -rf node_modules && pnpm install --production"
 	case types.NodePackageManagerNpm:
-		buildCmd = "npm run " + buildScript
+		buildCmd = "RUN npm run " + buildScript + "\nRUN rm -rf node_modules && npm install --omit=dev"
 	case types.NodePackageManagerBun:
-		buildCmd = "bun run " + buildScript
+		buildCmd = "RUN bun run " + buildScript + "\nRUN rm -rf node_modules && bun install --production"
 	case types.NodePackageManagerYarn:
 		fallthrough
 	default:
-		buildCmd = "yarn " + buildScript
+		buildCmd = "RUN yarn " + buildScript + "\nRUN rm -rf node_modules && yarn install --production"
 	}
 
 	if buildScript == "" {
@@ -731,7 +731,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	buildCmd := GetBuildCmd(ctx)
 	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
-		buildCmd = *opt.CustomBuildCmd
+		buildCmd = "RUN " + *opt.CustomBuildCmd
 	}
 	meta["buildCmd"] = buildCmd
 
