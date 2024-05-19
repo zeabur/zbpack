@@ -65,7 +65,7 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 		NodeVersion: "18",
 
 		InstallCmd: "RUN yarn install",
-		BuildCmd:   "RUN yarn build",
+		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
 	}
 
@@ -79,7 +79,7 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 		NodeVersion: "18",
 
 		InstallCmd: "RUN yarn install",
-		BuildCmd:   "RUN yarn build",
+		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
 	}
 
