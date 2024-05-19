@@ -516,8 +516,8 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 
 func determineStartCmd(ctx *pythonPlanContext) string {
 	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
-	if ctx.Config.Get(plan.ConfigStartCommand).IsSome() {
-		return ctx.Config.Get(plan.ConfigStartCommand).Unwrap().(string)
+	if value, err := ctx.Config.Get(plan.ConfigStartCommand).Take(); err == nil {
+		return value
 	}
 
 	wsgi := DetermineWsgi(ctx)
