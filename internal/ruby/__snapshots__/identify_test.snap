@@ -1,0 +1,888 @@
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"false",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"npm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN npm install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"pnpm",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g pnpm
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN pnpm install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"2.7.2",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:2.7.2
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"rails_server"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD rails server
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_app.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD ruby app.rb
+---
+
+[TestDockerfileSnapshotTest/types.PlanMeta{"buildCmd":"bundle_exec_rake_assets:precompile",_"needNode":"true",_"nodePackageManager":"yarn",_"rubyVersion":"3.0.0",_"startCmd":"ruby_main.rb"} - 1]
+FROM docker.io/library/ruby:3.0.0
+
+RUN apt-get update -qq && apt-get install -y postgresql-client
+RUN apt-get install -y nodejs npm
+RUN npm install -g yarn
+WORKDIR /myapp
+COPY . /myapp
+RUN bundle install
+RUN yarn install
+RUN bundle exec rake assets:precompile
+CMD ruby main.rb
+---
