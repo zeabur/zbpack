@@ -44,7 +44,7 @@ func (i *identify) DetermineNodePackageManager(fs afero.Fs) types.NodePackageMan
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	rubyVersion := DetermineRubyVersion(options.Source)
+	rubyVersion := DetermineRubyVersion(options.Source, options.Config)
 	framework := DetermineRubyFramework(options.Source)
 
 	meta := types.PlanMeta{
