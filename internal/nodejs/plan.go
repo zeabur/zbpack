@@ -110,6 +110,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return framework
 	}
 
+	if _, isGrammY := packageJSON.Dependencies["grammy"]; isGrammY {
+		*fw = optional.Some(types.NodeProjectFrameworkGrammY)
+		return fw.Unwrap()
+	}
+
 	if _, isNuejs := packageJSON.Dependencies["nuejs-core"]; isNuejs {
 		*fw = optional.Some(types.NodeProjectFrameworkNueJs)
 		return fw.Unwrap()
