@@ -19,8 +19,12 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	workDir := "WORKDIR /myapp"
 	copySource := "COPY . /myapp"
 	installDepCmd := []string{"RUN bundle install"}
-	precompileCmd := "RUN bundle exec rake assets:precompile"
-	startCmd := `CMD ["rails", "server", "-b", "0.0.0.0","-p","8080"]`
+	startCmd := "CMD " + meta["startCmd"]
+
+	var precompileCmd string
+	if buildCmd := meta["buildCmd"]; buildCmd != "" {
+		precompileCmd = "RUN " + buildCmd
+	}
 
 	needNode := meta["needNode"] == "true"
 	if needNode {
