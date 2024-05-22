@@ -432,16 +432,6 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeDart && m["framework"] == string(types.DartFrameworkFlutter) {
-		println("Transforming build output to serverless format ...")
-		err = static.TransformServerless(*opt.Path, m)
-		if err != nil {
-			println("Failed to transform serverless: " + err.Error())
-			handleBuildFailed(err)
-			return err
-		}
-	}
-
 	if t == types.PlanTypeStatic {
 		println("Transforming build output to serverless format ...")
 		err = static.TransformServerless(*opt.Path, m)
@@ -458,7 +448,7 @@ func Build(opt *BuildOptions) error {
 			handleLog("\033[90m" + "The compiled serverless function has been saved in the .zeabur directory." + "\033[0m")
 		} else {
 			handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
-			if (t == types.PlanTypeNodejs && m["outputDir"] != "") || t == types.PlanTypeStatic {
+			if m["outputDir"] != "" || t == types.PlanTypeStatic {
 				handleLog("npx serve .zeabur/output/static")
 			} else {
 				handleLog("docker run -p 8080:8080 -e PORT=8080 -it " + *opt.ResultImage)

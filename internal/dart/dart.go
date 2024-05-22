@@ -9,7 +9,11 @@ import (
 // GenerateDockerfile generates the Dockerfile for Dart projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	if meta["framework"] == "flutter" {
-		return `FROM zeabur/flutter
+		return `FROM ubuntu:latest
+RUN apt-get update && apt-get install -y curl git unzip xz-utils zip libglu1-mesa
+RUN git clone https://github.com/flutter/flutter.git /usr/local/flutter --depth 1
+ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+RUN flutter channel master && flutter upgrade && flutter config --enable-web
 WORKDIR /app
 COPY . .
 RUN flutter clean
