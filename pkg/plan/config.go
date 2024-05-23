@@ -170,6 +170,8 @@ func Cast[T any](value optional.Option[any], caster func(any) (T, error)) option
 
 // Common configuration keys.
 const (
+	// ConfigInstallCommand is the key for the installation command in the project configuration.
+	ConfigInstallCommand = "install_command"
 	// ConfigBuildCommand is the key for the build command in the project configuration.
 	ConfigBuildCommand = "build_command"
 	// ConfigStartCommand is the key for the start command in the project configuration.

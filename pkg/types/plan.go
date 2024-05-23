@@ -85,7 +85,7 @@ const (
 	NodeProjectFrameworkNueJs            NodeProjectFramework = "nuejs"
 	NodeProjectFrameworkVocs             NodeProjectFramework = "vocs"
 	NodeProjectFrameworkRspress          NodeProjectFramework = "rspress"
-	NodeProjectFrameworkGrammY		   	 NodeProjectFramework = "grammy"
+	NodeProjectFrameworkGrammY           NodeProjectFramework = "grammy"
 )
 
 //revive:enable:exported
