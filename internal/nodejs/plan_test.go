@@ -101,6 +101,9 @@ func TestGetInstallCmd_CustomizeInstallCmd(t *testing.T) {
 	}
 	installlCmd := GetInstallCmd(ctx)
 
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
+
 	// for customized installation command, no cache are allowed.
 	assert.Contains(t, installlCmd, "COPY . .")
 
@@ -125,6 +128,9 @@ func TestGetInstallCmd_DefaultInstallCmd(t *testing.T) {
 	}
 
 	installlCmd := GetInstallCmd(ctx)
+
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
 
 	// for default installation command, cache are allowed.
 	assert.Contains(t, installlCmd, "COPY yarn.lock* .")
@@ -153,6 +159,9 @@ func TestGetInstallCmd_CustomizeInstallCmdDeps(t *testing.T) {
 		Src:         src,
 	}
 	installlCmd := GetInstallCmd(ctx)
+
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
 
 	// the playwright dependencies should be installed
 	assert.Contains(t, installlCmd, "libnss3 libatk1.0-0 libatk-bridge2.0-0")
