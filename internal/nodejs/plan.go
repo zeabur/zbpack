@@ -467,7 +467,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	if installCmd, err := installCmdConf.Take(); err == nil {
-		cmds = append(cmds, installCmd)
+		cmds = append(cmds, "RUN "+installCmd)
 	} else {
 		switch pkgManager {
 		case types.NodePackageManagerNpm:
