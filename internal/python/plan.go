@@ -502,6 +502,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "portaudio19-dev")
 	}
 
+	if HasDependency(ctx, "azure-cognitiveservices-speech") {
+		deps = append(deps, "libssl-dev", "libasound2")
+	}
+
 	if determinePlaywright(ctx) {
 		deps = append(
 			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
