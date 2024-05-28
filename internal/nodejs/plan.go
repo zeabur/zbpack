@@ -120,8 +120,8 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
-	if _, isAstro := packageJSON.Dependencies["astro"]; isAstro {
-		if _, hasZeaburAdapter := packageJSON.Dependencies["@zeabur/astro-adapter"]; hasZeaburAdapter {
+	if _, isAstro := packageJSON.FindDependency("astro"); isAstro {
+		if _, hasZeaburAdapter := packageJSON.FindDependency("@zeabur/astro-adapter"); hasZeaburAdapter {
 			*fw = optional.Some(types.NodeProjectFrameworkAstro)
 			return fw.Unwrap()
 		}
@@ -136,11 +136,6 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 			return fw.Unwrap()
 		}
 
-		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
-		return fw.Unwrap()
-	}
-
-	if _, isAstro := packageJSON.DevDependencies["astro"]; isAstro {
 		*fw = optional.Some(types.NodeProjectFrameworkAstroStatic)
 		return fw.Unwrap()
 	}
