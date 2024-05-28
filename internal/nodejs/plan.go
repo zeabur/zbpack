@@ -8,6 +8,7 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -438,9 +439,15 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	pkgManager := DeterminePackageManager(ctx)
 	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(true)
 
-	// monorepo
+	// disable cache_dependencies for monorepos
 	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
 		log.Println("Detected Monorepo. Disabling dependency caching.")
+		shouldCacheDependencies = false
+	}
+
+	// disable cache_dependencies if the installation command is customized
+	installCmdConf := plan.Cast(ctx.Config.Get(plan.ConfigInstallCommand), cast.ToStringE)
+	if installCmdConf.IsSome() {
 		shouldCacheDependencies = false
 	}
 
@@ -454,17 +461,21 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		cmds = append(cmds, "COPY . .")
 	}
 
-	switch pkgManager {
-	case types.NodePackageManagerNpm:
-		cmds = append(cmds, "COPY package-lock.json* .", "RUN npm install")
-	case types.NodePackageManagerPnpm:
-		cmds = append(cmds, "COPY pnpm-lock.yaml* .", "RUN pnpm install")
-	case types.NodePackageManagerBun:
-		cmds = append(cmds, "COPY bun.lockb* .", "RUN bun install")
-	case types.NodePackageManagerYarn:
-		cmds = append(cmds, "COPY yarn.lock* .", "RUN yarn install")
-	default:
-		cmds = append(cmds, "RUN yarn install")
+	if installCmd, err := installCmdConf.Take(); err == nil {
+		cmds = append(cmds, "RUN "+installCmd)
+	} else {
+		switch pkgManager {
+		case types.NodePackageManagerNpm:
+			cmds = append(cmds, "COPY package-lock.json* .", "RUN npm install")
+		case types.NodePackageManagerPnpm:
+			cmds = append(cmds, "COPY pnpm-lock.yaml* .", "RUN pnpm install")
+		case types.NodePackageManagerBun:
+			cmds = append(cmds, "COPY bun.lockb* .", "RUN bun install")
+		case types.NodePackageManagerYarn:
+			cmds = append(cmds, "COPY yarn.lock* .", "RUN yarn install")
+		default:
+			cmds = append(cmds, "RUN yarn install")
+		}
 	}
 
 	needPlaywright := DetermineNeedPlaywright(ctx)

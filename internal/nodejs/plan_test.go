@@ -4,7 +4,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeabur/zbpack/pkg/plan"
 )
 
 func TestGetNodeVersion_Empty(t *testing.T) {
@@ -80,4 +82,90 @@ func TestGetNodeVersion_NvmRcLatest(t *testing.T) {
 func TestGetNodeVersion_VPrefixedVersion(t *testing.T) {
 	v := getNodeVersion("v20.11.0")
 	assert.Equal(t, "20.11", v)
+}
+
+func TestGetInstallCmd_CustomizeInstallCmd(t *testing.T) {
+	src := afero.NewMemMapFs()
+	_ = afero.WriteFile(src, "package.json", []byte(`{}`), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(src, "")
+	config.Set(plan.ConfigInstallCommand, "echo 'installed'")
+
+	packageJSON, err := DeserializePackageJSON(src)
+	assert.NoError(t, err)
+
+	ctx := &nodePlanContext{
+		PackageJSON: packageJSON,
+		Config:      config,
+		Src:         src,
+	}
+	installlCmd := GetInstallCmd(ctx)
+
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
+
+	// for customized installation command, no cache are allowed.
+	assert.Contains(t, installlCmd, "COPY . .")
+
+	// the installation command should be contained
+	assert.Contains(t, installlCmd, "echo 'installed'")
+}
+
+func TestGetInstallCmd_DefaultInstallCmd(t *testing.T) {
+	src := afero.NewMemMapFs()
+	_ = afero.WriteFile(src, "package.json", []byte(`{}`), 0o644)
+	_ = afero.WriteFile(src, "yarn.lock", []byte(``), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(src, "")
+
+	packageJSON, err := DeserializePackageJSON(src)
+	assert.NoError(t, err)
+
+	ctx := &nodePlanContext{
+		PackageJSON: packageJSON,
+		Config:      config,
+		Src:         src,
+	}
+
+	installlCmd := GetInstallCmd(ctx)
+
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
+
+	// for default installation command, cache are allowed.
+	assert.Contains(t, installlCmd, "COPY yarn.lock* .")
+
+	// the installation command should be contained
+	assert.Contains(t, installlCmd, "yarn install")
+}
+
+func TestGetInstallCmd_CustomizeInstallCmdDeps(t *testing.T) {
+	src := afero.NewMemMapFs()
+	_ = afero.WriteFile(src, "package.json", []byte(`{
+	"dependencies": {
+		"playwright-chromium": "*"
+	}
+}`), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(src, "")
+	config.Set(plan.ConfigInstallCommand, "echo 'installed'")
+
+	packageJSON, err := DeserializePackageJSON(src)
+	assert.NoError(t, err)
+
+	ctx := &nodePlanContext{
+		PackageJSON: packageJSON,
+		Config:      config,
+		Src:         src,
+	}
+	installlCmd := GetInstallCmd(ctx)
+
+	// RUN should be provided in planMeta
+	assert.Contains(t, installlCmd, "RUN ")
+
+	// the playwright dependencies should be installed
+	assert.Contains(t, installlCmd, "libnss3 libatk1.0-0 libatk-bridge2.0-0")
+
+	// the installation command should be contained
+	assert.Contains(t, installlCmd, "echo 'installed'")
 }
