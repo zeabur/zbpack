@@ -27,7 +27,8 @@ func (i *identify) Match(fs afero.Fs) bool {
 
 	return utils.HasFile(
 		fs,
-		"app.py", "main.py", "app.py", "manage.py", "requirements.txt", "streamlit_app.py",
+		"app.py", "main.py", "app.py", "manage.py", "requirements.txt",
+		"streamlit_app.py", "pyproject.toml", "Pipfile",
 	)
 }
 
