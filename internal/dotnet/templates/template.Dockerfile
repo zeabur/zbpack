@@ -17,7 +17,7 @@ RUN dotnet publish -c release -o /app
 # final stage/image
 {{ if .Static }}{{ template "nginx-runtime" . }}{{ else }}
 FROM mcr.microsoft.com/dotnet/aspnet:{{.DotnetVer}}
-ENV PORT 8080
+ENV PORT=8080
 WORKDIR /app
 COPY --from=build /app ./
 CMD ASPNETCORE_URLS=http://+:$PORT dotnet {{.Out}}.dll
