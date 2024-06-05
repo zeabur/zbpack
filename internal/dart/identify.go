@@ -3,7 +3,9 @@ package dart
 import (
 	"strings"
 
+	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -11,6 +13,14 @@ import (
 )
 
 type identify struct{}
+
+type PlanContext struct {
+	Config plan.ImmutableProjectConfiguration
+	Src    afero.Fs
+
+	Framework    optional.Option[types.DartFramework]
+	BuildCommand optional.Option[string]
+}
 
 // NewIdentifier returns a new Ruby identifier.
 func NewIdentifier() plan.Identifier {
@@ -25,32 +35,83 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "pubspec.yaml")
 }
 
-func determineFramework(source afero.Fs) types.DartFramework {
-	file, err := afero.ReadFile(source, "pubspec.yaml")
+func determineFramework(ctx PlanContext) types.DartFramework {
+	src := ctx.Src
+	f := &ctx.Framework
+
+	if framework, err := f.Take(); err == nil {
+		return framework
+	}
+
+	file, err := afero.ReadFile(src, "pubspec.yaml")
 	if err != nil {
 		return types.DartFrameworkNone
 	}
 
 	if strings.Contains(string(file), "flutter") {
-		return types.DartFrameworkFlutter
+		*f = optional.Some(types.DartFrameworkFlutter)
+		return f.Unwrap()
 	}
 
 	if strings.Contains(string(file), "serverpod") {
-		return types.DartFrameworkServerpod
+		*f = optional.Some(types.DartFrameworkServerpod)
+		return f.Unwrap()
 	}
 
-	return types.DartFrameworkNone
+	*f = optional.Some(types.DartFrameworkNone)
+	return f.Unwrap()
+}
+
+func determineBuildCommand(ctx PlanContext) string {
+	cfg := ctx.Config
+	cmd := &ctx.BuildCommand
+
+	if build, err := cmd.Take(); err == nil {
+		return build
+	}
+
+	if customBuildCommand, err := plan.Cast(cfg.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		*cmd = optional.Some("RUN " + customBuildCommand)
+		return cmd.Unwrap()
+	}
+
+	if determineFramework(ctx) == types.DartFrameworkFlutter {
+		*cmd = optional.Some("RUN flutter build web")
+		return cmd.Unwrap()
+	}
+
+	*cmd = optional.Some("RUN dart compile exe bin/main.dart")
+	return cmd.Unwrap()
+}
+
+func determineOutputDir(ctx PlanContext) string {
+	framework := determineFramework(ctx)
+
+	if framework == types.DartFrameworkFlutter {
+		return "build/web"
+	}
+
+	return ""
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	framework := determineFramework(options.Source)
-
-	meta := types.PlanMeta{
-		"framework": string(framework),
+	ctx := PlanContext{
+		Src:    options.Source,
+		Config: options.Config,
 	}
 
-	if framework == types.DartFrameworkFlutter {
-		meta["outputDir"] = "build/web"
+	meta := types.PlanMeta{}
+
+	if framework := determineFramework(ctx); framework != types.DartFrameworkNone {
+		meta["framework"] = string(framework)
+	}
+
+	if build := determineBuildCommand(ctx); build != "" {
+		meta["build"] = build
+	}
+
+	if od := determineOutputDir(ctx); od != "" {
+		meta["outputDir"] = od
 	}
 
 	return meta
