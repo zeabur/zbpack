@@ -14,7 +14,7 @@ import (
 
 type identify struct{}
 
-type PlanContext struct {
+type planContext struct {
 	Config plan.ImmutableProjectConfiguration
 	Src    afero.Fs
 
@@ -35,7 +35,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 	return utils.HasFile(fs, "pubspec.yaml")
 }
 
-func determineFramework(ctx PlanContext) types.DartFramework {
+func determineFramework(ctx planContext) types.DartFramework {
 	src := ctx.Src
 	f := &ctx.Framework
 
@@ -62,7 +62,7 @@ func determineFramework(ctx PlanContext) types.DartFramework {
 	return f.Unwrap()
 }
 
-func determineBuildCommand(ctx PlanContext) string {
+func determineBuildCommand(ctx planContext) string {
 	cfg := ctx.Config
 	cmd := &ctx.BuildCommand
 
@@ -84,7 +84,7 @@ func determineBuildCommand(ctx PlanContext) string {
 	return cmd.Unwrap()
 }
 
-func determineOutputDir(ctx PlanContext) string {
+func determineOutputDir(ctx planContext) string {
 	framework := determineFramework(ctx)
 
 	if framework == types.DartFrameworkFlutter {
@@ -95,7 +95,7 @@ func determineOutputDir(ctx PlanContext) string {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	ctx := PlanContext{
+	ctx := planContext{
 		Src:    options.Source,
 		Config: options.Config,
 	}
