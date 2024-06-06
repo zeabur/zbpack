@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/source"
 
@@ -76,4 +77,8 @@ func getGitHubSourceFromURL(url, token string) (afero.Fs, error) {
 
 	src := source.NewGitHubFs(repoOwner, repoName, token)
 	return src, nil
+}
+
+func getS3SourceFromURL(url string, cfg *aws.Config) afero.Fs {
+	return source.NewS3Fs(url, cfg)
 }
