@@ -72,6 +72,10 @@ func DetermineProjectFramework(source afero.Fs) types.PHPFramework {
 		return types.PHPFrameworkCodeigniter
 	}
 
+	if _, isSymfony := composerJSON.GetRequire("symfony/runtime"); isSymfony {
+		return types.PHPFrameworkSymfony
+	}
+
 	return types.PHPFrameworkNone
 }
 

@@ -65,10 +65,11 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 	}
 
 	// install project dependencies
-	projectInstallCmd := "\n"
+	projectInstallCmd := "\nUSER www-data\n"
 	if projectProperty&types.PHPPropertyComposer != 0 {
 		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
+	projectInstallCmd += "\nUSER root\n"
 
 	startCmd := "\n" + "CMD " + meta["startCommand"] + "\n"
 
