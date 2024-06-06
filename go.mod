@@ -20,6 +20,7 @@ require (
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5 // indirect
 	github.com/juju/loggo v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
@@ -54,6 +55,7 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.53.17
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -47,7 +49,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 
 	if opt.Path == nil || *opt.Path == "" {
 		opt.Path = &wd
-	} else if !filepath.IsAbs(*opt.Path) && !strings.HasPrefix(*opt.Path, "https://") {
+	} else if !filepath.IsAbs(*opt.Path) && !strings.HasPrefix(*opt.Path, "https://") && !strings.HasPrefix(*opt.Path, "s3://") {
 		p := path.Join(wd, *opt.Path)
 		opt.Path = &p
 	}
@@ -60,6 +62,15 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 			log.Printf("unexpected github source: %v\n", err)
 			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}
 		}
+	} else if strings.HasPrefix(*opt.Path, "s3://") {
+		src = getS3SourceFromURL(*opt.Path, &aws.Config{
+			Region: aws.String(os.Getenv("AWS_REGION")),
+			Credentials: credentials.NewStaticCredentials(
+				os.Getenv("AWS_ACCESS_KEY_ID"),
+				os.Getenv("AWS_SECRET_ACCESS_KEY"),
+				"",
+			),
+		})
 	} else {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
 	}
