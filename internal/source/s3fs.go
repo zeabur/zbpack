@@ -33,15 +33,15 @@ func NewS3Fs(s3Url string, sessCfg *aws.Config) afero.Fs {
 	return &s3Fs{S3Client: client, Bucket: bucket, Prefix: prefix}
 }
 
-func (fs *s3Fs) Create(name string) (afero.File, error) {
+func (fs *s3Fs) Create(_ string) (afero.File, error) {
 	return nil, ErrReadonly
 }
 
-func (fs *s3Fs) Mkdir(name string, perm os.FileMode) error {
+func (fs *s3Fs) Mkdir(_ string, _ os.FileMode) error {
 	return ErrReadonly
 }
 
-func (fs *s3Fs) MkdirAll(name string, perm os.FileMode) error {
+func (fs *s3Fs) MkdirAll(_ string, _ os.FileMode) error {
 	return ErrReadonly
 }
 
@@ -49,7 +49,7 @@ func (fs *s3Fs) Open(name string) (afero.File, error) {
 	return fs.OpenFile(name, os.O_RDONLY, 0)
 }
 
-func (fs *s3Fs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
+func (fs *s3Fs) OpenFile(name string, flag int, _ os.FileMode) (afero.File, error) {
 	if flag&os.O_CREATE == os.O_CREATE || flag&os.O_WRONLY == os.O_WRONLY {
 		return nil, ErrReadonly
 	}
@@ -86,7 +86,14 @@ func (fs *s3Fs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, e
 	}
 
 	content, err := io.ReadAll(result.Body)
-	result.Body.Close()
+
+	defer func() {
+		err := result.Body.Close()
+		if err != nil {
+			fmt.Println("error closing body", err)
+		}
+	}()
+
 	if err != nil {
 		return nil, fmt.Errorf("unable to read S3 object body: %w", err)
 	}
@@ -98,15 +105,15 @@ func (fs *s3Fs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, e
 	}, nil
 }
 
-func (fs *s3Fs) Remove(name string) error {
+func (fs *s3Fs) Remove(_ string) error {
 	return ErrReadonly
 }
 
-func (fs *s3Fs) RemoveAll(name string) error {
+func (fs *s3Fs) RemoveAll(_ string) error {
 	return ErrReadonly
 }
 
-func (fs *s3Fs) Rename(oldname, newname string) error {
+func (fs *s3Fs) Rename(_, _ string) error {
 	return ErrReadonly
 }
 
@@ -134,15 +141,15 @@ func (fs *s3Fs) Name() string {
 	return "S3Fs"
 }
 
-func (fs *s3Fs) Chmod(name string, mode os.FileMode) error {
+func (fs *s3Fs) Chmod(_ string, _ os.FileMode) error {
 	return ErrReadonly
 }
 
-func (fs *s3Fs) Chtimes(name string, atime time.Time, mtime time.Time) error {
+func (fs *s3Fs) Chtimes(_ string, _ time.Time, _ time.Time) error {
 	return ErrReadonly
 }
 
-func (fs *s3Fs) Chown(name string, uid, gid int) error {
+func (fs *s3Fs) Chown(_ string, _, _ int) error {
 	return ErrReadonly
 }
 
@@ -198,10 +205,7 @@ func (f *s3File) Readdir(count int) ([]os.FileInfo, error) {
 	}
 
 	for _, p := range result.CommonPrefixes {
-		dirName := strings.TrimPrefix(*p.Prefix, prefix)
-		if strings.HasSuffix(dirName, "/") {
-			dirName = dirName[:len(dirName)-1]
-		}
+		dirName := strings.TrimSuffix(strings.TrimPrefix(*p.Prefix, prefix), "/")
 		fileInfos = append(fileInfos, s3FileInfo{
 			name:  dirName,
 			size:  0,
@@ -236,19 +240,19 @@ func (f *s3File) Sync() error {
 	return ErrReadonly
 }
 
-func (f *s3File) Truncate(size int64) error {
+func (f *s3File) Truncate(_ int64) error {
 	return ErrReadonly
 }
 
-func (f *s3File) Write(p []byte) (n int, err error) {
+func (f *s3File) Write(_ []byte) (n int, err error) {
 	return 0, ErrReadonly
 }
 
-func (f *s3File) WriteAt(p []byte, off int64) (n int, err error) {
+func (f *s3File) WriteAt(_ []byte, _ int64) (n int, err error) {
 	return 0, ErrReadonly
 }
 
-func (f *s3File) WriteString(s string) (ret int, err error) {
+func (f *s3File) WriteString(_ string) (ret int, err error) {
 	return 0, ErrReadonly
 }
 
