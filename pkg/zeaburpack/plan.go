@@ -29,6 +29,9 @@ type PlanOptions struct {
 	// Access token for GitHub, only used when Path is a GitHub URL.
 	AccessToken *string
 
+	// AWSConfig is the AWS configuration to access S3, required if Path is an S3 URL.
+	AWSConfig *plan.AWSConfig
+
 	// CustomBuildCommand is a custom build command that will be used instead of the default one.
 	CustomBuildCommand *string
 
@@ -63,13 +66,13 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}
 		}
 	} else if strings.HasPrefix(*opt.Path, "s3://") {
+		if opt.AWSConfig == nil {
+			return types.PlanTypeStatic, types.PlanMeta{"error": "Missing AWS configuration, cannot access S3 source"}
+		}
+
 		src = getS3SourceFromURL(*opt.Path, &aws.Config{
-			Region: aws.String(os.Getenv("AWS_REGION")),
-			Credentials: credentials.NewStaticCredentials(
-				os.Getenv("AWS_ACCESS_KEY_ID"),
-				os.Getenv("AWS_SECRET_ACCESS_KEY"),
-				"",
-			),
+			Region:      aws.String(opt.AWSConfig.Region),
+			Credentials: credentials.NewStaticCredentials(opt.AWSConfig.AccessKeyID, opt.AWSConfig.SecretAccessKey, ""),
 		})
 	} else {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
