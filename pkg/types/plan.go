@@ -163,6 +163,7 @@ const (
 	PHPFrameworkNone        PHPFramework = "none"
 	PHPFrameworkThinkphp    PHPFramework = "thinkphp"
 	PHPFrameworkCodeigniter PHPFramework = "codeigniter"
+	PHPFrameworkSymfony     PHPFramework = "symfony"
 )
 
 //revive:enable:exported

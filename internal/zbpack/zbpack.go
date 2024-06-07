@@ -65,7 +65,6 @@ func run(args []string) error {
 
 // build is used to build Docker image and show build plan.
 func build(path string) error {
-
 	// before start, check if buildctl is installed and buildkitd is running
 	err := exec.Command("buildctl", "debug", "workers").Run()
 	if err != nil {
@@ -98,11 +97,27 @@ func build(path string) error {
 
 	log.Printf("using submoduleName: %s", submoduleName)
 
+	userVarsList := os.Environ()
+	userVarsToBuild := make(map[string]string)
+	for _, userVar := range userVarsList {
+		key, value, ok := strings.Cut(userVar, "=")
+		if !ok {
+			continue
+		}
+
+		if key, ok := strings.CutPrefix(key, "ZBPACK_VAR_"); ok {
+			userVarsToBuild[key] = value
+		}
+	}
+
+	log.Printf("environment variables to pass: %+v", userVarsToBuild)
+
 	return zeaburpack.Build(
 		&zeaburpack.BuildOptions{
 			Path:          &path,
 			Interactive:   lo.ToPtr(true),
 			SubmoduleName: &submoduleName,
+			UserVars:      &userVarsToBuild,
 		},
 	)
 }

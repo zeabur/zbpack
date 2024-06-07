@@ -16,7 +16,7 @@ func TestRetrieveNginxConf_Default(t *testing.T) {
 	conf, err := RetrieveNginxConf(string(types.PHPApplicationDefault))
 
 	assert.NoError(t, err)
-	assert.Contains(t, conf, escape("try_files $uri $uri/ /index.php?$query_string;"))
+	assert.Contains(t, conf, escape("try_files $uri $uri/ /index.php$is_args$args;"))
 }
 
 func TestRetrieveNginxConf_AcgFaka(t *testing.T) {
