@@ -40,13 +40,15 @@ RUN install-php-extensions ` + meta["exts"] + "\n"
 
 	// copy source code to /var/www/public, which is Nginx root directory
 	copyCommand := `
-COPY --chown=www-data:www-data . /var/www/public
+RUN chown -R www-data:www-data /var/www
+COPY --chown=www-data:www-data --chmod=755 . /var/www/public
 WORKDIR /var/www/public
 `
 
 	if meta["framework"] != "none" {
 		copyCommand = `
-COPY --chown=www-data:www-data . /var/www
+RUN chown -R www-data:www-data /var/www
+COPY --chown=www-data:www-data --chmod=755 . /var/www
 WORKDIR /var/www
 `
 	}
@@ -68,6 +70,9 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 	projectInstallCmd := "\nUSER www-data\n"
 	if projectProperty&types.PHPPropertyComposer != 0 {
 		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
+	}
+	if buildCommand := meta["buildCommand"]; buildCommand != "" {
+		projectInstallCmd += "RUN " + buildCommand + "\n"
 	}
 	projectInstallCmd += "\nUSER root\n"
 

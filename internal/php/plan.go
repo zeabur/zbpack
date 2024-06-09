@@ -18,7 +18,6 @@ const DefaultPHPVersion = "8"
 
 // GetPHPVersion gets the php version of the project.
 func GetPHPVersion(config plan.ImmutableProjectConfiguration, source afero.Fs) string {
-
 	// Priority: config (environment variable) > docker-compose.yml > composer.json
 
 	// Get the PHP version from the config (php.version) or environment variable (ZBPACK_PHP_VERSION).
@@ -180,6 +179,18 @@ func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startComma
 	}
 
 	return "nginx; php-fpm"
+}
+
+// DetermineBuildCommand determines the build command of the project.
+func DetermineBuildCommand(config plan.ImmutableProjectConfiguration, buildCommand *string) string {
+	if buildCommand != nil {
+		return *buildCommand
+	}
+	if buildCommand, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		return buildCommand
+	}
+
+	return ""
 }
 
 const (
