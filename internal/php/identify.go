@@ -34,6 +34,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	deps := DetermineAptDependencies(options.Source, server)
 	exts := DeterminePHPExtensions(options.Source)
 	app, property := DetermineApplication(options.Source)
+	buildCommand := DetermineBuildCommand(options.Config, options.CustomBuildCommand)
 	startCommand := DetermineStartCommand(options.Config, options.CustomStartCommand)
 
 	// Some meta will be added to the plan dynamically later.
@@ -44,6 +45,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		"exts":         strings.Join(exts, " "),
 		"app":          string(app),
 		"property":     PropertyToString(property),
+		"buildCommand": buildCommand,
 		"startCommand": startCommand,
 	}
 

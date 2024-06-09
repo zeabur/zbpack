@@ -71,6 +71,9 @@ RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
 	if projectProperty&types.PHPPropertyComposer != 0 {
 		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
 	}
+	if buildCommand := meta["buildCommand"]; buildCommand != "" {
+		projectInstallCmd += "RUN " + buildCommand + "\n"
+	}
 	projectInstallCmd += "\nUSER root\n"
 
 	startCmd := "\n" + "CMD " + meta["startCommand"] + "\n"
