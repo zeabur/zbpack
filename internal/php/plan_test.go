@@ -186,3 +186,30 @@ func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
 
 	assert.Equal(t, expectedCommand, actualCommand)
 }
+
+func TestDetermineBuildCommand_Default(t *testing.T) {
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	command := php.DetermineBuildCommand(config, nil)
+
+	assert.Equal(t, "", command)
+}
+
+func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
+	const expectedCommand = "php bin/build"
+
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	config.Set(plan.ConfigBuildCommand, expectedCommand)
+
+	actualCommand := php.DetermineBuildCommand(config, nil)
+
+	assert.Equal(t, expectedCommand, actualCommand)
+}
+
+func TestDetermineBuildCommand_CustomInOptions(t *testing.T) {
+	const expectedCommand = "php bin/build"
+
+	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	actualCommand := php.DetermineBuildCommand(config, lo.ToPtr(expectedCommand))
+
+	assert.Equal(t, expectedCommand, actualCommand)
+}
