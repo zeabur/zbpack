@@ -586,6 +586,8 @@ func determinePythonVersion(ctx *pythonPlanContext) string {
 		return determinePythonVersionWithPdm(ctx)
 	case types.PythonPackageManagerRye:
 		return determinePythonVersionWithRye(ctx)
+	case types.PythonPackageManagerPipenv:
+		return determinePythonVersionWithPipenv(ctx)
 	default:
 		return defaultPython3Version
 	}
@@ -645,6 +647,23 @@ func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
 	match := regex.FindSubmatch(content)
 	if len(match) > 1 {
 		return getPython3Version(string(match[1]))
+	}
+
+	return defaultPython3Version
+}
+
+func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
+	src := ctx.Src
+
+	content, err := afero.ReadFile(src, "Pipfile")
+	if err != nil {
+		return defaultPython3Version
+	}
+
+	compile := regexp.MustCompile(`python_version\s*=\s*"(.*?)"`)
+	submatchs := compile.FindStringSubmatch(string(content))
+	if len(submatchs) > 1 {
+		return submatchs[1]
 	}
 
 	return defaultPython3Version

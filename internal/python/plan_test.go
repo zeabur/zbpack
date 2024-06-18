@@ -947,3 +947,69 @@ func TestDetermineWsgi(t *testing.T) {
 		})
 	}
 }
+
+func TestDeterminePythonVersion_Pipenv(t *testing.T) {
+	t.Parallel()
+
+	pipFile := []struct {
+		testname string
+		content  string
+		expect   string
+	}{
+		{
+			testname: "python_version with spaces",
+			content: strings.TrimSpace(`
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version = "3.8"
+`),
+			expect: "3.8",
+		},
+		{
+			testname: "python_version without spaces",
+			content: strings.TrimSpace(`
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version="3.8"
+`),
+			expect: "3.8",
+		},
+		{
+			testname: "python_version with two digit minor version",
+			content: strings.TrimSpace(`
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[requires]
+python_version = "3.12"
+`),
+			expect: "3.12",
+		},
+	}
+
+	for _, p := range pipFile {
+		p := p
+		t.Run(p.testname, func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "Pipfile", []byte(p.content), 0o644)
+
+			ctx := &pythonPlanContext{
+				Src: fs,
+			}
+
+			assert.Equal(t, p.expect, determinePythonVersion(ctx))
+		})
+	}
+}
