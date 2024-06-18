@@ -35,6 +35,10 @@ const (
 	// ConfigStreamlitEntry is the key for specifying the streamlit entry explicitly
 	// in the project configuration.
 	ConfigStreamlitEntry = "streamlit.entry"
+
+	// ConfigPythonVersion is the key for specifying the Python version explicitly
+	// in the project configuration.
+	ConfigPythonVersion = "python.version"
 )
 
 // DetermineFramework determines the framework of the Python project.
@@ -577,6 +581,10 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 
 // determinePythonVersion Determine Python Version
 func determinePythonVersion(ctx *pythonPlanContext) string {
+	if pythonVersion, err := plan.Cast(ctx.Config.Get(ConfigPythonVersion), cast.ToStringE).Take(); err == nil {
+		return getPython3Version(pythonVersion)
+	}
+
 	pm := DeterminePackageManager(ctx)
 
 	switch pm {
