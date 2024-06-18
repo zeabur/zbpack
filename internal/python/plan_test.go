@@ -1006,10 +1006,24 @@ python_version = "3.12"
 			_ = afero.WriteFile(fs, "Pipfile", []byte(p.content), 0o644)
 
 			ctx := &pythonPlanContext{
-				Src: fs,
+				Src:    fs,
+				Config: plan.NewProjectConfigurationFromFs(fs, ""),
 			}
 
 			assert.Equal(t, p.expect, determinePythonVersion(ctx))
 		})
 	}
+}
+
+func TestDeterminePythonVersion_Customized(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	conf := plan.NewProjectConfigurationFromFs(fs, "")
+	conf.Set(ConfigPythonVersion, "3.12345.1")
+
+	ctx := &pythonPlanContext{
+		Src:    fs,
+		Config: conf,
+	}
+
+	assert.Equal(t, "3.12345", determinePythonVersion(ctx))
 }
