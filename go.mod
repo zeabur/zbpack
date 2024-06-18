@@ -65,7 +65,7 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/moznion/go-optional v0.11.0
+	github.com/moznion/go-optional v0.12.0
 	github.com/otiai10/copy v1.14.0
 	github.com/pan93412/envexpander v1.1.0
 	github.com/samber/lo v1.39.0
