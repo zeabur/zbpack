@@ -15,6 +15,30 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	serverless := meta["serverless"]
 	pyVer := meta["pythonVersion"]
 
+	if meta["framework"] == string(types.PythonFrameworkReflex) {
+		return `FROM python:` + pyVer + `
+RUN apt-get update -y && apt-get install -y caddy && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN cat > Caddyfile <<EOF
+:8080
+encode gzip
+@backend_routes path /_event/* /ping /_upload /_upload/*
+handle @backend_routes {
+	reverse_proxy localhost:8000
+}
+root * /srv
+route {
+	try_files {path} {path}/ /404.html
+	file_server
+}
+EOF
+
+COPY . .
+` + buildCmd + `
+STOPSIGNAL SIGKILL
+CMD ` + startCmd, nil
+	}
+
 	if serverless == "true" {
 		return `FROM docker.io/library/python:` + pyVer + `-slim as builder
 WORKDIR /app

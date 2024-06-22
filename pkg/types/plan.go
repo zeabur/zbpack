@@ -104,6 +104,9 @@ const (
 
 	// PythonFrameworkStreamlit https://github.com/streamlit/streamlit
 	PythonFrameworkStreamlit PythonFramework = "streamlit"
+
+	// PythonFrameworkReflex https://github.com/reflex-dev/reflex
+	PythonFrameworkReflex PythonFramework = "reflex"
 )
 
 //revive:enable:exported

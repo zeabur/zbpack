@@ -50,6 +50,11 @@ func DetermineFramework(ctx *pythonPlanContext) types.PythonFramework {
 		return framework
 	}
 
+	if HasExplicitDependency(ctx, "reflex") {
+		*fw = optional.Some(types.PythonFrameworkReflex)
+		return fw.Unwrap()
+	}
+
 	if HasExplicitDependency(ctx, "django") {
 		*fw = optional.Some(types.PythonFrameworkDjango)
 		return fw.Unwrap()
@@ -478,6 +483,11 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		return []string{}
 	}
 
+	framework := DetermineFramework(ctx)
+	if framework == types.PythonFrameworkReflex {
+		return []string{"caddy"}
+	}
+
 	deps := []string{"build-essential", "pkg-config"}
 
 	// If we need to host static files, we need nginx.
@@ -537,6 +547,10 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	// serverless function doesn't need a start command
 	if serverless {
 		return ""
+	}
+
+	if framework == types.PythonFrameworkReflex {
+		return "[ -d alembic ] && reflex db migrate; caddy start && reflex run --env prod --backend-only --loglevel debug"
 	}
 
 	var commandSegment []string
@@ -682,9 +696,15 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 
 	packageManager := DeterminePackageManager(ctx)
 	staticInfo := DetermineStaticInfo(ctx)
+	framework := DetermineFramework(ctx)
 
 	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
 		commands += "RUN " + postInstallCmd + "\n"
+	}
+
+	if framework == types.PythonFrameworkReflex {
+		commands += `RUN reflex init
+RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
 	}
 
 	if staticInfo.DjangoEnabled() {
