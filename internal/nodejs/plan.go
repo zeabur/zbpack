@@ -211,6 +211,11 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 		return fw.Unwrap()
 	}
 
+	if _, isCreateReactApp := packageJSON.DevDependencies["react-scripts"]; isCreateReactApp {
+		*fw = optional.Some(types.NodeProjectFrameworkCreateReactApp)
+		return fw.Unwrap()
+	}
+
 	if _, isNuxtJs := packageJSON.Dependencies["nuxt"]; isNuxtJs {
 		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
 		return fw.Unwrap()
