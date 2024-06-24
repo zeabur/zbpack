@@ -55,7 +55,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.54.2
+	github.com/aws/aws-sdk-go v1.54.6
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
