@@ -29,6 +29,7 @@ type NewPlannerOptions struct {
 	AWSConfig *AWSConfig
 }
 
+// AWSConfig is the AWS configuration for fetching projects from S3 bucket.
 type AWSConfig struct {
 	Region          string
 	AccessKeyID     string

@@ -27,6 +27,9 @@ func ReadToUTF8(content []byte) ([]byte, error) {
 	return content, nil
 }
 
+// ReadFileToUTF8 reads a file from the filesystem and decode it to UTF-8.
+//
+// It is basically the wrapper of afero.ReadFile.
 func ReadFileToUTF8(fs afero.Fs, path string) ([]byte, error) {
 	content, err := afero.ReadFile(fs, path)
 	if err != nil {
