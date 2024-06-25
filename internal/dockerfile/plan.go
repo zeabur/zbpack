@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"golang.org/x/text/cases"
 
@@ -112,7 +113,7 @@ func ReadDockerfile(ctx *dockerfilePlanContext) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, err := afero.ReadFile(ctx.src, dockerfileName)
+	content, err := utils.ReadFileToUTF8(ctx.src, dockerfileName)
 	if err != nil {
 		return nil, err
 	}

@@ -26,7 +26,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 	hasBunLockfile := utils.HasFile(fs, "bun.lockb")
 	hasBunTypes := false
 
-	packageJSON, err := afero.ReadFile(fs, "package.json")
+	packageJSON, err := utils.ReadFileToUTF8(fs, "package.json")
 	if err == nil {
 		hasBunTypes = bytes.Contains(packageJSON, []byte(`"bun-types"`))
 	}

@@ -12,7 +12,7 @@ import (
 
 // DetermineFramework is used to determine the Dotnet framework
 func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
-	content, err := afero.ReadFile(src, entryPoint)
+	content, err := utils.ReadFileToUTF8(src, entryPoint)
 	if err == nil {
 		pattern := regexp.MustCompile(`Project Sdk="(.*?)"`)
 		// Search for the target framework in the file.
@@ -34,7 +34,7 @@ func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
 // DetermineSDKVersion returns the version of the SDK.
 func DetermineSDKVersion(entryPoint string, src afero.Fs) (string, error) {
 	if utils.HasFile(src, entryPoint) {
-		content, err := afero.ReadFile(src, entryPoint)
+		content, err := utils.ReadFileToUTF8(src, entryPoint)
 		if err != nil {
 			return "", err
 		}

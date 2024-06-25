@@ -26,7 +26,7 @@ func DetermineProjectType(src afero.Fs) types.JavaProjectType {
 func DetermineFramework(pj types.JavaProjectType, src afero.Fs) types.JavaFramework {
 	if pj == types.JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
-			pom, err := afero.ReadFile(src, "pom.xml")
+			pom, err := utils.ReadFileToUTF8(src, "pom.xml")
 			if err != nil {
 				return types.JavaFrameworkNone
 			}
@@ -39,7 +39,7 @@ func DetermineFramework(pj types.JavaProjectType, src afero.Fs) types.JavaFramew
 
 	if pj == types.JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
-			gradle, err := afero.ReadFile(src, "build.gradle")
+			gradle, err := utils.ReadFileToUTF8(src, "build.gradle")
 			if err != nil {
 				return types.JavaFrameworkNone
 			}
@@ -50,7 +50,7 @@ func DetermineFramework(pj types.JavaProjectType, src afero.Fs) types.JavaFramew
 		}
 
 		if utils.HasFile(src, "build.gradle.kts") {
-			gradle, err := afero.ReadFile(src, "build.gradle.kts")
+			gradle, err := utils.ReadFileToUTF8(src, "build.gradle.kts")
 			if err != nil {
 				return types.JavaFrameworkNone
 			}
@@ -70,7 +70,7 @@ func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 
 	if pj == types.JavaProjectTypeMaven {
 		if utils.HasFile(src, "pom.xml") {
-			pom, err := afero.ReadFile(src, "pom.xml")
+			pom, err := utils.ReadFileToUTF8(src, "pom.xml")
 			if err != nil {
 				return defaultVersion
 			}
@@ -95,7 +95,7 @@ func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 
 	if pj == types.JavaProjectTypeGradle {
 		if utils.HasFile(src, "build.gradle") {
-			gradle, err := afero.ReadFile(src, "build.gradle")
+			gradle, err := utils.ReadFileToUTF8(src, "build.gradle")
 			if err != nil {
 				return defaultVersion
 			}
@@ -125,7 +125,7 @@ func DetermineJDKVersion(pj types.JavaProjectType, src afero.Fs) string {
 
 // DetermineTargetExt determines the target extension of the Java project.
 func DetermineTargetExt(src afero.Fs) string {
-	pom, err := afero.ReadFile(src, "pom.xml")
+	pom, err := utils.ReadFileToUTF8(src, "pom.xml")
 	if err != nil {
 		return "jar"
 	}

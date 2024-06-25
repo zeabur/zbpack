@@ -43,7 +43,7 @@ func determineFramework(ctx planContext) types.DartFramework {
 		return framework
 	}
 
-	file, err := afero.ReadFile(src, "pubspec.yaml")
+	file, err := utils.ReadFileToUTF8(src, "pubspec.yaml")
 	if err != nil {
 		return types.DartFrameworkNone
 	}

@@ -26,7 +26,7 @@ var elixirVersions = map[string]string{
 func DetermineElixirVersion(src afero.Fs) (string, error) {
 	fileName := "mix.exs"
 	if utils.HasFile(src, fileName) {
-		content, err := afero.ReadFile(src, fileName)
+		content, err := utils.ReadFileToUTF8(src, fileName)
 		if err != nil {
 			return "", err
 		}
@@ -53,7 +53,7 @@ func DetermineElixirVersion(src afero.Fs) (string, error) {
 func DetermineElixirFramework(src afero.Fs) (string, error) {
 	filename := "mix.exs"
 	if utils.HasFile(src, filename) {
-		content, err := afero.ReadFile(src, filename)
+		content, err := utils.ReadFileToUTF8(src, filename)
 		if err != nil {
 			return "", err
 		}
@@ -74,7 +74,7 @@ func DetermineElixirFramework(src afero.Fs) (string, error) {
 func CheckElixirEcto(src afero.Fs) (string, error) {
 	fileName := "mix.exs"
 	if utils.HasFile(src, fileName) {
-		content, err := afero.ReadFile(src, fileName)
+		content, err := utils.ReadFileToUTF8(src, fileName)
 		if err != nil {
 			return "", err
 		}
