@@ -409,10 +409,10 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 
 	// If there are ".node-version" or ".nvmrc" file, we pick
 	// the version from them.
-	if content, err := afero.ReadFile(src, ".node-version"); err == nil {
+	if content, err := utils.ReadFileToUTF8(src, ".node-version"); err == nil {
 		projectNodeVersion = strings.TrimSpace(string(content))
 	}
-	if content, err := afero.ReadFile(src, ".nvmrc"); err == nil {
+	if content, err := utils.ReadFileToUTF8(src, ".nvmrc"); err == nil {
 		projectNodeVersion = strings.TrimSpace(string(content))
 	}
 
@@ -610,7 +610,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	// the default output directory of Angular is `dist/<project-name>/browser`
 	// we need to find the project name from `angular.json`.
 	if framework == types.NodeProjectFrameworkAngular {
-		angularJSON, err := afero.ReadFile(source, "angular.json")
+		angularJSON, err := utils.ReadFileToUTF8(source, "angular.json")
 		if err != nil {
 			println("failed to read angular.json: " + err.Error())
 			*dir = optional.Some("dist")

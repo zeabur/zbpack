@@ -48,7 +48,7 @@ func DetermineEntry(src afero.Fs) string {
 
 // GetStartCommand gets the start command of the Deno project.
 func GetStartCommand(src afero.Fs) string {
-	denoJSONMarshal, err := afero.ReadFile(src, "deno.json")
+	denoJSONMarshal, err := utils.ReadFileToUTF8(src, "deno.json")
 	if err != nil {
 		return ""
 	}
