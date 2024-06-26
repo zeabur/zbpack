@@ -23,7 +23,7 @@ func DetermineFramework(ctx *swiftPlanContext) types.SwiftFramework {
 		return framework
 	}
 
-	content, err := afero.ReadFile(src, "Package.swift")
+	content, err := utils.ReadFileToUTF8(src, "Package.swift")
 	if err != nil {
 		*fw = optional.Some(types.SwiftFrameworkNone)
 		return fw.Unwrap()

@@ -37,7 +37,7 @@ func getServerless(ctx *rustPlanContext) bool {
 // needOpenssl checks if the project needs openssl.
 func needOpenssl(source afero.Fs) bool {
 	for _, file := range []string{"Cargo.toml", "Cargo.lock"} {
-		file, err := afero.ReadFile(source, file)
+		file, err := utils.ReadFileToUTF8(source, file)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				log.Println(err)

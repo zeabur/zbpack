@@ -38,7 +38,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 
 	if utils.HasFile(options.Source, "config.toml") {
-		config, err := afero.ReadFile(options.Source, "config.toml")
+		config, err := utils.ReadFileToUTF8(options.Source, "config.toml")
 		if err == nil && strings.Contains(string(config), "base_url") {
 			ver := "0.18.0"
 
@@ -52,7 +52,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		}
 	}
 
-	html, err := afero.ReadFile(options.Source, "index.html")
+	html, err := utils.ReadFileToUTF8(options.Source, "index.html")
 
 	if err == nil && strings.Contains(string(html), "Hexo") {
 		return types.PlanMeta{"framework": "hexo"}

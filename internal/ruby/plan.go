@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
+	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -32,7 +33,7 @@ func DetermineRubyVersion(source afero.Fs, config plan.ImmutableProjectConfigura
 	}
 
 	reg := regexp.MustCompile(`ruby ["'](\d+\.\d+\.\d+)["']`)
-	sourceFile, err := afero.ReadFile(source, "Gemfile")
+	sourceFile, err := utils.ReadFileToUTF8(source, "Gemfile")
 	if err != nil {
 		return DefaultRubyVersion
 	}
@@ -47,7 +48,7 @@ func DetermineRubyVersion(source afero.Fs, config plan.ImmutableProjectConfigura
 
 // DetermineRubyFramework determines the framework of the Ruby project.
 func DetermineRubyFramework(source afero.Fs) types.RubyFramework {
-	f, err := afero.ReadFile(source, "Gemfile")
+	f, err := utils.ReadFileToUTF8(source, "Gemfile")
 	if err != nil {
 		return types.RubyFrameworkNone
 	}

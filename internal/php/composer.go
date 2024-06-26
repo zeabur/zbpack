@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
 )
 
 type composerJSONSchema struct {
@@ -29,7 +30,7 @@ func (c *composerJSONSchema) GetRequireDev(dep string) (string, bool) {
 }
 
 func parseComposerJSON(source afero.Fs) (composerJSONSchema, error) {
-	composerJSONMarshal, err := afero.ReadFile(source, "composer.json")
+	composerJSONMarshal, err := utils.ReadFileToUTF8(source, "composer.json")
 	if err != nil {
 		return composerJSONSchema{}, err
 	}

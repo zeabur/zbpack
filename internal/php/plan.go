@@ -26,7 +26,7 @@ func GetPHPVersion(config plan.ImmutableProjectConfiguration, source afero.Fs) s
 	}
 
 	// if not found in the config or environment variable, try to get it from the docker-compose.yml because it may be a Laravel Sail project.
-	compose, err := afero.ReadFile(source, "docker-compose.yml")
+	compose, err := utils.ReadFileToUTF8(source, "docker-compose.yml")
 	if err == nil && strings.Contains(string(compose), "vendor/laravel/sail/runtimes") {
 		lines := strings.Split(string(compose), "\n")
 		for _, line := range lines {

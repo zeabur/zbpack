@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/afero"
+	"github.com/zeabur/zbpack/internal/utils"
 )
 
 // PackageJSONEngine is the structure of `package.json`'s `engines` field.
@@ -39,7 +40,7 @@ func NewPackageJSON() PackageJSON {
 func DeserializePackageJSON(source afero.Fs) (PackageJSON, error) {
 	p := NewPackageJSON()
 
-	packageJSONMarshal, err := afero.ReadFile(source, "package.json")
+	packageJSONMarshal, err := utils.ReadFileToUTF8(source, "package.json")
 	if err != nil {
 		return p, fmt.Errorf("read file: %w", err)
 	}
