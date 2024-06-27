@@ -34,7 +34,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 }
 
 func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
-	return []types.FieldInfo{
+	baseFieldInfo := []types.FieldInfo{
 		{
 			Key:         "goVersion",
 			Name:        "Go version",
@@ -45,8 +45,13 @@ func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
 			Name:        "Go entrypoint",
 			Description: "The entry point of the project",
 		},
-		types.NewServerlessFieldInfo("serverless"),
 	}
+
+	if _, ok := meta["serverless"]; ok {
+		baseFieldInfo = append(baseFieldInfo, types.NewServerlessFieldInfo("serverless"))
+	}
+
+	return baseFieldInfo
 }
 
 var _ plan.ExplainableIdentifier = (*identify)(nil)
