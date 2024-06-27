@@ -8,7 +8,7 @@ import (
 
 // Planner is the interface for planners.
 type Planner interface {
-	Plan() (types.PlanType, types.PlanMeta)
+	Plan() (types.PlanType, types.PlanMeta, []types.FieldInfo)
 }
 
 type planner struct {
@@ -54,7 +54,7 @@ func Continue() types.PlanMeta {
 	return continuePlanMeta
 }
 
-func (b planner) Plan() (types.PlanType, types.PlanMeta) {
+func (b planner) Plan() (types.PlanType, types.PlanMeta, []types.FieldInfo) {
 	for _, identifier := range b.identifiers {
 		if identifier.Match(b.Source) {
 			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
@@ -64,9 +64,28 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 				continue
 			}
 
-			return pt, pm
+			// If the planner can explain its field, we return the explanation.
+			if explainer, ok := identifier.(ExplainableIdentifier); ok {
+				return pt, pm, addProviderToFieldInfo(explainer.Explain(pm), pt)
+			}
+
+			return pt, pm, []types.FieldInfo{
+				types.NewPlanTypeFieldInfo(pt),
+			}
 		}
 	}
 
-	return types.PlanTypeStatic, types.PlanMeta{}
+	return types.PlanTypeStatic, types.PlanMeta{}, []types.FieldInfo{
+		types.NewPlanTypeFieldInfo(types.PlanTypeStatic),
+	}
+}
+
+// addProviderToFieldInfo adds the plan type (as the key `_provider`) to the top of the field info.
+func addProviderToFieldInfo(fieldInfo []types.FieldInfo, planType types.PlanType) []types.FieldInfo {
+	newFieldInfo := make([]types.FieldInfo, len(fieldInfo)+1)
+
+	newFieldInfo[0] = types.NewPlanTypeFieldInfo(planType)
+	copy(newFieldInfo[1:], fieldInfo)
+
+	return newFieldInfo
 }

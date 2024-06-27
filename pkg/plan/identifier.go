@@ -13,3 +13,9 @@ type Identifier interface {
 	Match(afero.Fs) bool
 	PlanMeta(NewPlannerOptions) types.PlanMeta
 }
+
+// ExplainableIdentifier is an identifier that can explain the fields in the plan.
+type ExplainableIdentifier interface {
+	Identifier
+	Explain(meta types.PlanMeta) []types.FieldInfo
+}
