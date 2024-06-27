@@ -16,6 +16,9 @@ type FieldInfo struct {
 	Icon string
 }
 
+// NewPlanTypeFieldInfo creates a new generic FieldInfo for the PlanType (provider).
+//
+// It creates a generic Provider field information with the icon of the provider.
 func NewPlanTypeFieldInfo(planType PlanType) FieldInfo {
 	return FieldInfo{
 		Key:         "_provider",
@@ -25,6 +28,9 @@ func NewPlanTypeFieldInfo(planType PlanType) FieldInfo {
 	}
 }
 
+// NewFrameworkFieldInfo creates a new generic FieldInfo for the framework.
+//
+// It creates a generic Framework field information with the icon of the framework.
 func NewFrameworkFieldInfo(key string, planType PlanType, framework string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
@@ -34,6 +40,7 @@ func NewFrameworkFieldInfo(key string, planType PlanType, framework string) Fiel
 	}
 }
 
+// NewOutputDirFieldInfo creates a new generic FieldInfo for the output directory.
 func NewOutputDirFieldInfo(key string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
@@ -42,6 +49,7 @@ func NewOutputDirFieldInfo(key string) FieldInfo {
 	}
 }
 
+// NewInstallCmdFieldInfo creates a new generic FieldInfo for the installation command.
 func NewInstallCmdFieldInfo(key string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
@@ -50,6 +58,7 @@ func NewInstallCmdFieldInfo(key string) FieldInfo {
 	}
 }
 
+// NewBuildCmdFieldInfo creates a new generic FieldInfo for the build command.
 func NewBuildCmdFieldInfo(key string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
@@ -58,6 +67,7 @@ func NewBuildCmdFieldInfo(key string) FieldInfo {
 	}
 }
 
+// NewStartCmdFieldInfo creates a new generic FieldInfo for the start command.
 func NewStartCmdFieldInfo(key string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
@@ -66,6 +76,7 @@ func NewStartCmdFieldInfo(key string) FieldInfo {
 	}
 }
 
+// NewServerlessFieldInfo creates a new generic FieldInfo for the serverless field.
 func NewServerlessFieldInfo(key string) FieldInfo {
 	return FieldInfo{
 		Key:         key,
