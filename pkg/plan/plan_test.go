@@ -44,15 +44,13 @@ func TestPlan_Continue(t *testing.T) {
 	assert.Equal(t, "TestPassed", v)
 }
 
-type identifierDemo struct {
-	meta types.PlanMeta
-}
+type identifierDemo struct{}
 
 type explainableIdentifierDemo struct {
 	identifierDemo
 }
 
-func (mi identifierDemo) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
+func (mi identifierDemo) PlanMeta(_ plan.NewPlannerOptions) types.PlanMeta {
 	return types.PlanMeta{
 		"framework":   "flutter",
 		"dartVersion": "2.12.0",
