@@ -61,4 +61,22 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return types.PlanMeta{"framework": "unknown"}
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fields := make([]types.FieldInfo, 3)
+
+	if framework, ok := meta["framework"]; ok {
+		fields = append(fields, types.NewFrameworkFieldInfo("framework", types.PlanTypeStatic, framework))
+
+		if framework == "zola" {
+			fields = append(fields, types.FieldInfo{
+				Key:         "version",
+				Name:        "Zola Version",
+				Description: "The Zola version for building the website.",
+			})
+		}
+	}
+
+	return fields
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
