@@ -334,3 +334,64 @@ func TestNodePlanContext_GetServicePackageJSON(t *testing.T) {
 		assert.Equal(t, "service1.js", packageJSON.Main)
 	})
 }
+
+func TestInstallCommand(t *testing.T) {
+	t.Parallel()
+
+	t.Run("monorepo", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+		_ = afero.WriteFile(fs, "pnpm-workspace.yaml", []byte(`packages: [packages/*]`), 0o644)
+		_ = afero.WriteFile(fs, "packages/service1/package.json", []byte(`{"main": "service1.js"}`), 0o644)
+		_ = afero.WriteFile(fs, "packages/docs/README", []byte("Hello, world!"), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		installCmd := GetInstallCmd(ctx)
+		assert.Contains(t, installCmd, "COPY . .")
+		assert.Contains(t, installCmd, "WORKDIR /src/packages/service1")
+	})
+
+	t.Run("normal", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		installCmd := GetInstallCmd(ctx)
+		assert.NotContains(t, installCmd, "COPY . .")
+		assert.NotContains(t, installCmd, "WORKDIR")
+	})
+
+	t.Run("shouldCacheDependencies is false", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		config := plan.NewProjectConfigurationFromFs(fs, "")
+		config.Set(ConfigCacheDependencies, false)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             config,
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		installCmd := GetInstallCmd(ctx)
+		assert.Contains(t, installCmd, "COPY . .")
+		assert.NotContains(t, installCmd, "WORKDIR")
+	})
+}

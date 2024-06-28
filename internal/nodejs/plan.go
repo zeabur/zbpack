@@ -483,7 +483,7 @@ func GetEntry(ctx *nodePlanContext) string {
 // GetInstallCmd gets the installation command of the Node.js service.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
-	src, _ := ctx.GetServiceSource()
+	src, reldir := ctx.GetServiceSource()
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -504,6 +504,11 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		shouldCacheDependencies = false
 	}
 
+	// disable cache_dependencies if the service root != project root
+	if reldir != "" {
+		shouldCacheDependencies = false
+	}
+
 	var cmds []string
 	if shouldCacheDependencies {
 		if utils.HasFile(src, "prisma") {
@@ -512,6 +517,9 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		cmds = append(cmds, "COPY package.json* tsconfig.json* .npmrc* .")
 	} else {
 		cmds = append(cmds, "COPY . .")
+	}
+	if reldir != "" {
+		cmds = append(cmds, "WORKDIR /src/"+reldir)
 	}
 
 	if installCmd, err := installCmdConf.Take(); err == nil {
@@ -876,6 +884,9 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta := types.PlanMeta{
 		"bun": strconv.FormatBool(opt.Bun),
 	}
+
+	_, reldir := ctx.GetServiceSource()
+	meta["serviceDir"] = reldir
 
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)
