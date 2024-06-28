@@ -527,13 +527,26 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	} else {
 		switch pkgManager {
 		case types.NodePackageManagerNpm:
-			cmds = append(cmds, "COPY package-lock.json* .", "RUN npm install")
+			// FIXME: reldir != ""
+			if shouldCacheDependencies && reldir == "" {
+				cmds = append(cmds, "COPY package-lock.json* .")
+			}
+			cmds = append(cmds, "RUN npm install")
 		case types.NodePackageManagerPnpm:
-			cmds = append(cmds, "COPY pnpm-lock.yaml* .", "RUN pnpm install")
+			if shouldCacheDependencies && reldir == "" {
+				cmds = append(cmds, "COPY pnpm-lock.yaml* .")
+			}
+			cmds = append(cmds, "RUN pnpm install")
 		case types.NodePackageManagerBun:
-			cmds = append(cmds, "COPY bun.lockb* .", "RUN bun install")
+			if shouldCacheDependencies && reldir == "" {
+				cmds = append(cmds, "COPY bun.lockb* .")
+			}
+			cmds = append(cmds, "RUN bun install")
 		case types.NodePackageManagerYarn:
-			cmds = append(cmds, "COPY yarn.lock* .", "RUN yarn install")
+			if shouldCacheDependencies && reldir == "" {
+				cmds = append(cmds, "COPY yarn.lock* .")
+			}
+			cmds = append(cmds, "RUN yarn install")
 		default:
 			cmds = append(cmds, "RUN yarn install")
 		}
