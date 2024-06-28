@@ -89,7 +89,7 @@ func (ctx *nodePlanContext) GetServicePackageJSON() PackageJSON {
 
 // DeterminePackageManager determines the package manager of the Node.js project.
 func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
-	src, _ := ctx.GetServiceSource()
+	src := ctx.Src
 	pm := &ctx.PackageManager
 	packageJSON := ctx.ProjectPackageJSON
 
@@ -149,8 +149,8 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 	return pm.Unwrap()
 }
 
-// DetermineProjectFramework determines the framework of the Node.js project.
-func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework {
+// DetermineServiceFramework determines the framework of the Node.js service.
+func DetermineServiceFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 	fw := &ctx.Framework
 	packageJSON := ctx.GetServicePackageJSON()
 
@@ -311,7 +311,7 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 	return fw.Unwrap()
 }
 
-// DetermineNeedPuppeteer determines whether the project needs Puppeteer.
+// DetermineNeedPuppeteer determines whether the service needs Puppeteer.
 func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	pup := &ctx.NeedPuppeteer
 	servicePackageJSON := ctx.GetServicePackageJSON()
@@ -329,7 +329,7 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	return pup.Unwrap()
 }
 
-// DetermineNeedPlaywright determines whether the project needs Playwright.
+// DetermineNeedPlaywright determines whether the service needs Playwright.
 func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 	pw := &ctx.NeedPlaywright
 	packageJSON := ctx.GetServicePackageJSON()
@@ -352,7 +352,7 @@ func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 	return pw.Unwrap()
 }
 
-// GetBuildScript gets the build command in package.json's `scripts` of the Node.js project.
+// GetBuildScript gets the build command in package.json's `scripts` of the Node.js service.
 func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
 	packageJSON := ctx.GetServicePackageJSON()
@@ -377,7 +377,7 @@ func GetBuildScript(ctx *nodePlanContext) string {
 	return bs.Unwrap()
 }
 
-// GetStartScript gets the start command in package.json's `scripts` of the Node.js project.
+// GetStartScript gets the start command in package.json's `scripts` of the Node.js service.
 func GetStartScript(ctx *nodePlanContext) string {
 	src, _ := ctx.GetServiceSource()
 	ss := &ctx.StartScript
@@ -467,7 +467,7 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 	return getNodeVersion(projectNodeVersion)
 }
 
-// GetEntry gets the entry file of the Node.js project.
+// GetEntry gets the entry file of the Node.js service.
 func GetEntry(ctx *nodePlanContext) string {
 	packageJSON := ctx.GetServicePackageJSON()
 	ent := &ctx.Entry
@@ -480,7 +480,7 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
-// GetInstallCmd gets the installation command of the Node.js project.
+// GetInstallCmd gets the installation command of the Node.js service.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
 	src, _ := ctx.GetServiceSource()
@@ -550,7 +550,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
-// GetBuildCmd gets the build command of the Node.js project.
+// GetBuildCmd gets the build command of the Node.js service.
 func GetBuildCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.BuildCmd
 
@@ -679,7 +679,7 @@ func FindServiceDirByGlob(fs afero.Fs, pattern string) (match string, fnerr erro
 	return "", fnerr
 }
 
-// GetStartCmd gets the start command of the Node.js project.
+// GetStartCmd gets the start command of the Node.js service.
 func GetStartCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.StartCmd
 
@@ -695,7 +695,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	startScript := GetStartScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 	entry := GetEntry(ctx)
-	framework := DetermineProjectFramework(ctx)
+	framework := DetermineServiceFramework(ctx)
 
 	var startCmd string
 	switch pkgManager {
@@ -739,7 +739,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
-// GetStaticOutputDir returns the output directory for static projects.
+// GetStaticOutputDir returns the output directory for static service.
 // If empty string is returned, the service is not deployed as static files.
 func GetStaticOutputDir(ctx *nodePlanContext) string {
 	dir := &ctx.StaticOutputDir
@@ -749,7 +749,7 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		return outputDir
 	}
 
-	framework := DetermineProjectFramework(ctx)
+	framework := DetermineServiceFramework(ctx)
 
 	// the default output directory of Angular is `dist/<project-name>/browser`
 	// we need to find the project name from `angular.json`.
@@ -825,7 +825,7 @@ func getServerless(ctx *nodePlanContext) bool {
 		return serverless
 	}
 
-	framework := DetermineProjectFramework(ctx)
+	framework := DetermineServiceFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
 		types.NodeProjectFrameworkNextJs:  true,
@@ -880,7 +880,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)
 
-	framework := DetermineProjectFramework(ctx)
+	framework := DetermineServiceFramework(ctx)
 	meta["framework"] = string(framework)
 
 	nodeVersion := GetNodeVersion(ctx)
