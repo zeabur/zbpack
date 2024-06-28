@@ -21,7 +21,7 @@ RUN corepack enable
 
 {{ .InstallCmd }}
 
-COPY . .
+{{ if eq .ServiceDir "" }}COPY . .{{ end }}
 {{ if and (eq .Framework "nuxt.js") .Serverless }}
 ENV NITRO_PRESET=node
 {{ end }}
@@ -32,10 +32,10 @@ ENV NITRO_PRESET=node-server
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 {{ if .Serverless }}
 FROM scratch as output
-COPY --from=build /src /
+COPY --from=build /src/{{ .ServiceDir }} /
 {{ else if ne .OutputDir "" }}
 FROM scratch as output
-COPY --from=build /src/{{ .OutputDir }} /
+COPY --from=build /src/{{ .ServiceDir }}/{{ .OutputDir }} /
 {{ else }}
 EXPOSE 8080
 CMD {{ .StartCmd }}{{ end }}
