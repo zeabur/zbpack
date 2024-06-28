@@ -23,11 +23,11 @@ const (
 	// It is true by default.
 	ConfigCacheDependencies = "cache_dependencies"
 
-	// ConfigServicePath indicates the relative path of the service to deploy.
+	// ConfigAppDir indicates the relative path of the app to deploy.
 	//
-	// For example, if the service to deploy is located at `apps/api`,
+	// For example, if the app to deploy is located at `apps/api`,
 	// the value of this configuration should be `apps/api`.
-	ConfigServicePath = "service_path"
+	ConfigAppDir = "app_dir"
 )
 
 type nodePlanContext struct {
@@ -48,43 +48,43 @@ type nodePlanContext struct {
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
 	Serverless      optional.Option[bool]
-	// ServiceDir is the directory of the service to deploy.
-	ServiceDir optional.Option[string]
-	// ServicePackageJSON is the package.json of the service to deploy.
-	ServicePackageJSON optional.Option[PackageJSON]
+	// AppDir is the directory of the application to deploy.
+	AppDir optional.Option[string]
+	// AppPackageJSON is the package.json of the app to deploy.
+	AppPackageJSON optional.Option[PackageJSON]
 }
 
-// GetServiceSource returns the source of the service to deploy of a Node.js project.
+// GetAppSource returns the source of the app to deploy of a Node.js project.
 //
 // A Node.js project may have a monorepo structure. In this case, the source
-// of the service to deploy may not be the root; instead, it should be `apps/somewhere`.
+// of the app to deploy may not be the root; instead, it should be `apps/somewhere`.
 //
-// This function returns the real service directory and the relative path of service to project.
-func (ctx *nodePlanContext) GetServiceSource() (afero.Fs, string) {
-	serviceDir := GetMonorepoServiceRoot(ctx)
-	if serviceDir == "" {
+// This function returns the real application directory and the relative path of application to project.
+func (ctx *nodePlanContext) GetAppSource() (afero.Fs, string) {
+	appDir := GetMonorepoAppRoot(ctx)
+	if appDir == "" {
 		return ctx.Src, ""
 	}
 
-	return afero.NewBasePathFs(ctx.Src, serviceDir), serviceDir
+	return afero.NewBasePathFs(ctx.Src, appDir), appDir
 }
 
-// GetServicePackageJSON returns the package.json of the service to deploy of a Node.js project.
-func (ctx *nodePlanContext) GetServicePackageJSON() PackageJSON {
-	if cachedPackageJSON, err := ctx.ServicePackageJSON.Take(); err == nil {
+// GetAppPackageJSON returns the package.json of the app to deploy of a Node.js project.
+func (ctx *nodePlanContext) GetAppPackageJSON() PackageJSON {
+	if cachedPackageJSON, err := ctx.AppPackageJSON.Take(); err == nil {
 		return cachedPackageJSON
 	}
 
-	src, relpath := ctx.GetServiceSource()
+	src, relpath := ctx.GetAppSource()
 	if relpath != "" {
 		if packageJSON, err := DeserializePackageJSON(src); err == nil {
-			ctx.ServicePackageJSON = optional.Some(packageJSON)
+			ctx.AppPackageJSON = optional.Some(packageJSON)
 			return packageJSON
 		}
 	}
 
-	ctx.ServicePackageJSON = optional.Some(ctx.ProjectPackageJSON)
-	return ctx.ServicePackageJSON.Unwrap()
+	ctx.AppPackageJSON = optional.Some(ctx.ProjectPackageJSON)
+	return ctx.AppPackageJSON.Unwrap()
 }
 
 // DeterminePackageManager determines the package manager of the Node.js project.
@@ -149,10 +149,10 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 	return pm.Unwrap()
 }
 
-// DetermineServiceFramework determines the framework of the Node.js service.
-func DetermineServiceFramework(ctx *nodePlanContext) types.NodeProjectFramework {
+// DetermineAppFramework determines the framework of the Node.js app.
+func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 	fw := &ctx.Framework
-	packageJSON := ctx.GetServicePackageJSON()
+	packageJSON := ctx.GetAppPackageJSON()
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
@@ -311,16 +311,16 @@ func DetermineServiceFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 	return fw.Unwrap()
 }
 
-// DetermineNeedPuppeteer determines whether the service needs Puppeteer.
+// DetermineNeedPuppeteer determines whether the app needs Puppeteer.
 func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	pup := &ctx.NeedPuppeteer
-	servicePackageJSON := ctx.GetServicePackageJSON()
+	appPackageJSON := ctx.GetAppPackageJSON()
 
 	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
 	}
 
-	if _, hasPuppeteer := servicePackageJSON.Dependencies["puppeteer"]; hasPuppeteer {
+	if _, hasPuppeteer := appPackageJSON.Dependencies["puppeteer"]; hasPuppeteer {
 		*pup = optional.Some(true)
 		return pup.Unwrap()
 	}
@@ -329,21 +329,21 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	return pup.Unwrap()
 }
 
-// DetermineNeedPlaywright determines whether the service needs Playwright.
+// DetermineNeedPlaywright determines whether the app needs Playwright.
 func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 	pw := &ctx.NeedPlaywright
-	packageJSON := ctx.GetServicePackageJSON()
+	appPackageJSON := ctx.GetAppPackageJSON()
 
 	if needPlaywright, err := pw.Take(); err == nil {
 		return needPlaywright
 	}
 
-	if _, hasPlaywright := packageJSON.Dependencies["playwright-chromium"]; hasPlaywright {
+	if _, hasPlaywright := appPackageJSON.Dependencies["playwright-chromium"]; hasPlaywright {
 		*pw = optional.Some(true)
 		return pw.Unwrap()
 	}
 
-	if _, hasPlaywright := packageJSON.DevDependencies["playwright-chromium"]; hasPlaywright {
+	if _, hasPlaywright := appPackageJSON.DevDependencies["playwright-chromium"]; hasPlaywright {
 		*pw = optional.Some(true)
 		return pw.Unwrap()
 	}
@@ -352,10 +352,10 @@ func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 	return pw.Unwrap()
 }
 
-// GetBuildScript gets the build command in package.json's `scripts` of the Node.js service.
+// GetBuildScript gets the build command in package.json's `scripts` of the Node.js app.
 func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
-	packageJSON := ctx.GetServicePackageJSON()
+	packageJSON := ctx.GetAppPackageJSON()
 
 	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
@@ -377,11 +377,11 @@ func GetBuildScript(ctx *nodePlanContext) string {
 	return bs.Unwrap()
 }
 
-// GetStartScript gets the start command in package.json's `scripts` of the Node.js service.
+// GetStartScript gets the start command in package.json's `scripts` of the Node.js app.
 func GetStartScript(ctx *nodePlanContext) string {
-	src, _ := ctx.GetServiceSource()
+	src, _ := ctx.GetAppSource()
 	ss := &ctx.StartScript
-	packageJSON := ctx.GetServicePackageJSON()
+	packageJSON := ctx.GetAppPackageJSON()
 
 	if startScript, err := ss.Take(); err == nil {
 		return startScript
@@ -467,9 +467,9 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 	return getNodeVersion(projectNodeVersion)
 }
 
-// GetEntry gets the entry file of the Node.js service.
+// GetEntry gets the entry file of the Node.js app.
 func GetEntry(ctx *nodePlanContext) string {
-	packageJSON := ctx.GetServicePackageJSON()
+	packageJSON := ctx.GetAppPackageJSON()
 	ent := &ctx.Entry
 
 	if entry, err := ent.Take(); err == nil {
@@ -480,10 +480,10 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
-// GetInstallCmd gets the installation command of the Node.js service.
+// GetInstallCmd gets the installation command of the Node.js app.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
-	src, reldir := ctx.GetServiceSource()
+	src, reldir := ctx.GetAppSource()
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -504,7 +504,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		shouldCacheDependencies = false
 	}
 
-	// disable cache_dependencies if the service root != project root
+	// disable cache_dependencies if the app root != project root
 	if reldir != "" {
 		shouldCacheDependencies = false
 	}
@@ -571,7 +571,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
-// GetBuildCmd gets the build command of the Node.js service.
+// GetBuildCmd gets the build command of the Node.js app.
 func GetBuildCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.BuildCmd
 
@@ -604,18 +604,18 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
-// GetMonorepoServiceRoot gets the root of the monorepo project in the Node.js project.
-func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
-	if serviceDir, err := ctx.ServiceDir.Take(); err == nil {
-		return serviceDir
+// GetMonorepoAppRoot gets the app root of the monorepo project in the Node.js project.
+func GetMonorepoAppRoot(ctx *nodePlanContext) string {
+	if appDir, err := ctx.AppDir.Take(); err == nil {
+		return appDir
 	}
 
-	// If user has explicitly set the service path, we should use it.
-	if servicePath, err := plan.Cast(
-		ctx.Config.Get(ConfigServicePath), cast.ToStringE,
-	).Take(); err == nil && servicePath != "" {
-		ctx.ServiceDir = optional.Some(servicePath)
-		return ctx.ServiceDir.Unwrap()
+	// If user has explicitly set the app directory, we should use it.
+	if userAppDir, err := plan.Cast(
+		ctx.Config.Get(ConfigAppDir), cast.ToStringE,
+	).Take(); err == nil && userAppDir != "" {
+		ctx.AppDir = optional.Some(userAppDir)
+		return ctx.AppDir.Unwrap()
 	}
 
 	// pnpm workspace
@@ -630,14 +630,14 @@ func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
 				return "", false
 			}
 
-			for _, pnpmServiceGlob := range pnpmWorkspace.Packages {
-				match, err := FindServiceDirByGlob(ctx.Src, pnpmServiceGlob)
+			for _, pnpmPackagesGlob := range pnpmWorkspace.Packages {
+				match, err := FindAppDirByGlob(ctx.Src, pnpmPackagesGlob)
 				if err != nil {
 					log.Printf("failed to find the matched directory: %v", err)
 					continue
 				}
 				if match == "" {
-					log.Printf("no directory found in the workspace according this glob: %s", pnpmServiceGlob)
+					log.Printf("no directory found in the workspace according this glob: %s", pnpmPackagesGlob)
 					continue
 				}
 
@@ -650,8 +650,8 @@ func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
 		return "", false
 	}()
 	if found {
-		ctx.ServiceDir = optional.Some(workspace)
-		return ctx.ServiceDir.Unwrap()
+		ctx.AppDir = optional.Some(workspace)
+		return ctx.AppDir.Unwrap()
 	}
 
 	// yarn workspace
@@ -661,7 +661,7 @@ func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
 		}
 
 		for _, workspaceGlob := range ctx.ProjectPackageJSON.Workspaces {
-			match, err := FindServiceDirByGlob(ctx.Src, workspaceGlob)
+			match, err := FindAppDirByGlob(ctx.Src, workspaceGlob)
 			if err != nil {
 				log.Printf("failed to find the matched directory: %v", err)
 				continue
@@ -673,16 +673,16 @@ func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
 		return "", false
 	}()
 	if found {
-		ctx.ServiceDir = optional.Some(workspace)
-		return ctx.ServiceDir.Unwrap()
+		ctx.AppDir = optional.Some(workspace)
+		return ctx.AppDir.Unwrap()
 	}
 
-	ctx.ServiceDir = optional.Some("")
-	return ctx.ServiceDir.Unwrap()
+	ctx.AppDir = optional.Some("")
+	return ctx.AppDir.Unwrap()
 }
 
-// FindServiceDirByGlob finds the service directory (with package.json) by the given glob pattern.
-func FindServiceDirByGlob(fs afero.Fs, pattern string) (match string, fnerr error) {
+// FindAppDirByGlob finds the application directory (with package.json) by the given glob pattern.
+func FindAppDirByGlob(fs afero.Fs, pattern string) (match string, fnerr error) {
 	matches, err := afero.Glob(fs, pattern)
 	if err != nil {
 		return "", err
@@ -700,7 +700,7 @@ func FindServiceDirByGlob(fs afero.Fs, pattern string) (match string, fnerr erro
 	return "", fnerr
 }
 
-// GetStartCmd gets the start command of the Node.js service.
+// GetStartCmd gets the start command of the Node.js app.
 func GetStartCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.StartCmd
 
@@ -716,7 +716,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	startScript := GetStartScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 	entry := GetEntry(ctx)
-	framework := DetermineServiceFramework(ctx)
+	framework := DetermineAppFramework(ctx)
 
 	var startCmd string
 	switch pkgManager {
@@ -760,17 +760,17 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
-// GetStaticOutputDir returns the output directory for static service.
-// If empty string is returned, the service is not deployed as static files.
+// GetStaticOutputDir returns the output directory for static application.
+// If empty string is returned, the application is not deployed as static files.
 func GetStaticOutputDir(ctx *nodePlanContext) string {
 	dir := &ctx.StaticOutputDir
-	source, _ := ctx.GetServiceSource()
+	source, _ := ctx.GetAppSource()
 
 	if outputDir, err := dir.Take(); err == nil {
 		return outputDir
 	}
 
-	framework := DetermineServiceFramework(ctx)
+	framework := DetermineAppFramework(ctx)
 
 	// the default output directory of Angular is `dist/<project-name>/browser`
 	// we need to find the project name from `angular.json`.
@@ -846,7 +846,7 @@ func getServerless(ctx *nodePlanContext) bool {
 		return serverless
 	}
 
-	framework := DetermineServiceFramework(ctx)
+	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
 		types.NodeProjectFrameworkNextJs:  true,
@@ -898,13 +898,13 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		"bun": strconv.FormatBool(opt.Bun),
 	}
 
-	_, reldir := ctx.GetServiceSource()
-	meta["serviceDir"] = reldir
+	_, reldir := ctx.GetAppSource()
+	meta["appDir"] = reldir
 
 	pkgManager := DeterminePackageManager(ctx)
 	meta["packageManager"] = string(pkgManager)
 
-	framework := DetermineServiceFramework(ctx)
+	framework := DetermineAppFramework(ctx)
 	meta["framework"] = string(framework)
 
 	nodeVersion := GetNodeVersion(ctx)

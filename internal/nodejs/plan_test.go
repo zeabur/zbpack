@@ -189,7 +189,7 @@ func TestGetMonorepoServiceRoot(t *testing.T) {
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
 
-		serviceRoot := GetMonorepoServiceRoot(ctx)
+		serviceRoot := GetMonorepoAppRoot(ctx)
 		assert.Equal(t, "packages/service1", serviceRoot)
 	})
 
@@ -208,7 +208,7 @@ func TestGetMonorepoServiceRoot(t *testing.T) {
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
 
-		serviceRoot := GetMonorepoServiceRoot(ctx)
+		serviceRoot := GetMonorepoAppRoot(ctx)
 		assert.Equal(t, "apps/service1", serviceRoot)
 	})
 
@@ -226,7 +226,7 @@ func TestGetMonorepoServiceRoot(t *testing.T) {
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
 
-		serviceRoot := GetMonorepoServiceRoot(ctx)
+		serviceRoot := GetMonorepoAppRoot(ctx)
 		assert.Equal(t, "packages/service1", serviceRoot)
 	})
 
@@ -238,7 +238,7 @@ func TestGetMonorepoServiceRoot(t *testing.T) {
 		_ = afero.WriteFile(fs, "services/service1/package.json", []byte(`{}`), 0o644)
 
 		config := plan.NewProjectConfigurationFromFs(fs, "")
-		config.Set(ConfigServicePath, "services/service1")
+		config.Set(ConfigAppDir, "services/service1")
 
 		ctx := &nodePlanContext{
 			Src:                fs,
@@ -246,7 +246,7 @@ func TestGetMonorepoServiceRoot(t *testing.T) {
 			Config:             config,
 		}
 
-		serviceRoot := GetMonorepoServiceRoot(ctx)
+		serviceRoot := GetMonorepoAppRoot(ctx)
 		assert.Equal(t, "services/service1", serviceRoot)
 	})
 }
@@ -265,7 +265,7 @@ func TestNodePlanContext_GetServiceSource(t *testing.T) {
 			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
-		fs, reldir := ctx.GetServiceSource()
+		fs, reldir := ctx.GetAppSource()
 
 		assert.Equal(t, "", reldir)
 		packageJSON, err := DeserializePackageJSON(fs)
@@ -288,7 +288,7 @@ func TestNodePlanContext_GetServiceSource(t *testing.T) {
 			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
-		fs, reldir := ctx.GetServiceSource()
+		fs, reldir := ctx.GetAppSource()
 
 		assert.Equal(t, "packages/service1", reldir)
 		packageJSON, err := DeserializePackageJSON(fs)
@@ -312,7 +312,7 @@ func TestNodePlanContext_GetServicePackageJSON(t *testing.T) {
 			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
-		packageJSON := ctx.GetServicePackageJSON()
+		packageJSON := ctx.GetAppPackageJSON()
 		assert.Equal(t, "main.js", packageJSON.Main)
 	})
 
@@ -330,7 +330,7 @@ func TestNodePlanContext_GetServicePackageJSON(t *testing.T) {
 			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
 			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
 		}
-		packageJSON := ctx.GetServicePackageJSON()
+		packageJSON := ctx.GetAppPackageJSON()
 		assert.Equal(t, "service1.js", packageJSON.Main)
 	})
 }

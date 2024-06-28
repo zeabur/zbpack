@@ -108,7 +108,7 @@ func TestTemplate_BuildCmd_Bun(t *testing.T) {
 func TestTemplate_Monorepo(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
-		ServiceDir:  "myservice",
+		AppDir:      "myservice",
 		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
 		StartCmd:    "yarn start",
 	}
@@ -121,7 +121,7 @@ func TestTemplate_Monorepo(t *testing.T) {
 func TestTemplate_MonorepoServerless(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
-		ServiceDir:  "myservice",
+		AppDir:      "myservice",
 		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
 		StartCmd:    "yarn start",
 		Serverless:  true,
@@ -135,7 +135,7 @@ func TestTemplate_MonorepoServerless(t *testing.T) {
 func TestTemplate_MonorepoServerlessOutDir(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
-		ServiceDir:  "myservice",
+		AppDir:      "myservice",
 		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
 		StartCmd:    "yarn start",
 		OutputDir:   "/app/dist",
