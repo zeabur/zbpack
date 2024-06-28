@@ -67,6 +67,8 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 		InstallCmd: "RUN yarn install",
 		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
+
+		Serverless: true,
 	}
 
 	result, err := ctx.Execute()
@@ -81,6 +83,8 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 		InstallCmd: "RUN yarn install",
 		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
+
+		OutputDir: "/app/dist",
 	}
 
 	result, err := ctx.Execute()
@@ -94,6 +98,47 @@ func TestTemplate_BuildCmd_Bun(t *testing.T) {
 		NodeVersion: "18",
 		InstallCmd:  "RUN bun install",
 		StartCmd:    "bun start main.ts",
+	}
+
+	result, err := ctx.Execute()
+	assert.NoError(t, err)
+	snaps.MatchSnapshot(t, result)
+}
+
+func TestTemplate_Monorepo(t *testing.T) {
+	ctx := nodejs.TemplateContext{
+		NodeVersion: "18",
+		ServiceDir:  "myservice",
+		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
+		StartCmd:    "yarn start",
+	}
+
+	result, err := ctx.Execute()
+	assert.NoError(t, err)
+	snaps.MatchSnapshot(t, result)
+}
+
+func TestTemplate_MonorepoServerless(t *testing.T) {
+	ctx := nodejs.TemplateContext{
+		NodeVersion: "18",
+		ServiceDir:  "myservice",
+		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
+		StartCmd:    "yarn start",
+		Serverless:  true,
+	}
+
+	result, err := ctx.Execute()
+	assert.NoError(t, err)
+	snaps.MatchSnapshot(t, result)
+}
+
+func TestTemplate_MonorepoServerlessOutDir(t *testing.T) {
+	ctx := nodejs.TemplateContext{
+		NodeVersion: "18",
+		ServiceDir:  "myservice",
+		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
+		StartCmd:    "yarn start",
+		OutputDir:   "/app/dist",
 	}
 
 	result, err := ctx.Execute()
