@@ -95,9 +95,9 @@ func TestGetInstallCmd_CustomizeInstallCmd(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx := &nodePlanContext{
-		PackageJSON: packageJSON,
-		Config:      config,
-		Src:         src,
+		ProjectPackageJSON: packageJSON,
+		Config:             config,
+		Src:                src,
 	}
 	installlCmd := GetInstallCmd(ctx)
 
@@ -122,9 +122,9 @@ func TestGetInstallCmd_DefaultInstallCmd(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx := &nodePlanContext{
-		PackageJSON: packageJSON,
-		Config:      config,
-		Src:         src,
+		ProjectPackageJSON: packageJSON,
+		Config:             config,
+		Src:                src,
 	}
 
 	installlCmd := GetInstallCmd(ctx)
@@ -154,9 +154,9 @@ func TestGetInstallCmd_CustomizeInstallCmdDeps(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx := &nodePlanContext{
-		PackageJSON: packageJSON,
-		Config:      config,
-		Src:         src,
+		ProjectPackageJSON: packageJSON,
+		Config:             config,
+		Src:                src,
 	}
 	installlCmd := GetInstallCmd(ctx)
 

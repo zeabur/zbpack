@@ -2,10 +2,13 @@ package nodejs
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
@@ -19,13 +22,19 @@ const (
 	// whether to cache dependencies.
 	// It is true by default.
 	ConfigCacheDependencies = "cache_dependencies"
+
+	// ConfigServicePath indicates the relative path of the service to deploy.
+	//
+	// For example, if the service to deploy is located at `apps/api`,
+	// the value of this configuration should be `apps/api`.
+	ConfigServicePath = "service_path"
 )
 
 type nodePlanContext struct {
-	PackageJSON PackageJSON
-	Config      plan.ImmutableProjectConfiguration
-	Src         afero.Fs
-	Bun         bool
+	ProjectPackageJSON PackageJSON
+	Config             plan.ImmutableProjectConfiguration
+	Src                afero.Fs
+	Bun                bool
 
 	PackageManager  optional.Option[types.NodePackageManager]
 	Framework       optional.Option[types.NodeProjectFramework]
@@ -39,12 +48,50 @@ type nodePlanContext struct {
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
 	Serverless      optional.Option[bool]
+	// ServiceDir is the directory of the service to deploy.
+	ServiceDir optional.Option[string]
+	// ServicePackageJSON is the package.json of the service to deploy.
+	ServicePackageJSON optional.Option[PackageJSON]
+}
+
+// GetServiceSource returns the source of the service to deploy of a Node.js project.
+//
+// A Node.js project may have a monorepo structure. In this case, the source
+// of the service to deploy may not be the root; instead, it should be `apps/somewhere`.
+//
+// This function returns the real service directory and the relative path of service to project.
+func (ctx *nodePlanContext) GetServiceSource() (afero.Fs, string) {
+	serviceDir := GetMonorepoServiceRoot(ctx)
+	if serviceDir == "" {
+		return ctx.Src, ""
+	}
+
+	return afero.NewBasePathFs(ctx.Src, serviceDir), serviceDir
+}
+
+// GetServicePackageJSON returns the package.json of the service to deploy of a Node.js project.
+func (ctx *nodePlanContext) GetServicePackageJSON() PackageJSON {
+	if cachedPackageJSON, err := ctx.ServicePackageJSON.Take(); err == nil {
+		return cachedPackageJSON
+	}
+
+	src, relpath := ctx.GetServiceSource()
+	if relpath != "" {
+		if packageJSON, err := DeserializePackageJSON(src); err == nil {
+			ctx.ServicePackageJSON = optional.Some(packageJSON)
+			return packageJSON
+		}
+	}
+
+	ctx.ServicePackageJSON = optional.Some(ctx.ProjectPackageJSON)
+	return ctx.ServicePackageJSON.Unwrap()
 }
 
 // DeterminePackageManager determines the package manager of the Node.js project.
 func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
-	src := ctx.Src
+	src, _ := ctx.GetServiceSource()
 	pm := &ctx.PackageManager
+	packageJSON := ctx.ProjectPackageJSON
 
 	if packageManager, err := pm.Take(); err == nil {
 		return packageManager
@@ -55,10 +102,10 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 		return pm.Unwrap()
 	}
 
-	if ctx.PackageJSON.PackageManager != nil {
+	if packageJSON.PackageManager != nil {
 		// [pnpm]@8.4.0
 		packageManagerSection := strings.SplitN(
-			*ctx.PackageJSON.PackageManager, "@", 2,
+			*packageJSON.PackageManager, "@", 2,
 		)
 
 		switch packageManagerSection[0] {
@@ -105,7 +152,7 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 // DetermineProjectFramework determines the framework of the Node.js project.
 func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 	fw := &ctx.Framework
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.GetServicePackageJSON()
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
@@ -267,13 +314,13 @@ func DetermineProjectFramework(ctx *nodePlanContext) types.NodeProjectFramework 
 // DetermineNeedPuppeteer determines whether the project needs Puppeteer.
 func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 	pup := &ctx.NeedPuppeteer
-	packageJSON := ctx.PackageJSON
+	servicePackageJSON := ctx.GetServicePackageJSON()
 
 	if needPuppeteer, err := pup.Take(); err == nil {
 		return needPuppeteer
 	}
 
-	if _, hasPuppeteer := packageJSON.Dependencies["puppeteer"]; hasPuppeteer {
+	if _, hasPuppeteer := servicePackageJSON.Dependencies["puppeteer"]; hasPuppeteer {
 		*pup = optional.Some(true)
 		return pup.Unwrap()
 	}
@@ -285,7 +332,7 @@ func DetermineNeedPuppeteer(ctx *nodePlanContext) bool {
 // DetermineNeedPlaywright determines whether the project needs Playwright.
 func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 	pw := &ctx.NeedPlaywright
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.GetServicePackageJSON()
 
 	if needPlaywright, err := pw.Take(); err == nil {
 		return needPlaywright
@@ -308,7 +355,7 @@ func DetermineNeedPlaywright(ctx *nodePlanContext) bool {
 // GetBuildScript gets the build command in package.json's `scripts` of the Node.js project.
 func GetBuildScript(ctx *nodePlanContext) string {
 	bs := &ctx.BuildScript
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.GetServicePackageJSON()
 
 	if buildScript, err := bs.Take(); err == nil {
 		return buildScript
@@ -332,8 +379,9 @@ func GetBuildScript(ctx *nodePlanContext) string {
 
 // GetStartScript gets the start command in package.json's `scripts` of the Node.js project.
 func GetStartScript(ctx *nodePlanContext) string {
+	src, _ := ctx.GetServiceSource()
 	ss := &ctx.StartScript
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.GetServicePackageJSON()
 
 	if startScript, err := ss.Take(); err == nil {
 		return startScript
@@ -373,7 +421,7 @@ func GetStartScript(ctx *nodePlanContext) string {
 			} {
 				possibleEntrypoint := entrypoint + ext
 
-				if utils.HasFile(ctx.Src, possibleEntrypoint) {
+				if utils.HasFile(src, possibleEntrypoint) {
 					*ss = optional.Some(possibleEntrypoint)
 					return ss.Unwrap()
 				}
@@ -404,7 +452,7 @@ func getNodeVersion(versionConstraint string) string {
 // GetNodeVersion gets the Node.js version of the project.
 func GetNodeVersion(ctx *nodePlanContext) string {
 	src := ctx.Src
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.ProjectPackageJSON
 	projectNodeVersion := packageJSON.Engines.Node
 
 	// If there are ".node-version" or ".nvmrc" file, we pick
@@ -421,7 +469,7 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 
 // GetEntry gets the entry file of the Node.js project.
 func GetEntry(ctx *nodePlanContext) string {
-	packageJSON := ctx.PackageJSON
+	packageJSON := ctx.GetServicePackageJSON()
 	ent := &ctx.Entry
 
 	if entry, err := ent.Take(); err == nil {
@@ -435,7 +483,7 @@ func GetEntry(ctx *nodePlanContext) string {
 // GetInstallCmd gets the installation command of the Node.js project.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
-	src := ctx.Src
+	src, _ := ctx.GetServiceSource()
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -535,6 +583,102 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	return cmd.Unwrap()
 }
 
+// GetMonorepoServiceRoot gets the root of the monorepo project in the Node.js project.
+func GetMonorepoServiceRoot(ctx *nodePlanContext) string {
+	if serviceDir, err := ctx.ServiceDir.Take(); err == nil {
+		return serviceDir
+	}
+
+	// If user has explicitly set the service path, we should use it.
+	if servicePath, err := plan.Cast(
+		ctx.Config.Get(ConfigServicePath), cast.ToStringE,
+	).Take(); err == nil && servicePath != "" {
+		ctx.ServiceDir = optional.Some(servicePath)
+		return ctx.ServiceDir.Unwrap()
+	}
+
+	// pnpm workspace
+	workspace, found := func() (string, bool) {
+		if workspaceYAML, err := afero.ReadFile(ctx.Src, "pnpm-workspace.yaml"); err == nil {
+			var pnpmWorkspace struct {
+				Packages []string `yaml:"packages"`
+			}
+
+			if err := yaml.Unmarshal(workspaceYAML, &pnpmWorkspace); err != nil {
+				log.Printf("failed to parse pnpm-workspace.yaml: %v", err)
+				return "", false
+			}
+
+			for _, pnpmServiceGlob := range pnpmWorkspace.Packages {
+				match, err := FindServiceDirByGlob(ctx.Src, pnpmServiceGlob)
+				if err != nil {
+					log.Printf("failed to find the matched directory: %v", err)
+					continue
+				}
+				if match == "" {
+					log.Printf("no directory found in the workspace according this glob: %s", pnpmServiceGlob)
+					continue
+				}
+
+				return match, true
+			}
+
+			return "", false
+		}
+
+		return "", false
+	}()
+	if found {
+		ctx.ServiceDir = optional.Some(workspace)
+		return ctx.ServiceDir.Unwrap()
+	}
+
+	// yarn workspace
+	workspace, found = func() (string, bool) {
+		if len(ctx.ProjectPackageJSON.Workspaces) == 0 {
+			return "", false
+		}
+
+		for _, workspaceGlob := range ctx.ProjectPackageJSON.Workspaces {
+			match, err := FindServiceDirByGlob(ctx.Src, workspaceGlob)
+			if err != nil {
+				log.Printf("failed to find the matched directory: %v", err)
+				continue
+			}
+
+			return match, true
+		}
+
+		return "", false
+	}()
+	if found {
+		ctx.ServiceDir = optional.Some(workspace)
+		return ctx.ServiceDir.Unwrap()
+	}
+
+	ctx.ServiceDir = optional.Some("")
+	return ctx.ServiceDir.Unwrap()
+}
+
+// FindServiceDirByGlob finds the service directory (with package.json) by the given glob pattern.
+func FindServiceDirByGlob(fs afero.Fs, pattern string) (match string, fnerr error) {
+	matches, err := afero.Glob(fs, pattern)
+	if err != nil {
+		return "", err
+	}
+
+	for _, match := range matches {
+		if _, err := DeserializePackageJSON(afero.NewBasePathFs(fs, match)); err != nil {
+			fnerr = errors.Join(err, fmt.Errorf("deserialize package.json in %s: %w", match, err))
+			continue
+		}
+
+		return match, nil
+	}
+
+	return "", fnerr
+}
+
 // GetStartCmd gets the start command of the Node.js project.
 func GetStartCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.StartCmd
@@ -599,7 +743,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 // If empty string is returned, the service is not deployed as static files.
 func GetStaticOutputDir(ctx *nodePlanContext) string {
 	dir := &ctx.StaticOutputDir
-	source := ctx.Src
+	source, _ := ctx.GetServiceSource()
 
 	if outputDir, err := dir.Take(); err == nil {
 		return outputDir
@@ -723,10 +867,10 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 
 	ctx := &nodePlanContext{
-		PackageJSON: packageJSON,
-		Config:      opt.Config,
-		Src:         opt.Src,
-		Bun:         opt.Bun,
+		ProjectPackageJSON: packageJSON,
+		Config:             opt.Config,
+		Src:                opt.Src,
+		Bun:                opt.Bun,
 	}
 
 	meta := types.PlanMeta{
