@@ -22,6 +22,9 @@ type PackageJSON struct {
 	Engines         PackageJSONEngine `json:"engines"`
 	Main            string            `json:"main"`
 	Module          string            `json:"module"`
+
+	// yarn workspace
+	Workspaces []string `json:"workspaces,omitempty"`
 }
 
 // NewPackageJSON returns a new instance of PackageJson
