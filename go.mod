@@ -17,7 +17,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.0 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
-	github.com/goccy/go-yaml v1.11.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -65,8 +64,9 @@ require (
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.6.0
-	github.com/evanw/esbuild v0.21.5
+	github.com/evanw/esbuild v0.22.0
 	github.com/gkampitakis/go-snaps v0.5.4
+	github.com/goccy/go-yaml v1.11.3
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
