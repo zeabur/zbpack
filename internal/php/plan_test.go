@@ -188,8 +188,9 @@ func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
 }
 
 func TestDetermineBuildCommand_Default(t *testing.T) {
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	command := php.DetermineBuildCommand(config, nil)
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	command := php.DetermineBuildCommand(fs, config, nil)
 
 	assert.Equal(t, "", command)
 }
@@ -197,10 +198,11 @@ func TestDetermineBuildCommand_Default(t *testing.T) {
 func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 	const expectedCommand = "php bin/build"
 
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 	config.Set(plan.ConfigBuildCommand, expectedCommand)
 
-	actualCommand := php.DetermineBuildCommand(config, nil)
+	actualCommand := php.DetermineBuildCommand(fs, config, nil)
 
 	assert.Equal(t, expectedCommand, actualCommand)
 }
@@ -208,8 +210,22 @@ func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 func TestDetermineBuildCommand_CustomInOptions(t *testing.T) {
 	const expectedCommand = "php bin/build"
 
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	actualCommand := php.DetermineBuildCommand(config, lo.ToPtr(expectedCommand))
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	actualCommand := php.DetermineBuildCommand(fs, config, lo.ToPtr(expectedCommand))
 
 	assert.Equal(t, expectedCommand, actualCommand)
+}
+
+func TestDetermineBuildCommand_NPMBuild(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{
+		"scripts": {
+			"build": "npm run build"
+		}
+	}`), 0o644)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	command := php.DetermineBuildCommand(fs, config, nil)
+
+	assert.Equal(t, "npm install && npm run build", command)
 }

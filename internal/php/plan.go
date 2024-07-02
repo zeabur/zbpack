@@ -188,12 +188,18 @@ func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startComma
 }
 
 // DetermineBuildCommand determines the build command of the project.
-func DetermineBuildCommand(config plan.ImmutableProjectConfiguration, buildCommand *string) string {
+func DetermineBuildCommand(source afero.Fs, config plan.ImmutableProjectConfiguration, buildCommand *string) string {
 	if buildCommand != nil {
 		return *buildCommand
 	}
 	if buildCommand, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
 		return buildCommand
+	}
+	if content, err := afero.ReadFile(source, "package.json"); err == nil {
+		if bytes.Contains(content, []byte("\"build\":")) {
+			// "build": "vite build"
+			return "npm install && npm run build"
+		}
 	}
 
 	return ""
