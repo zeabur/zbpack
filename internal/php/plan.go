@@ -1,6 +1,7 @@
 package php
 
 import (
+	"bytes"
 	"fmt"
 	"slices"
 	"strings"
@@ -100,6 +101,11 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	// TODO: support RoadRunner
 	if server != "swoole" {
 		dependencies = append(dependencies, "nginx")
+	}
+
+	// Install Node.js if package.json exists.
+	if exists, _ := afero.Exists(source, "package.json"); exists {
+		dependencies = append(dependencies, "nodejs", "npm")
 	}
 
 	composerJSON, err := parseComposerJSON(source)
