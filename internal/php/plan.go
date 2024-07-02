@@ -1,6 +1,7 @@
 package php
 
 import (
+	"bytes"
 	"fmt"
 	"slices"
 	"strings"
@@ -102,6 +103,11 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 		dependencies = append(dependencies, "nginx")
 	}
 
+	// Install Node.js if package.json exists.
+	if exists, _ := afero.Exists(source, "package.json"); exists {
+		dependencies = append(dependencies, "nodejs", "npm")
+	}
+
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return dependencies
@@ -162,32 +168,51 @@ func DetermineApplication(source afero.Fs) (types.PHPApplication, types.PHPPrope
 	return types.PHPApplicationDefault, types.PHPPropertyComposer
 }
 
-// DetermineStartCommand determines the start command of the project.
-func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startCommand *string) string {
-	if startCommand != nil {
-		return *startCommand
-	}
-	if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
-		return startCommand
-	}
+// determineStartupFunction determines the startup function of the project.
+func determineStartupFunction(config plan.ImmutableProjectConfiguration) string {
+	var startupFnBody string
 
 	octaneServerType := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
 	switch octaneServerType {
-	case OctaneServerRoadrunner: // unimplemented
 	case OctaneServerSwoole:
-		return "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080"
+		startupFnBody = "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080"
+	case OctaneServerRoadrunner: // unimplemented
+		fallthrough
+	default: // none
+		startupFnBody = "nginx; php-fpm"
 	}
 
-	return "nginx; php-fpm"
+	return "_startup(){ " + startupFnBody + "; }; "
+}
+
+// DetermineStartCommand determines the start command of the project.
+func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startCommand *string) string {
+	completeStartCommand := determineStartupFunction(config)
+
+	if startCommand != nil {
+		completeStartCommand += *startCommand
+	} else if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+		completeStartCommand += startCommand
+	} else {
+		completeStartCommand += "_startup"
+	}
+
+	return completeStartCommand
 }
 
 // DetermineBuildCommand determines the build command of the project.
-func DetermineBuildCommand(config plan.ImmutableProjectConfiguration, buildCommand *string) string {
+func DetermineBuildCommand(source afero.Fs, config plan.ImmutableProjectConfiguration, buildCommand *string) string {
 	if buildCommand != nil {
 		return *buildCommand
 	}
 	if buildCommand, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
 		return buildCommand
+	}
+	if content, err := afero.ReadFile(source, "package.json"); err == nil {
+		if bytes.Contains(content, []byte("\"build\":")) {
+			// "build": "vite build"
+			return "npm install && npm run build"
+		}
 	}
 
 	return ""

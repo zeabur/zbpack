@@ -102,3 +102,12 @@ func TestDetermineAptDependencies_Unknown(t *testing.T) {
 	deps := DetermineAptDependencies(fs, "unknown")
 	assert.Equal(t, baseDepsWithNginx, deps)
 }
+
+func TestDetermineAptDependencies_NodeNpm(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0644)
+
+	deps := DetermineAptDependencies(fs, "unknown")
+	assert.Contains(t, deps, "nodejs")
+	assert.Contains(t, deps, "npm")
+}

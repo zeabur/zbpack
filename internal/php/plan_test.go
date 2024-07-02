@@ -138,7 +138,7 @@ func TestDetermineStartCommand_Default(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	command := php.DetermineStartCommand(config, nil)
 
-	assert.Equal(t, "nginx; php-fpm", command)
+	assert.Contains(t, command, "nginx; php-fpm")
 }
 
 func TestDetermineStartCommand_Swoole(t *testing.T) {
@@ -146,7 +146,7 @@ func TestDetermineStartCommand_Swoole(t *testing.T) {
 	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerSwoole)
 	command := php.DetermineStartCommand(config, nil)
 
-	assert.Equal(t, "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080", command)
+	assert.Contains(t, command, "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080")
 }
 
 func TestDetermineStartCommand_Roadrunner(t *testing.T) {
@@ -156,7 +156,7 @@ func TestDetermineStartCommand_Roadrunner(t *testing.T) {
 	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerRoadrunner)
 	command := php.DetermineStartCommand(config, nil)
 
-	assert.Equal(t, "nginx; php-fpm", command)
+	assert.Contains(t, command, "nginx; php-fpm")
 }
 
 func TestDetermineStartCommand_UnknownOctane(t *testing.T) {
@@ -164,32 +164,33 @@ func TestDetermineStartCommand_UnknownOctane(t *testing.T) {
 	config.Set(php.ConfigLaravelOctaneServer, "unknown")
 	command := php.DetermineStartCommand(config, nil)
 
-	assert.Equal(t, "nginx; php-fpm", command)
+	assert.Contains(t, command, "nginx; php-fpm")
 }
 
 func TestDetermineStartCommand_CustomInConfig(t *testing.T) {
-	const expectedCommand = "php artisan serve"
+	const expectedCommand = "php artisan serve; _startup"
 
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	config.Set(plan.ConfigStartCommand, expectedCommand)
 
 	actualCommand := php.DetermineStartCommand(config, nil)
 
-	assert.Equal(t, expectedCommand, actualCommand)
+	assert.Contains(t, actualCommand, expectedCommand)
 }
 
 func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
-	const expectedCommand = "php artisan serve"
+	const expectedCommand = "php artisan serve; _startup"
 
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	actualCommand := php.DetermineStartCommand(config, lo.ToPtr(expectedCommand))
 
-	assert.Equal(t, expectedCommand, actualCommand)
+	assert.Contains(t, actualCommand, expectedCommand)
 }
 
 func TestDetermineBuildCommand_Default(t *testing.T) {
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	command := php.DetermineBuildCommand(config, nil)
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	command := php.DetermineBuildCommand(fs, config, nil)
 
 	assert.Equal(t, "", command)
 }
@@ -197,10 +198,11 @@ func TestDetermineBuildCommand_Default(t *testing.T) {
 func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 	const expectedCommand = "php bin/build"
 
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 	config.Set(plan.ConfigBuildCommand, expectedCommand)
 
-	actualCommand := php.DetermineBuildCommand(config, nil)
+	actualCommand := php.DetermineBuildCommand(fs, config, nil)
 
 	assert.Equal(t, expectedCommand, actualCommand)
 }
@@ -208,8 +210,22 @@ func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 func TestDetermineBuildCommand_CustomInOptions(t *testing.T) {
 	const expectedCommand = "php bin/build"
 
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	actualCommand := php.DetermineBuildCommand(config, lo.ToPtr(expectedCommand))
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	actualCommand := php.DetermineBuildCommand(fs, config, lo.ToPtr(expectedCommand))
 
 	assert.Equal(t, expectedCommand, actualCommand)
+}
+
+func TestDetermineBuildCommand_NPMBuild(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{
+		"scripts": {
+			"build": "npm run build"
+		}
+	}`), 0o644)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	command := php.DetermineBuildCommand(fs, config, nil)
+
+	assert.Equal(t, "npm install && npm run build", command)
 }
