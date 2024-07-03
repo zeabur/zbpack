@@ -536,22 +536,11 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 	return deps
 }
 
-func determineStartCmd(ctx *pythonPlanContext) string {
-	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
-	if value, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
-		return value
-	}
-
+func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
 	staticPath := DetermineStaticInfo(ctx)
-	serverless := getServerless(ctx)
-
-	// serverless function doesn't need a start command
-	if serverless {
-		return ""
-	}
 
 	if framework == types.PythonFrameworkReflex {
 		return "[ -d alembic ] && reflex db migrate; caddy start && reflex run --env prod --backend-only --loglevel debug"
@@ -594,7 +583,26 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	}
 
 	command := strings.Join(commandSegment, " ")
-	return command
+	return fmt.Sprintf("_startup() { %s; }; ", command)
+}
+
+func determineStartCmd(ctx *pythonPlanContext) string {
+	serverless := getServerless(ctx)
+
+	// serverless function doesn't need a start command
+	if serverless {
+		return ""
+	}
+
+	startupFunction := determineDefaultStartupFunction(ctx)
+
+	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
+	if value, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+		return startupFunction + value
+	}
+
+	// Call default startup function directly
+	return startupFunction + "_startup"
 }
 
 // determinePythonVersion Determine Python Version
