@@ -706,28 +706,32 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		commands += "RUN " + postInstallCmd + "\n"
 	}
 
-	if framework == types.PythonFrameworkReflex {
-		commands += `RUN reflex init
+	if buildCommand, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		commands += "RUN " + buildCommand + "\n"
+	} else {
+		if framework == types.PythonFrameworkReflex {
+			commands += `RUN reflex init
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
-	}
-
-	if staticInfo.DjangoEnabled() {
-		prefix := getPmStartCmdPrefix(packageManager)
-		if prefix != "" {
-			prefix += " " // ex. poetry run
 		}
-		// We need to collect static files if we are using Django.
-		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
-	}
 
-	if determinePlaywright(ctx) {
-		commands += "RUN playwright install\n"
-	}
+		if staticInfo.DjangoEnabled() {
+			prefix := getPmStartCmdPrefix(packageManager)
+			if prefix != "" {
+				prefix += " " // ex. poetry run
+			}
+			// We need to collect static files if we are using Django.
+			commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
+		}
 
-	if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
-		if strings.Contains(string(content), "\"build\":") {
-			// for example, "build": "npm run build"
-			commands += "RUN npm install\n"
+		if determinePlaywright(ctx) {
+			commands += "RUN playwright install\n"
+		}
+
+		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
+			if strings.Contains(string(content), "\"build\":") {
+				// for example, "build": "npm run build"
+				commands += "RUN npm install\n"
+			}
 		}
 	}
 
