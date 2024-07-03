@@ -709,6 +709,13 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 	if buildCommand, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
 		commands += "RUN " + buildCommand + "\n"
 	} else {
+		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
+			if strings.Contains(string(content), "\"build\":") {
+				// for example, "build": "vite build"
+				commands += "RUN npm install && npm run build\n"
+			}
+		}
+
 		if framework == types.PythonFrameworkReflex {
 			commands += `RUN reflex init
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
@@ -725,13 +732,6 @@ RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf 
 
 		if determinePlaywright(ctx) {
 			commands += "RUN playwright install\n"
-		}
-
-		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
-			if strings.Contains(string(content), "\"build\":") {
-				// for example, "build": "vite build"
-				commands += "RUN npm install && npm run build\n"
-			}
 		}
 	}
 
