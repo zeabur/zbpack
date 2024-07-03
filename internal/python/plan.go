@@ -729,8 +729,8 @@ RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf 
 
 		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
 			if strings.Contains(string(content), "\"build\":") {
-				// for example, "build": "npm run build"
-				commands += "RUN npm install\n"
+				// for example, "build": "vite build"
+				commands += "RUN npm install && npm run build\n"
 			}
 		}
 	}
