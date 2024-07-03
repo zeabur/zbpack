@@ -1070,3 +1070,19 @@ func TestDetermineBuildCommand_Custom(t *testing.T) {
 
 	assert.Contains(t, determineBuildCmd(ctx), "echo 'hello'")
 }
+
+func TestDetermineStartCommand_Custom(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set(plan.ConfigStartCommand, "echo 'hello'")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Contains(t, determineStartCmd(ctx), "echo 'hello'")
+	assert.Contains(t, determineStartCmd(ctx), "_startup()") // should have the default startup function
+}
