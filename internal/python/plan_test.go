@@ -1027,3 +1027,62 @@ func TestDeterminePythonVersion_Customized(t *testing.T) {
 
 	assert.Equal(t, "3.12345", determinePythonVersion(ctx))
 }
+
+func TestDetermineAptDependencies_Nodejs(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte("{}"), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Contains(t, determineAptDependencies(ctx), "nodejs")
+	assert.Contains(t, determineAptDependencies(ctx), "npm")
+}
+
+func TestDetermineBuildCommand_NPMBuild(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{"scripts": {"build": "echo 'hi'"}}`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Contains(t, determineBuildCmd(ctx), "npm install && npm run build")
+}
+
+func TestDetermineBuildCommand_Custom(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{"scripts": {"build": "echo 'hi'"}}`), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set(plan.ConfigBuildCommand, "echo 'hello'")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Contains(t, determineBuildCmd(ctx), "echo 'hello'")
+}
+
+func TestDetermineStartCommand_Custom(t *testing.T) {
+	fs := afero.NewMemMapFs()
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set(plan.ConfigStartCommand, "echo 'hello'")
+
+	ctx := &pythonPlanContext{
+		Src:            fs,
+		Config:         config,
+		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
+	}
+
+	assert.Contains(t, determineStartCmd(ctx), "echo 'hello'")
+	assert.Contains(t, determineStartCmd(ctx), "_startup()") // should have the default startup function
+}

@@ -529,25 +529,18 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		)
 	}
 
+	if ok, _ := afero.Exists(ctx.Src, "package.json"); ok {
+		deps = append(deps, "nodejs", "npm")
+	}
+
 	return deps
 }
 
-func determineStartCmd(ctx *pythonPlanContext) string {
-	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
-	if value, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
-		return value
-	}
-
+func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
 	pm := DeterminePackageManager(ctx)
 	staticPath := DetermineStaticInfo(ctx)
-	serverless := getServerless(ctx)
-
-	// serverless function doesn't need a start command
-	if serverless {
-		return ""
-	}
 
 	if framework == types.PythonFrameworkReflex {
 		return "[ -d alembic ] && reflex db migrate; caddy start && reflex run --env prod --backend-only --loglevel debug"
@@ -590,7 +583,26 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	}
 
 	command := strings.Join(commandSegment, " ")
-	return command
+	return fmt.Sprintf("_startup() { %s; }; ", command)
+}
+
+func determineStartCmd(ctx *pythonPlanContext) string {
+	serverless := getServerless(ctx)
+
+	// serverless function doesn't need a start command
+	if serverless {
+		return ""
+	}
+
+	startupFunction := determineDefaultStartupFunction(ctx)
+
+	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
+	if value, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+		return startupFunction + value
+	}
+
+	// Call default startup function directly
+	return startupFunction + "_startup"
 }
 
 // determinePythonVersion Determine Python Version
@@ -702,22 +714,33 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		commands += "RUN " + postInstallCmd + "\n"
 	}
 
-	if framework == types.PythonFrameworkReflex {
-		commands += `RUN reflex init
-RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
-	}
-
-	if staticInfo.DjangoEnabled() {
-		prefix := getPmStartCmdPrefix(packageManager)
-		if prefix != "" {
-			prefix += " " // ex. poetry run
+	if buildCommand, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		commands += "RUN " + buildCommand + "\n"
+	} else {
+		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
+			if strings.Contains(string(content), "\"build\":") {
+				// for example, "build": "vite build"
+				commands += "RUN npm install && npm run build\n"
+			}
 		}
-		// We need to collect static files if we are using Django.
-		commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
-	}
 
-	if determinePlaywright(ctx) {
-		commands += "RUN playwright install\n"
+		if framework == types.PythonFrameworkReflex {
+			commands += `RUN reflex init
+RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
+		}
+
+		if staticInfo.DjangoEnabled() {
+			prefix := getPmStartCmdPrefix(packageManager)
+			if prefix != "" {
+				prefix += " " // ex. poetry run
+			}
+			// We need to collect static files if we are using Django.
+			commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
+		}
+
+		if determinePlaywright(ctx) {
+			commands += "RUN playwright install\n"
+		}
 	}
 
 	return strings.TrimSpace(commands)

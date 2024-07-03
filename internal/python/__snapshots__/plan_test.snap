@@ -236,65 +236,65 @@ RUN pip install gunicorn
 ---
 
 [TestDetermineStartCmd_Snapshot/pip-none - 1]
-python app.py
+_startup() { python app.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pip-with-fastapi - 1]
-uvicorn wsgi.py --host 0.0.0.0 --port 8080
+_startup() { uvicorn wsgi.py --host 0.0.0.0 --port 8080; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pip-with-static - 1]
-/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
+_startup() { /usr/sbin/nginx && gunicorn --bind :8000 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pip-with-wsgi - 1]
-gunicorn --bind :8080 wsgi.py
+_startup() { gunicorn --bind :8080 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-none - 1]
-pipenv run python app.py
+_startup() { pipenv run python app.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-with-fastapi - 1]
-pipenv run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+_startup() { pipenv run uvicorn wsgi.py --host 0.0.0.0 --port 8080; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-with-static - 1]
-/usr/sbin/nginx && pipenv run gunicorn --bind :8000 wsgi.py
+_startup() { /usr/sbin/nginx && pipenv run gunicorn --bind :8000 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/pipenv-with-wsgi - 1]
-pipenv run gunicorn --bind :8080 wsgi.py
+_startup() { pipenv run gunicorn --bind :8080 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/poetry-none - 1]
-poetry run python app.py
+_startup() { poetry run python app.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/poetry-with-fastapi - 1]
-poetry run uvicorn wsgi.py --host 0.0.0.0 --port 8080
+_startup() { poetry run uvicorn wsgi.py --host 0.0.0.0 --port 8080; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/poetry-with-static - 1]
-/usr/sbin/nginx && poetry run gunicorn --bind :8000 wsgi.py
+_startup() { /usr/sbin/nginx && poetry run gunicorn --bind :8000 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/poetry-with-wsgi - 1]
-poetry run gunicorn --bind :8080 wsgi.py
+_startup() { poetry run gunicorn --bind :8080 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/unknown-none - 1]
-python app.py
+_startup() { python app.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/unknown-with-fastapi - 1]
-uvicorn wsgi.py --host 0.0.0.0 --port 8080
+_startup() { uvicorn wsgi.py --host 0.0.0.0 --port 8080; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/unknown-with-static - 1]
-/usr/sbin/nginx && gunicorn --bind :8000 wsgi.py
+_startup() { /usr/sbin/nginx && gunicorn --bind :8000 wsgi.py; }; _startup
 ---
 
 [TestDetermineStartCmd_Snapshot/unknown-with-wsgi - 1]
-gunicorn --bind :8080 wsgi.py
+_startup() { gunicorn --bind :8080 wsgi.py; }; _startup
 ---
