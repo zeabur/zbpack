@@ -12,7 +12,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new PHP identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 

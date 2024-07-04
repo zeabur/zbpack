@@ -15,7 +15,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new static site generator identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 
@@ -28,7 +28,6 @@ func (i *identify) Match(fs afero.Fs) bool {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
 		return types.PlanMeta{"framework": "hugo"}
 	}

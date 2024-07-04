@@ -11,7 +11,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Elixir identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 
@@ -65,4 +65,4 @@ func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
 	return fieldInfo
 }
 
-var _ plan.Identifier = (*identify)(nil)
+var _ plan.ExplainableIdentifier = (*identify)(nil)

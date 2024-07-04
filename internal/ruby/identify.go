@@ -11,7 +11,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Ruby identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 

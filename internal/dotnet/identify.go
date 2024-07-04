@@ -18,7 +18,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Dotnet identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 
