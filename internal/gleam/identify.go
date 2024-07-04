@@ -11,7 +11,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Gleam identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.ExplainableIdentifier {
 	return &identify{}
 }
 
@@ -28,4 +28,8 @@ func (i *identify) PlanMeta(_ plan.NewPlannerOptions) types.PlanMeta {
 	return types.PlanMeta{}
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(_ types.PlanMeta) []types.FieldInfo {
+	return []types.FieldInfo{}
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
