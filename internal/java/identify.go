@@ -48,4 +48,32 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return planMeta
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "type",
+			Name:        "Build tool",
+			Description: "The build tool used in the project.",
+		},
+		types.NewFrameworkFieldInfo("framework", types.PlanTypeJava, meta["framework"]),
+		{
+			Key:         "jdk",
+			Name:        "JDK version",
+			Description: "The version of JDK for building in the source code",
+		},
+	}
+
+	if _, ok := meta["javaArgs"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "javaArgs",
+			Name:        "Java runtime arguments",
+			Description: "The JVM arguments used for running the Java application.",
+		})
+	}
+
+	// wip: targetExt, too verbose
+
+	return fieldInfo
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)

@@ -36,4 +36,57 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(GetMetaOptions{Src: options.Source, Config: options.Config})
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "packageManager",
+			Name:        "Package Manager",
+			Description: "The package manager used to install the dependencies.",
+		},
+		{
+			Key:         "pythonVersion",
+			Name:        "Python Version",
+			Description: "The version of Python for building in the source code",
+		},
+		types.NewInstallCmdFieldInfo("install"),
+	}
+
+	if _, ok := meta["framework"]; ok {
+		fieldInfo = append(fieldInfo, types.NewBuildCmdFieldInfo("build"))
+	}
+
+	if _, ok := meta["build"]; ok {
+		fieldInfo = append(fieldInfo, types.NewBuildCmdFieldInfo("build"))
+	}
+
+	if _, ok := meta["serverless"]; ok {
+		fieldInfo = append(fieldInfo, types.NewServerlessFieldInfo("serverless"))
+	}
+
+	if _, ok := meta["entry"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "entry",
+			Name:        "WSGI entry",
+			Description: "The WSGI entry point of the Python application",
+		})
+	}
+
+	if _, ok := meta["start"]; ok {
+		fieldInfo = append(fieldInfo, types.NewStartCmdFieldInfo("start"))
+	}
+
+	if _, ok := meta["selenium"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "selenium",
+			Name:        "Enable Selenium",
+			Description: "Install Selenium and its dependencies in your application.",
+		})
+	}
+
+	// WIP: static-flag; static-url-path; static-host-dir; apt-deps
+	// they are so verbose and not necessary to present to users.
+
+	return fieldInfo
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
