@@ -23,7 +23,7 @@ type planContext struct {
 }
 
 // NewIdentifier returns a new Ruby identifier.
-func NewIdentifier() plan.ExplainableIdentifier {
+func NewIdentifier() plan.Identifier {
 	return &identify{}
 }
 

@@ -14,7 +14,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Bun identifier.
-func NewIdentifier() plan.ExplainableIdentifier {
+func NewIdentifier() plan.Identifier {
 	return &identify{}
 }
 
@@ -74,4 +74,4 @@ func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
 	return nodejs.Explain(meta)
 }
 
-var _ plan.ExplainableIdentifier = (*identify)(nil)
+var _ plan.Identifier = (*identify)(nil)

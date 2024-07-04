@@ -58,20 +58,14 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta, []types.FieldInfo) {
 	for _, identifier := range b.identifiers {
 		if identifier.Match(b.Source) {
 			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
+			explaination := addProviderToFieldInfo(identifier.Explain(pm), pt)
 
 			// If the planner returns a Continue flag, we find the next matched.
 			if v, ok := pm["__INTERNAL_STATE"]; ok && v == "CONTINUE" {
 				continue
 			}
 
-			// If the planner can explain its field, we return the explanation.
-			if explainer, ok := identifier.(ExplainableIdentifier); ok {
-				return pt, pm, addProviderToFieldInfo(explainer.Explain(pm), pt)
-			}
-
-			return pt, pm, []types.FieldInfo{
-				types.NewPlanTypeFieldInfo(pt),
-			}
+			return pt, pm, explaination
 		}
 	}
 

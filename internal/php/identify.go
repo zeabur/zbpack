@@ -12,7 +12,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new PHP identifier.
-func NewIdentifier() plan.ExplainableIdentifier {
+func NewIdentifier() plan.Identifier {
 	return &identify{}
 }
 
@@ -96,4 +96,4 @@ func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
 	return fieldInfo
 }
 
-var _ plan.ExplainableIdentifier = (*identify)(nil)
+var _ plan.Identifier = (*identify)(nil)

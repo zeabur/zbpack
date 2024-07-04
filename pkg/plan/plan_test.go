@@ -25,6 +25,10 @@ func (mi alwaysMatchIdentifier) PlanMeta(_ plan.NewPlannerOptions) types.PlanMet
 	return mi.meta
 }
 
+func (mi alwaysMatchIdentifier) Explain(_ types.PlanMeta) []types.FieldInfo {
+	return nil
+}
+
 func TestPlan_Continue(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
@@ -76,8 +80,7 @@ func (mi identifierDemo) Match(_ afero.Fs) bool {
 	return true
 }
 
-var _ plan.Identifier = (*identifierDemo)(nil)
-var _ plan.ExplainableIdentifier = (*explainableIdentifierDemo)(nil)
+var _ plan.Identifier = (*explainableIdentifierDemo)(nil)
 
 func TestPlan_FieldInfo(t *testing.T) {
 	fs := afero.NewMemMapFs()
@@ -106,23 +109,6 @@ func TestPlan_DefaultFieldInfo(t *testing.T) {
 			Source:        fs,
 			SubmoduleName: "",
 		},
-	)
-
-	_, _, fieldInfo := executor.Plan()
-
-	assert.Len(t, fieldInfo, 1)
-	assert.Equal(t, "Provider", fieldInfo[0].Name)
-}
-
-func TestPlan_NotExplainablePlanner(t *testing.T) {
-	fs := afero.NewMemMapFs()
-
-	executor := plan.NewPlanner(
-		&plan.NewPlannerOptions{
-			Source:        fs,
-			SubmoduleName: "",
-		},
-		identifierDemo{},
 	)
 
 	_, _, fieldInfo := executor.Plan()
