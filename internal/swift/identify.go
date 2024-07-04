@@ -27,4 +27,14 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(GetMetaOptions{Src: options.Source, Config: options.Config})
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	if _, ok := meta["framework"]; ok {
+		return []types.FieldInfo{
+			types.NewFrameworkFieldInfo("framework", types.PlanTypeSwift, meta["framework"]),
+		}
+	}
+
+	return []types.FieldInfo{}
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)

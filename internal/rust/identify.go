@@ -33,4 +33,25 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	)
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "BinName",
+			Name:        "Rust binary project name",
+			Description: "The binary name of the project to deploy",
+		},
+		{
+			Key:         "NeedOpenssl",
+			Name:        "Install OpenSSL library",
+			Description: "Whether to install the OpenSSL library",
+		},
+	}
+
+	if _, ok := meta["serverless"]; ok {
+		fieldInfo = append(fieldInfo, types.NewServerlessFieldInfo("serverless"))
+	}
+
+	return fieldInfo
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)

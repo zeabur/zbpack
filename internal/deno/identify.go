@@ -35,4 +35,16 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	return []types.FieldInfo{
+		types.NewFrameworkFieldInfo("framework", types.PlanTypeDeno, meta["framework"]),
+		{
+			Key:         "entry",
+			Name:        "Entry point",
+			Description: "The entry point of the application to run",
+		},
+		types.NewStartCmdFieldInfo("startCommand"),
+	}
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)

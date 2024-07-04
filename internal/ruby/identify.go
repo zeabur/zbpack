@@ -64,4 +64,34 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return meta
 }
 
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "rubyVersion",
+			Name:        "Ruby Version",
+			Description: "The version of Ruby for building in the source code",
+		},
+		types.NewBuildCmdFieldInfo("buildCmd"),
+		types.NewStartCmdFieldInfo("startCmd"),
+	}
+
+	if _, ok := meta["needNode"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "needNode",
+			Name:        "Enable Node.js",
+			Description: "Install Node.js to build assets",
+		})
+	}
+
+	if _, ok := meta["nodePackageManager"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "nodePackageManager",
+			Name:        "Node.js Package Manager",
+			Description: "The package manager used to install Node.js dependencies",
+		})
+	}
+
+	return fieldInfo
+}
+
 var _ plan.Identifier = (*identify)(nil)

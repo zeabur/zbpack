@@ -111,4 +111,27 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "sdk",
+			Name:        "SDK Version",
+			Description: "The version of the .NET SDK used to build the project.",
+		},
+		{
+			Key:         "entryPoint",
+			Name:        "Application entry point",
+			Description: "The entry point of the application.",
+		},
+		{
+			Key:         "submoduleDir",
+			Name:        "Submodule Directory",
+			Description: "The directory where the submodule to deploy is located.",
+		},
+		types.NewFrameworkFieldInfo("framework", types.PlanTypeDotnet, meta["framework"]),
+	}
+
+	return fieldInfo
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)

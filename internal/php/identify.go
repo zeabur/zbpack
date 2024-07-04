@@ -56,4 +56,44 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return meta
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		types.NewFrameworkFieldInfo("framework", types.PlanTypePHP, meta["framework"]),
+		{
+			Key:         "phpVersion",
+			Name:        "PHP Version",
+			Description: "The version of PHP for building in the source code",
+		},
+		{
+			Key:         "deps",
+			Name:        "Dependencies",
+			Description: "The runtime dependencies required by the project.",
+		},
+		{
+			Key:         "exts",
+			Name:        "PHP Extensions",
+			Description: "The PHP extensions required by the project.",
+		},
+		{
+			Key:         "app",
+			Name:        "Application",
+			Description: "The type of application. It decides the Nginx configuration to use.",
+		},
+		types.NewBuildCmdFieldInfo("buildCommand"),
+		types.NewStartCmdFieldInfo("startCommand"),
+	}
+
+	if _, ok := meta["octaneServer"]; ok {
+		fieldInfo = append(fieldInfo, types.FieldInfo{
+			Key:         "octaneServer",
+			Name:        "Laravel Octane server type",
+			Description: "The server type used by Laravel Octane such as swoole and roadrunner.",
+		})
+	}
+
+	// wip: property (verbose)
+
+	return fieldInfo
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
