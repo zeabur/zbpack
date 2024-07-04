@@ -36,6 +36,11 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 }
 
 func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	return Explain(meta)
+}
+
+// Explain returns the field information of the Node.js plan.
+func Explain(meta types.PlanMeta) []types.FieldInfo {
 	fieldInfo := []types.FieldInfo{
 		{
 			Key:         "bun",

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/afero"
 
+	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -53,4 +54,24 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	)
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	if meta["framework"] == string(types.BunFrameworkHono) {
+		fieldInfo := []types.FieldInfo{
+			types.NewFrameworkFieldInfo("framework", types.PlanTypeBun, meta["framework"]),
+		}
+
+		if _, ok := meta["entry"]; ok {
+			fieldInfo = append(fieldInfo, types.FieldInfo{
+				Key:         "entry",
+				Name:        "Hono entrypoint",
+				Description: "The entry point of the Hono project",
+			})
+		}
+
+		return fieldInfo
+	}
+
+	return nodejs.Explain(meta)
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
