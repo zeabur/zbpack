@@ -58,4 +58,16 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	)
 }
 
-var _ plan.Identifier = (*identify)(nil)
+func (i *identify) Explain(_ types.PlanMeta) []types.FieldInfo {
+	return []types.FieldInfo{
+		{
+			Key:         "expose",
+			Name:        "Service Port",
+			Description: "The port that the service listens on",
+		},
+	}
+
+	// content is unnecessary to present to users
+}
+
+var _ plan.ExplainableIdentifier = (*identify)(nil)
