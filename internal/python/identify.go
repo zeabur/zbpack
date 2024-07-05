@@ -52,7 +52,7 @@ func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
 	}
 
 	if _, ok := meta["framework"]; ok {
-		fieldInfo = append(fieldInfo, types.NewBuildCmdFieldInfo("build"))
+		fieldInfo = append(fieldInfo, types.NewFrameworkFieldInfo("framework", types.PlanTypePython, meta["framework"]))
 	}
 
 	if _, ok := meta["build"]; ok {

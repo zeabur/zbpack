@@ -61,7 +61,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 }
 
 func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
-	fields := make([]types.FieldInfo, 3)
+	fields := make([]types.FieldInfo, 0, 2)
 
 	if framework, ok := meta["framework"]; ok {
 		fields = append(fields, types.NewFrameworkFieldInfo("framework", types.PlanTypeStatic, framework))
