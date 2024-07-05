@@ -20,19 +20,36 @@ var _ afero.Fs = githubFs{}
 type githubFs struct {
 	GitHubRepoOwner string
 	GitHubRepoName  string
+	GitHubRepoRef   string
 	GitHubClient    *github.Client
 }
 
+// GitHubFsOption is the option for NewGitHubFs.
+type GitHubFsOption func(*githubFs)
+
+// GitHubRef sets the ref of the GitHub repository.
+func GitHubRef(ref string) GitHubFsOption {
+	return func(fs *githubFs) {
+		fs.GitHubRepoRef = ref
+	}
+}
+
 // NewGitHubFs creates a new github filesystem.
-func NewGitHubFs(repoOwner, repoName, token string) afero.Fs {
+func NewGitHubFs(repoOwner, repoName, token string, options ...GitHubFsOption) afero.Fs {
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	oauth2Client := oauth2.NewClient(context.TODO(), tokenSource)
 	client := github.NewClient(oauth2Client)
-	return githubFs{
+	fs := githubFs{
 		GitHubRepoName:  repoName,
 		GitHubClient:    client,
 		GitHubRepoOwner: repoOwner,
 	}
+
+	for _, opt := range options {
+		opt(&fs)
+	}
+
+	return fs
 }
 
 var (
@@ -59,7 +76,7 @@ func (fs githubFs) MkdirAll(string, os.FileMode) error {
 func (fs githubFs) Open(name string) (afero.File, error) {
 	root, dirContent, _, err := fs.GitHubClient.Repositories.GetContents(
 		context.TODO(), fs.GitHubRepoOwner, fs.GitHubRepoName, name,
-		nil,
+		&github.RepositoryContentGetOptions{Ref: fs.GitHubRepoRef},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("read file: %w", err)
