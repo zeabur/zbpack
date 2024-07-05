@@ -16,6 +16,8 @@ import (
 var (
 	// info option is used to analyze and print project information.
 	info bool
+	// detail option is used to analyze and print project information with field explanation.
+	detail bool
 	// dockerfile option is used to generate a Dockerfile.
 	dockerfile bool
 	// userSubmoduleName option is used to specify the submodule name of this project manually
@@ -39,6 +41,7 @@ var (
 
 func init() {
 	cmd.PersistentFlags().BoolVarP(&info, "info", "i", false, "only print project information")
+	cmd.PersistentFlags().BoolVarP(&detail, "details", "e", false, "print project information and field explanation")
 	cmd.PersistentFlags().BoolVarP(&dockerfile, "dockerfile", "d", false, "output dockerfile")
 	cmd.PersistentFlags().StringVar(&userSubmoduleName, "submodule", "", "submodule (service) name. by default, it is picked from the directory name.")
 	cmd.SetUsageTemplate(usageTemplate)
@@ -56,6 +59,8 @@ func run(args []string) error {
 	switch {
 	case info:
 		return plan(path)
+	case detail:
+		return projectInfo(path)
 	case dockerfile:
 		return PlanAndOutputDockerfile(path)
 	default:
@@ -145,6 +150,62 @@ func plan(path string) error {
 	)
 
 	zeaburpack.PrintPlanAndMeta(t, m, func(info string) { log.Println(info) })
+
+	return nil
+}
+
+// projectInfo is used to print project information.
+func projectInfo(path string) error {
+	submoduleName, err := GetSubmoduleName(path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("using submoduleName: %s", submoduleName)
+
+	githubToken := os.Getenv("GITHUB_ACCESS_TOKEN")
+	if strings.HasPrefix(path, "https://github.com") && githubToken == "" {
+		return fmt.Errorf("GITHUB_ACCESS_TOKEN is required for GitHub URL")
+	}
+
+	t, m := zeaburpack.Plan(
+		zeaburpack.PlanOptions{
+			SubmoduleName: &submoduleName,
+			Path:          &path,
+			AccessToken:   &githubToken,
+		},
+	)
+	explain := zeaburpack.Explain(t, m)
+
+	for _, fieldInfo := range explain {
+		value := m[fieldInfo.Key]
+		if value == "" {
+			continue
+		}
+
+		if strings.Contains(value, "\n") {
+			// multiple lines
+			lines := strings.Split(value, "\n")
+
+			fmt.Printf("\x1b[1m%s\x1b[0m\n", fieldInfo.Key)
+			fmt.Printf("\t• Content:\n")
+
+			for _, line := range lines {
+				fmt.Printf("\t\t%s\n", line)
+			}
+		} else {
+			// single line
+			fmt.Printf("\x1b[1m%s: \x1b[0m%s\n", fieldInfo.Key, value)
+		}
+		fmt.Printf("\t• Name: %s\n", fieldInfo.Name)
+		fmt.Printf("\t• Description: %s\n", fieldInfo.Description)
+
+		if icon := fieldInfo.Icon; icon != "" {
+			fmt.Printf("\t• Icon: %s\n", icon)
+		}
+
+		fmt.Printf("\n") // Add a newline between each field
+	}
 
 	return nil
 }
