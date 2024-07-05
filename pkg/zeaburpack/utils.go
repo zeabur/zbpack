@@ -75,8 +75,11 @@ func getGitHubSourceFromURL(url, token string) (afero.Fs, error) {
 	repoOwner := parts[3]
 	repoName := parts[4]
 
-	src := source.NewGitHubFs(repoOwner, repoName, token)
-	return src, nil
+	if repoName, ref, ok := strings.Cut(repoName, "#"); ok && ref != "" {
+		return source.NewGitHubFs(repoOwner, repoName, token, source.GitHubRef(ref)), nil
+	}
+
+	return source.NewGitHubFs(repoOwner, repoName, token), nil
 }
 
 func getS3SourceFromURL(url string, cfg *aws.Config) afero.Fs {
