@@ -159,7 +159,7 @@ func Build(opt *BuildOptions) error {
 		SupportedIdentifiers(config)...,
 	)
 
-	t, m, _ := planner.Plan()
+	t, m := planner.Plan()
 
 	PrintPlanAndMeta(t, m, handleLog)
 

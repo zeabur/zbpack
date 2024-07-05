@@ -32,7 +32,7 @@ func (mi alwaysMatchIdentifier) Explain(_ types.PlanMeta) []types.FieldInfo {
 func TestPlan_Continue(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	executor := plan.NewPlanner(
+	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:        fs,
 			SubmoduleName: "",
@@ -41,7 +41,7 @@ func TestPlan_Continue(t *testing.T) {
 		alwaysMatchIdentifier{types.PlanMeta{"__INTERNAL_STATE": "TestPassed"}},
 	)
 
-	_, planMeta, _ := executor.Plan()
+	_, planMeta := planner.Plan()
 	v, ok := planMeta["__INTERNAL_STATE"]
 
 	assert.True(t, ok)
@@ -85,15 +85,17 @@ var _ plan.Identifier = (*explainableIdentifierDemo)(nil)
 func TestPlan_FieldInfo(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	executor := plan.NewPlanner(
+	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:        fs,
 			SubmoduleName: "",
 		},
 		explainableIdentifierDemo{},
 	)
+	pt, pm := planner.Plan()
 
-	_, _, fieldInfo := executor.Plan()
+	explainer := plan.NewExplainer(explainableIdentifierDemo{})
+	fieldInfo := explainer.Explain(pt, pm)
 
 	assert.Len(t, fieldInfo, 3)
 	assert.Equal(t, "Provider", fieldInfo[0].Name)
@@ -104,14 +106,16 @@ func TestPlan_FieldInfo(t *testing.T) {
 func TestPlan_DefaultFieldInfo(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	executor := plan.NewPlanner(
+	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
 			Source:        fs,
 			SubmoduleName: "",
 		},
 	)
+	pt, pm := planner.Plan()
 
-	_, _, fieldInfo := executor.Plan()
+	explainer := plan.NewExplainer()
+	fieldInfo := explainer.Explain(pt, pm)
 
 	assert.Len(t, fieldInfo, 1)
 	assert.Equal(t, "Provider", fieldInfo[0].Name)

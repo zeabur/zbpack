@@ -136,7 +136,7 @@ func plan(path string) error {
 		return fmt.Errorf("GITHUB_ACCESS_TOKEN is required for GitHub URL")
 	}
 
-	t, m, _ := zeaburpack.Plan(
+	t, m := zeaburpack.Plan(
 		zeaburpack.PlanOptions{
 			SubmoduleName: &submoduleName,
 			Path:          &path,

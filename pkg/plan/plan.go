@@ -2,18 +2,31 @@
 package plan
 
 import (
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // Planner is the interface for planners.
 type Planner interface {
-	Plan() (types.PlanType, types.PlanMeta, []types.FieldInfo)
+	// Plan determines the information such as the language and framework of
+	// the given project.
+	Plan() (types.PlanType, types.PlanMeta)
+}
+
+// Explainer is the interface for explainers.
+type Explainer interface {
+	// Explain explains the given plan type and metadata.
+	Explain(types.PlanType, types.PlanMeta) []types.FieldInfo
 }
 
 type planner struct {
 	NewPlannerOptions
 
+	identifiers []Identifier
+}
+
+type explainer struct {
 	identifiers []Identifier
 }
 
@@ -44,6 +57,13 @@ func NewPlanner(opt *NewPlannerOptions, identifiers ...Identifier) Planner {
 	}
 }
 
+// NewExplainer creates a new Explainer.
+func NewExplainer(identifiers ...Identifier) Explainer {
+	return &explainer{
+		identifiers: identifiers,
+	}
+}
+
 var continuePlanMeta = types.PlanMeta{
 	"__INTERNAL_STATE": "CONTINUE",
 }
@@ -54,24 +74,32 @@ func Continue() types.PlanMeta {
 	return continuePlanMeta
 }
 
-func (b planner) Plan() (types.PlanType, types.PlanMeta, []types.FieldInfo) {
+func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 	for _, identifier := range b.identifiers {
 		if identifier.Match(b.Source) {
 			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
-			explaination := addProviderToFieldInfo(identifier.Explain(pm), pt)
 
 			// If the planner returns a Continue flag, we find the next matched.
 			if v, ok := pm["__INTERNAL_STATE"]; ok && v == "CONTINUE" {
 				continue
 			}
 
-			return pt, pm, explaination
+			return pt, pm
 		}
 	}
 
-	return types.PlanTypeStatic, types.PlanMeta{}, []types.FieldInfo{
-		types.NewPlanTypeFieldInfo(types.PlanTypeStatic),
+	return types.PlanTypeStatic, types.PlanMeta{}
+}
+
+func (e explainer) Explain(planType types.PlanType, meta types.PlanMeta) []types.FieldInfo {
+	identifier, found := lo.Find(e.identifiers, func(i Identifier) bool {
+		return i.PlanType() == planType
+	})
+	if !found {
+		return []types.FieldInfo{types.NewPlanTypeFieldInfo(planType)}
 	}
+
+	return addProviderToFieldInfo(identifier.Explain(meta), planType)
 }
 
 // addProviderToFieldInfo adds the plan type (as the key `_provider`) to the top of the field info.

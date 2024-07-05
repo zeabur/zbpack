@@ -44,7 +44,7 @@ type PlanOptions struct {
 }
 
 // Plan returns the build plan and metadata.
-func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta, []types.FieldInfo) {
+func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	wd, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -63,11 +63,11 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta, []types.FieldInfo) {
 		src, err = getGitHubSourceFromURL(*opt.Path, *opt.AccessToken)
 		if err != nil {
 			log.Printf("unexpected github source: %v\n", err)
-			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}, nil
+			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}
 		}
 	} else if strings.HasPrefix(*opt.Path, "s3://") {
 		if opt.AWSConfig == nil {
-			return types.PlanTypeStatic, types.PlanMeta{"error": "Missing AWS configuration, cannot access S3 source"}, nil
+			return types.PlanTypeStatic, types.PlanMeta{"error": "Missing AWS configuration, cannot access S3 source"}
 		}
 
 		src = getS3SourceFromURL(*opt.Path, &aws.Config{
@@ -95,13 +95,21 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta, []types.FieldInfo) {
 		SupportedIdentifiers(config)...,
 	)
 
-	t, m, fi := planner.Plan()
-	return t, m, fi
+	t, m := planner.Plan()
+	return t, m
+}
+
+// Explain returns the explanation of the given plan type and metadata.
+func Explain(planType types.PlanType, meta types.PlanMeta) []types.FieldInfo {
+	mockConfig := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	explainer := plan.NewExplainer(SupportedIdentifiers(mockConfig)...)
+
+	return explainer.Explain(planType, meta)
 }
 
 // PlanAndOutputDockerfile output dockerfile.
 func PlanAndOutputDockerfile(opt PlanOptions) error {
-	t, m, _ := Plan(opt)
+	t, m := Plan(opt)
 	dockerfile, err := generateDockerfile(
 		&generateDockerfileOptions{
 			HandleLog: func(log string) {
