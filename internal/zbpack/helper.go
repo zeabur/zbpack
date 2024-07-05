@@ -50,6 +50,9 @@ func GetSubmoduleName(path string) (submoduleName string, err error) {
 	}
 
 	submoduleName = filepath.Base(absPath)
+	if prefix, _, ok := strings.Cut(submoduleName, "#"); ok {
+		return prefix, nil
+	}
 
 	return submoduleName, err
 }
