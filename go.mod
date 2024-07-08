@@ -64,7 +64,7 @@ require (
 	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.6.0
-	github.com/evanw/esbuild v0.22.0
+	github.com/evanw/esbuild v0.23.0
 	github.com/gkampitakis/go-snaps v0.5.4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/google/go-github/v53 v53.2.0
