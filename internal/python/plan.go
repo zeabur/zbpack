@@ -8,6 +8,7 @@ import (
 	"log"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/moznion/go-optional"
@@ -520,6 +521,10 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "libssl-dev", "libasound2")
 	}
 
+	if HasDependency(ctx, "moviepy") {
+		deps = append(deps, "ffmpeg", "libsm6", "libxext6", "imagemagick", "cmake")
+	}
+
 	if determinePlaywright(ctx) {
 		deps = append(
 			deps, "libnss3", "libatk1.0-0", "libatk-bridge2.0-0",
@@ -741,6 +746,27 @@ RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf 
 		if determinePlaywright(ctx) {
 			commands += "RUN playwright install\n"
 		}
+	}
+
+	if slices.Contains(determineAptDependencies(ctx), "imagemagick") {
+		// credit: https://discord.com/channels/1060209568820494336/1257750217147809903/1258312298674786386
+		commands += `ENV IMAGEMAGICK_BINARY=/usr/bin/convert
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /etc/ImageMagick-6/policy.xml && \
+    echo '<policymap>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="temporary-path" value="/tmp"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="memory" value="2GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="map" value="4GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="width" value="16KP"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="height" value="16KP"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="area" value="128MP"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="disk" value="16GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="thread" value="4"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="throttle" value="0"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="resource" name="time" value="3600"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="path" rights="read|write" pattern="@*"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="coder" rights="read|write" pattern="*"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '  <policy domain="delegate" rights="read|write" pattern="*"/>' >> /etc/ImageMagick-6/policy.xml && \
+    echo '</policymap>' >> /etc/ImageMagick-6/policy.xml`
 	}
 
 	return strings.TrimSpace(commands)
