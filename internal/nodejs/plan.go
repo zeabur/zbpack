@@ -852,6 +852,13 @@ func getServerless(ctx *nodePlanContext) bool {
 		return sl.Unwrap()
 	}
 
+	// For monorepo projects, we should not deploy as serverless
+	// until ZEA-3469 is resolved.
+	if GetMonorepoAppRoot(ctx) != "" {
+		*sl = optional.Some(false)
+		return sl.Unwrap()
+	}
+
 	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
