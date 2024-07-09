@@ -841,14 +841,15 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 func getServerless(ctx *nodePlanContext) bool {
-	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
-		return value
-	}
-
 	sl := &ctx.Serverless
 
 	if serverless, err := sl.Take(); err == nil {
 		return serverless
+	}
+
+	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
+		*sl = optional.Some(value)
+		return sl.Unwrap()
 	}
 
 	framework := DetermineAppFramework(ctx)
