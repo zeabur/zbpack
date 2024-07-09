@@ -28,7 +28,6 @@ func (i *identify) Match(fs afero.Fs) bool {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
 		return types.PlanMeta{"framework": "hugo"}
 	}
@@ -59,6 +58,24 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 
 	return types.PlanMeta{"framework": "unknown"}
+}
+
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fields := make([]types.FieldInfo, 0, 2)
+
+	if framework, ok := meta["framework"]; ok {
+		fields = append(fields, types.NewFrameworkFieldInfo("framework", types.PlanTypeStatic, framework))
+
+		if framework == "zola" {
+			fields = append(fields, types.FieldInfo{
+				Key:         "version",
+				Name:        "Zola Version",
+				Description: "The Zola version for building the website.",
+			})
+		}
+	}
+
+	return fields
 }
 
 var _ plan.Identifier = (*identify)(nil)

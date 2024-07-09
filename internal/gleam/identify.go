@@ -28,4 +28,8 @@ func (i *identify) PlanMeta(_ plan.NewPlannerOptions) types.PlanMeta {
 	return types.PlanMeta{}
 }
 
+func (i *identify) Explain(_ types.PlanMeta) []types.FieldInfo {
+	return []types.FieldInfo{}
+}
+
 var _ plan.Identifier = (*identify)(nil)

@@ -99,6 +99,14 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	return t, m
 }
 
+// Explain returns the explanation of the given plan type and metadata.
+func Explain(planType types.PlanType, meta types.PlanMeta) []types.FieldInfo {
+	mockConfig := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
+	explainer := plan.NewExplainer(SupportedIdentifiers(mockConfig)...)
+
+	return explainer.Explain(planType, meta)
+}
+
 // PlanAndOutputDockerfile output dockerfile.
 func PlanAndOutputDockerfile(opt PlanOptions) error {
 	t, m := Plan(opt)

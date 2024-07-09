@@ -47,4 +47,22 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 }
 
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fieldInfo := []types.FieldInfo{
+		{
+			Key:         "ver",
+			Name:        "Elixir Version",
+			Description: "The version of Elixir for building in the source code",
+		},
+		types.NewFrameworkFieldInfo("framework", types.PlanTypeElixir, meta["framework"]),
+		{
+			Key:         "ecto",
+			Name:        "Ecto Project",
+			Description: "Is this project using Ecto?",
+		},
+	}
+
+	return fieldInfo
+}
+
 var _ plan.Identifier = (*identify)(nil)

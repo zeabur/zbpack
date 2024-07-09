@@ -117,4 +117,22 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return meta
 }
 
+func (i *identify) Explain(meta types.PlanMeta) []types.FieldInfo {
+	fields := make([]types.FieldInfo, 0, 3)
+
+	if framework, ok := meta["framework"]; ok {
+		fields = append(fields, types.NewFrameworkFieldInfo("framework", types.PlanTypeDart, framework))
+	}
+
+	if _, ok := meta["build"]; ok {
+		fields = append(fields, types.NewBuildCmdFieldInfo("build"))
+	}
+
+	if _, ok := meta["outputDir"]; ok {
+		fields = append(fields, types.NewOutputDirFieldInfo("outputDir"))
+	}
+
+	return fields
+}
+
 var _ plan.Identifier = (*identify)(nil)
