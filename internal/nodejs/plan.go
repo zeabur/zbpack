@@ -614,6 +614,11 @@ func GetMonorepoAppRoot(ctx *nodePlanContext) string {
 	if userAppDir, err := plan.Cast(
 		ctx.Config.Get(ConfigAppDir), cast.ToStringE,
 	).Take(); err == nil && userAppDir != "" {
+		if userAppDir == "/" {
+			ctx.AppDir = optional.Some("")
+			return ctx.AppDir.Unwrap()
+		}
+
 		ctx.AppDir = optional.Some(userAppDir)
 		return ctx.AppDir.Unwrap()
 	}
