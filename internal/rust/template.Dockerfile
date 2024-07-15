@@ -1,67 +1,43 @@
-FROM docker.io/lukemathwalker/cargo-chef:latest-rust-1 AS chef
-WORKDIR /src
+FROM rust:1 AS builder
 
-# use sparse to speed up the dependencies download process
-ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+WORKDIR /app
+COPY . /app
 
-# use lld as the linker
-RUN apt update \
-  && apt install -y lld
+# output to /out/bin
+RUN mkdir /out && cargo install --path "{{ .AppDir }}" --root /out
 
-RUN mkdir /.cargo && \
-  printf '[build]\nrustflags = ["-C", "link-arg=-fuse-ld=lld"]\n' > /.cargo/config.toml
+FROM rust:1 AS post-builder
 
-FROM chef AS planner
-COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
+COPY --from=builder /out/bin /app
 
-FROM chef AS builder
-COPY --from=planner /src/recipe.json recipe.json
+{{ range .Assets }}
+COPY --from=builder /app/{{ . }} /app/{{ . }}
+{{ end }}
 
-# Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --recipe-path recipe.json
+WORKDIR /app
 
-# Build the project to get the executable file
-COPY . .
-RUN cargo build --release
-
-# Copy the exe and files listed in .zeabur-preserve to /app/bin
-RUN mkdir -p /app/bin \
-  # move the files to preserve to /app
-  && (cat .zeabur-preserve | xargs -I {} cp -r {} /app/{}) \
-  # move the binary to the root of the container
-  && (cp target/release/* /app/bin || true)
-
-ENV BINDIR="/app/bin"
-ENV BINNAME="{{ .BinName }}"
-ENV EXEFILE="${BINDIR}/${BINNAME}"
-
-RUN if [ ! -x "${EXEFILE}" ]; then \
-    find . -type f -executable -print | head -n 1 > EXEFILE; \
+# Rename the entry point to /app/main
+RUN if [ -x "{{ .Entry }}" ]; then \
+	mv "{{ .Entry }}" /app/main \
   else \
-    echo "${EXEFILE}" > EXEFILE; \
+  	real_endpoint="$(find . -type f -executable -print | head -n 1)" \
+		&& mv "${real_endpoint}" /app/main; \
   fi
 
-RUN mv "$(cat EXEFILE)" /app/bin/server
 
-# {{if not (eq .serverless "true")}}
-FROM docker.io/library/debian:bookworm-slim AS runtime
+{{ if .Serverless }}
+FROM scratch
+COPY --from=post-builder /app .
+{{ else }}
+FROM rust:1-slim AS runtime
 
-# {{if eq .NeedOpenssl "yes"}}
+{{ if .OpenSSL }}
 RUN apt-get update \
   && apt-get install -y openssl \
   && rm -rf /var/lib/apt/lists/*
 {{ end }}
 
-RUN useradd -m -s /bin/bash zeabur
+COPY --from=post-builder /app .
+CMD ["/app/main"]
 
-USER zeabur
-WORKDIR /app
-
-COPY --from=builder --chown=zeabur:zeabur /app/bin/server /app/bin/server
-
-CMD ["/app/bin/server"]
-# {{ else }}
-FROM scratch
-COPY --from=builder /app/bin/server main
-# {{ end }}
+{{ end }}
