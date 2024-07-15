@@ -80,7 +80,21 @@ func getAppDir(ctx *rustPlanContext) string {
 // getAssets gets the assets list that needs to copy from project directory.
 func getAssets(ctx *rustPlanContext) []string {
 	assets := plan.Cast(ctx.Config.Get(ConfigRustAssets), cast.ToStringSliceE).TakeOr([]string{})
-	return assets
+	if len(assets) != 0 {
+		return assets
+	}
+
+	// Legacy configuration.
+	zeaburPreserve, err := afero.ReadFile(ctx.Src, ".zeabur-preserve")
+	if err != nil {
+		if !os.IsNotExist(err) {
+			log.Println(err)
+		}
+
+		return assets
+	}
+
+	return strings.FieldsFunc(string(zeaburPreserve), func(r rune) bool { return r == '\n' })
 }
 
 // needOpenssl checks if the project needs openssl.

@@ -105,7 +105,7 @@ func TestGetAppDir(t *testing.T) {
 			Config:        config,
 			SubmoduleName: "",
 		})
-		assert.Equal(t, "", appDir)
+		assert.Equal(t, ".", appDir)
 	})
 
 	t.Run("set as '/'", func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestGetAppDir(t *testing.T) {
 			Config:        config,
 			SubmoduleName: "",
 		})
-		assert.Equal(t, "", appDir)
+		assert.Equal(t, ".", appDir)
 	})
 }
 
@@ -151,5 +151,28 @@ func TestGetAssets(t *testing.T) {
 			SubmoduleName: "",
 		})
 		assert.Equal(t, []string{"a", "b", "c"}, assets)
+	})
+
+	t.Run(".zeabur-preserve", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, ".zeabur-preserve", []byte("a\nb\nc"), 0o644)
+
+		assets := getAssets(&rustPlanContext{
+			Src:           fs,
+			Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+			SubmoduleName: "",
+		})
+		assert.Equal(t, []string{"a", "b", "c"}, assets)
+	})
+
+	t.Run("no assets", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+
+		assets := getAssets(&rustPlanContext{
+			Src:           fs,
+			Config:        plan.NewProjectConfigurationFromFs(fs, ""),
+			SubmoduleName: "",
+		})
+		assert.Empty(t, assets)
 	})
 }
