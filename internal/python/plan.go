@@ -287,8 +287,18 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 
 			match := re.FindStringSubmatch(string(content))
 			if len(match) > 1 {
-				entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
-				*wa = optional.Some(entryWithoutExt + ":" + match[1])
+				var finalEntry string
+
+				// example/app/__init__.py -> example/app/__init__
+				finalEntry = strings.TrimSuffix(entryFile, ".py")
+				// example/app/__init__ -> example/app/
+				finalEntry = strings.TrimSuffix(finalEntry, "__init__")
+				// example/app/ -> example.app.
+				finalEntry = strings.ReplaceAll(finalEntry, "/", ".")
+				// example.app. -> example.app
+				finalEntry = strings.TrimSuffix(finalEntry, ".")
+
+				*wa = optional.Some(finalEntry + ":" + match[1])
 				return wa.Unwrap()
 			}
 		}
