@@ -18,7 +18,7 @@ WORKDIR /app
 
 # Rename the entry point to /app/main
 RUN if [ -x "{{ .Entry }}" ]; then \
-	mv "{{ .Entry }}" /app/main \
+	mv "{{ .Entry }}" /app/main; \
   else \
   	real_endpoint="$(find . -type f -executable -print | head -n 1)" \
 		&& mv "${real_endpoint}" /app/main; \
@@ -37,7 +37,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 {{ end }}
 
-COPY --from=post-builder /app .
+COPY --from=post-builder /app /app
 CMD ["/app/main"]
 
 {{ end }}
