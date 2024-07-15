@@ -37,6 +37,11 @@ const (
 	// in the project configuration.
 	ConfigStreamlitEntry = "streamlit.entry"
 
+	// ConfigPythonEntry is the key for specifying the Python entry explicitly
+	// in the project configuration. If there is `__init__.py`, you should also
+	// write down the `__init__.py` in the entry. For example: `app/__init__.py`.
+	ConfigPythonEntry = "python.entry"
+
 	// ConfigPythonVersion is the key for specifying the Python version explicitly
 	// in the project configuration.
 	ConfigPythonVersion = "python.version"
@@ -102,6 +107,11 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 
 	if entry, err := et.Take(); err == nil {
 		return entry
+	}
+
+	if entry, err := plan.Cast(ctx.Config.Get(ConfigPythonEntry), cast.ToStringE).Take(); err == nil {
+		*et = optional.Some(entry)
+		return et.Unwrap()
 	}
 
 	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py"} {
