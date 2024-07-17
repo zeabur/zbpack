@@ -37,6 +37,11 @@ const (
 	// in the project configuration.
 	ConfigStreamlitEntry = "streamlit.entry"
 
+	// ConfigPythonEntry is the key for specifying the Python entry explicitly
+	// in the project configuration. If there is `__init__.py`, you should also
+	// write down the `__init__.py` in the entry. For example: `app/__init__.py`.
+	ConfigPythonEntry = "python.entry"
+
 	// ConfigPythonVersion is the key for specifying the Python version explicitly
 	// in the project configuration.
 	ConfigPythonVersion = "python.version"
@@ -104,7 +109,12 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 		return entry
 	}
 
-	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py"} {
+	if entry, err := plan.Cast(ctx.Config.Get(ConfigPythonEntry), cast.ToStringE).Take(); err == nil {
+		*et = optional.Some(entry)
+		return et.Unwrap()
+	}
+
+	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "app/__init__.py"} {
 		if utils.HasFile(src, file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
@@ -277,8 +287,18 @@ func DetermineWsgi(ctx *pythonPlanContext) string {
 
 			match := re.FindStringSubmatch(string(content))
 			if len(match) > 1 {
-				entryWithoutExt := strings.TrimSuffix(entryFile, ".py")
-				*wa = optional.Some(entryWithoutExt + ":" + match[1])
+				var finalEntry string
+
+				// example/app/__init__.py -> example/app/__init__
+				finalEntry = strings.TrimSuffix(entryFile, ".py")
+				// example/app/__init__ -> example/app/
+				finalEntry = strings.TrimSuffix(finalEntry, "__init__")
+				// example/app/ -> example.app.
+				finalEntry = strings.ReplaceAll(finalEntry, "/", ".")
+				// example.app. -> example.app
+				finalEntry = strings.TrimSuffix(finalEntry, ".")
+
+				*wa = optional.Some(finalEntry + ":" + match[1])
 				return wa.Unwrap()
 			}
 		}
