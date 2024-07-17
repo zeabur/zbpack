@@ -113,7 +113,7 @@ func TestGenerateDockerfile_Serverless(t *testing.T) {
 		}
 
 		assert.Contains(t, dockerfile, "FROM rust:1-slim AS runtime")
-		assert.Contains(t, dockerfile, "COPY --from=post-builder /app .")
+		assert.Contains(t, dockerfile, "COPY --from=post-builder /app /app")
 		assert.Contains(t, dockerfile, `CMD ["/app/main"]`)
 	})
 }
