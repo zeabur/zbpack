@@ -3,6 +3,7 @@ package rust
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 
 	_ "embed"
@@ -12,17 +13,34 @@ import (
 )
 
 //go:embed template.Dockerfile
-var templateDockerfile string
+var dockerTemplate string
+
+// TemplateContext is the context for the Dockerfile template.
+type TemplateContext struct {
+	OpenSSL    bool
+	Serverless bool
+	Entry      string
+	AppDir     string
+	Assets     []string
+}
 
 // GenerateDockerfile generates the Dockerfile for the Rust project.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	template := template.Must(
-		template.New("RustDockerfile").Parse(templateDockerfile),
+		template.New("RustDockerfile").Parse(dockerTemplate),
 	)
+
+	context := TemplateContext{
+		OpenSSL:    meta["openssl"] == "true",
+		Serverless: meta["serverless"] == "true",
+		Entry:      meta["entry"],
+		AppDir:     meta["appDir"],
+		Assets:     strings.FieldsFunc(meta["assets"], func(r rune) bool { return r == ':' }),
+	}
 
 	var result bytes.Buffer
 
-	if err := template.Execute(&result, meta); err != nil {
+	if err := template.Execute(&result, context); err != nil {
 		return "", err
 	}
 
