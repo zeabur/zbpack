@@ -614,6 +614,11 @@ func GetMonorepoAppRoot(ctx *nodePlanContext) string {
 	if userAppDir, err := plan.Cast(
 		ctx.Config.Get(ConfigAppDir), cast.ToStringE,
 	).Take(); err == nil && userAppDir != "" {
+		if userAppDir == "/" {
+			ctx.AppDir = optional.Some("")
+			return ctx.AppDir.Unwrap()
+		}
+
 		ctx.AppDir = optional.Some(userAppDir)
 		return ctx.AppDir.Unwrap()
 	}
@@ -836,14 +841,22 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 }
 
 func getServerless(ctx *nodePlanContext) bool {
-	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
-		return value
-	}
-
 	sl := &ctx.Serverless
 
 	if serverless, err := sl.Take(); err == nil {
 		return serverless
+	}
+
+	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
+		*sl = optional.Some(value)
+		return sl.Unwrap()
+	}
+
+	// For monorepo projects, we should not deploy as serverless
+	// until ZEA-3469 is resolved.
+	if GetMonorepoAppRoot(ctx) != "" {
+		*sl = optional.Some(false)
+		return sl.Unwrap()
 	}
 
 	framework := DetermineAppFramework(ctx)
