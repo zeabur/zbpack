@@ -56,6 +56,14 @@ func TestParseFrom(t *testing.T) {
 			Source: "alpine",
 			Stage:  mo.Some("builder"),
 		},
+		"FROM --platform=linux/amd64 alpine AS builder": {
+			Source: "alpine",
+			Stage:  mo.Some("builder"),
+		},
+		"FROM --platform=$BUILDERPLATFORM alpine:3.12 AS builder": {
+			Source: "alpine:3.12",
+			Stage:  mo.Some("builder"),
+		},
 	}
 
 	for k, v := range testmap {
