@@ -34,6 +34,7 @@ route {
 EOF
 
 COPY . .
+` + installCmd + `
 ` + buildCmd + `
 STOPSIGNAL SIGKILL
 CMD ` + startCmd, nil

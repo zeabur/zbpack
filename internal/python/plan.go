@@ -568,7 +568,12 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 	staticPath := DetermineStaticInfo(ctx)
 
 	if framework == types.PythonFrameworkReflex {
-		return "[ -d alembic ] && reflex db migrate; caddy start && reflex run --env prod --backend-only --loglevel debug"
+		switch pm {
+		case types.PythonPackageManagerPoetry:
+			return "[ -d alembic ] && poetry run reflex db migrate; caddy start && poetry run reflex run --env prod --backend-only --loglevel debug"
+		default:
+			return "[ -d alembic ] && reflex db migrate; caddy start && reflex run --env prod --backend-only --loglevel debug"
+		}
 	}
 
 	var commandSegment []string
@@ -750,8 +755,14 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 		}
 
 		if framework == types.PythonFrameworkReflex {
-			commands += `RUN reflex init
+			switch packageManager {
+			case types.PythonPackageManagerPoetry:
+				commands += `RUN poetry run reflex init
+RUN poetry run reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
+			default:
+				commands += `RUN reflex init
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
+			}
 		}
 
 		if staticInfo.DjangoEnabled() {
