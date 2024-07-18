@@ -6,7 +6,7 @@ import (
 	"github.com/samber/mo"
 )
 
-var fromStatementRegex = regexp.MustCompile(`(?i)^\s*FROM\s+(?P<src>\S*)(?:\s+AS\s+(?P<stage>\S+))?`)
+var fromStatementRegex = regexp.MustCompile(`(?i)^\s*FROM(?:\s+--platform=.+?)?\s+(?P<src>\S*)(?:\s+AS\s+(?P<stage>\S+))?`)
 
 // FromStatement represents a FROM statement in a Dockerfile.
 type FromStatement struct {
