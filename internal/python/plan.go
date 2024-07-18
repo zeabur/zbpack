@@ -626,6 +626,11 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 
 	startupFunction := determineDefaultStartupFunction(ctx)
 
+	framework := DetermineFramework(ctx)
+	if framework == types.PythonFrameworkReflex {
+		return startupFunction
+	}
+
 	// if "start_command" in `zbpack.json`, or "ZBPACK_START_COMMAND" in env, use it directly
 	if value, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
 		return startupFunction + value
