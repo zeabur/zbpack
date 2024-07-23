@@ -183,3 +183,22 @@ func TestGenerateDockerfile_Entry(t *testing.T) {
 		assert.Contains(t, dockerfile, `mv "configured" /app/main`)
 	})
 }
+
+func TestGenerateDockerfile_Workdir(t *testing.T) {
+	t.Parallel()
+
+	meta := map[string]string{
+		"openssl":    "false",
+		"serverless": "false",
+		"entry":      "entry",
+		"appDir":     ".",
+		"assets":     "assets",
+	}
+
+	dockerfile, err := rust.GenerateDockerfile(meta)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assert.Contains(t, dockerfile, `WORKDIR /app`)
+}

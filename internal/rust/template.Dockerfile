@@ -38,6 +38,7 @@ RUN apt-get update \
 {{ end }}
 
 COPY --from=post-builder /app /app
+WORKDIR /app
 CMD ["/app/main"]
 
 {{ end }}
