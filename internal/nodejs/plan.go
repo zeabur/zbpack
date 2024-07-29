@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -815,13 +816,31 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		return dir.Unwrap()
 	}
 
+	// Vitepress's "build" script contains an additional parameter to specify
+	// the output directory:
+	//
+	//     "build": "vitepress build [outdir]"
+	//
+	// We extract the outdir from the build command. If there is none,
+	// we assume it is in the root directory of the project.
+	if framework == types.NodeProjectFrameworkVitepress {
+		buildScriptName := GetBuildScript(ctx)
+		buildCommand := ctx.GetAppPackageJSON().Scripts[buildScriptName]
+
+		// Extract the outdir from the build script.
+		if outDir, ok := strings.CutPrefix(buildCommand, "vitepress build"); ok {
+			docsRoot := strings.TrimSpace(outDir)
+			*dir = optional.Some(filepath.Join(docsRoot, ".vitepress", "dist"))
+			return dir.Unwrap()
+		}
+	}
+
 	defaultStaticOutputDirs := map[types.NodeProjectFramework]string{
 		types.NodeProjectFrameworkVite:             "dist",
 		types.NodeProjectFrameworkUmi:              "dist",
 		types.NodeProjectFrameworkVueCli:           "dist",
 		types.NodeProjectFrameworkCreateReactApp:   "build",
 		types.NodeProjectFrameworkHexo:             "public",
-		types.NodeProjectFrameworkVitepress:        "docs/.vitepress/dist",
 		types.NodeProjectFrameworkAstroStatic:      "dist",
 		types.NodeProjectFrameworkAstroStarlight:   "dist",
 		types.NodeProjectFrameworkSliDev:           "dist",
