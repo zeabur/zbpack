@@ -395,3 +395,45 @@ func TestInstallCommand(t *testing.T) {
 		assert.NotContains(t, installCmd, "WORKDIR")
 	})
 }
+
+func TestGetStaticOutputDir(t *testing.T) {
+	t.Run("vitepress, not specified docs directory", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"scripts": {
+				"build": "vitepress build"
+			},
+			"devDependencies": {
+				"vitepress": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		assert.Equal(t, ".vitepress/dist", GetStaticOutputDir(ctx))
+	})
+
+	t.Run("vitepress, specified docs directory", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"scripts": {
+				"build": "vitepress build docs"
+			},
+			"devDependencies": {
+				"vitepress": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		assert.Equal(t, "docs/.vitepress/dist", GetStaticOutputDir(ctx))
+	})
+}
