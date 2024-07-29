@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeabur/zbpack/internal/source"
 )
 
@@ -23,7 +24,9 @@ func getGithubToken(t *testing.T) string {
 func TestGitHubFsOpen_File(t *testing.T) {
 	token := getGithubToken(t)
 
-	fs := source.NewGitHubFs("zeabur", "zeabur", token)
+	fs, err := source.NewGitHubFs("zeabur", "zeabur", token)
+	require.NoError(t, err)
+
 	f, err := fs.Open("readme.md")
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Bad credentials") {
@@ -45,7 +48,9 @@ func TestGitHubFsOpen_File(t *testing.T) {
 func TestGitHubFsOpen_Dir(t *testing.T) {
 	token := getGithubToken(t)
 
-	fs := source.NewGitHubFs("zeabur", "zeabur", token)
+	fs, err := source.NewGitHubFs("zeabur", "zeabur", token)
+	require.NoError(t, err)
+
 	f, err := fs.Open("")
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Bad credentials") {
@@ -69,15 +74,19 @@ func TestGitHubFsOpen_Dir(t *testing.T) {
 func TestGitHubFsOpenFile_WithWriteFlag(t *testing.T) {
 	token := getGithubToken(t)
 
-	fs := source.NewGitHubFs("zeabur", "zeabur", token)
-	_, err := fs.OpenFile("readme.md", os.O_RDWR, 0)
+	fs, err := source.NewGitHubFs("zeabur", "zeabur", token)
+	require.NoError(t, err)
+
+	_, err = fs.OpenFile("readme.md", os.O_RDWR, 0)
 	assert.ErrorIs(t, err, source.ErrReadonly)
 }
 
 func TestGitHubFsOpenFile_Ref(t *testing.T) {
 	token := getGithubToken(t)
 
-	fs := source.NewGitHubFs("zeabur", "zbpack", token, source.GitHubRef("9da82d05f3123cdb76b25d36c40cd12581e4eb82"))
+	fs, err := source.NewGitHubFs("zeabur", "zbpack", token, source.GitHubRef("9da82d05f3123cdb76b25d36c40cd12581e4eb82"))
+	require.NoError(t, err)
+
 	f, err := fs.OpenFile("go.mod", os.O_RDONLY, 0)
 	if err != nil {
 		if strings.Contains(err.Error(), "401 Bad credentials") {
