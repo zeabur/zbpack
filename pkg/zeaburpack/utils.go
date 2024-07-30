@@ -68,14 +68,15 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(l
 
 // getGitHubSourceFromURL returns a GitHub source from a GitHub URL.
 func getGitHubSourceFromURL(url, token string) (afero.Fs, error) {
-	parts := strings.Split(url, "/")
+	repoAddress, ref, _ := strings.Cut(url, "#")
+	parts := strings.Split(repoAddress, "/")
 	if len(parts) < 5 {
 		return nil, errors.New("invalid GitHub URL")
 	}
 	repoOwner := parts[3]
 	repoName := parts[4]
 
-	if repoName, ref, ok := strings.Cut(repoName, "#"); ok && ref != "" {
+	if ref != "" {
 		return source.NewGitHubFs(repoOwner, repoName, token, source.GitHubRef(ref))
 	}
 
