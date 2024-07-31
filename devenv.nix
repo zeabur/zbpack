@@ -10,6 +10,7 @@
 
   enterShell = ''
     go mod download
+    gomod2nix generate
   '';
 
   # https://devenv.sh/tests/
