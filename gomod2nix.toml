@@ -2,8 +2,8 @@ schema = 3
 
 [mod]
   [mod."github.com/aws/aws-sdk-go"]
-    version = "v1.54.19"
-    hash = "sha256-LEAk2Tv8CqNrk9wnk0O62qU7CGQnjJD6QMutmJfWlPA="
+    version = "v1.55.5"
+    hash = "sha256-Duod/yk0bGmbcqgaZg+4XoWwY7Ysq4RA/cFBV8nFX6E="
   [mod."github.com/codeclysm/extract/v3"]
     version = "v3.1.1"
     hash = "sha256-m97BzuMk+rlSfPUnYzWifqQBNNdrWZXhUlQwT2iY59A="
@@ -35,11 +35,11 @@ schema = 3
     version = "v1.3.2"
     hash = "sha256-Qh2lAShlRm571xMxhAOfRoaFYzrfHmmk7RQmSiJxPbo="
   [mod."github.com/gkampitakis/go-snaps"]
-    version = "v0.5.4"
-    hash = "sha256-5q/Fvei+MVG3Sua1aIvD/zw6a6RUvZSDW2OV3NCp/m4="
+    version = "v0.5.7"
+    hash = "sha256-DCfko42wd7W9NadYPPX9c9H2HNH9DQHZTrfI9CTZqXQ="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.11.3"
-    hash = "sha256-bVhCMoAcBe+JTnul+oIVZKCYRduoImPitmkDGp4XY4c="
+    version = "v1.12.0"
+    hash = "sha256-0mCOEhUeOmQOU66adWwh+53SUSowpVrm8ILwLhVGc6g="
   [mod."github.com/google/go-github/v63"]
     version = "v63.0.0"
     hash = "sha256-Yl33aGOXdGthRVp8vrM3At1NqvI/J3/LE82boXJ/rQs="
@@ -122,11 +122,11 @@ schema = 3
     version = "v0.1.0"
     hash = "sha256-F92BQXXmn3mCwu3mBaGh+joTRItQDSDhsjU6SofkYdA="
   [mod."github.com/samber/lo"]
-    version = "v1.45.0"
-    hash = "sha256-heidXoRZUcnupitODFoSqyxYaw9C/FoOr5Yc6u9/nPA="
+    version = "v1.46.0"
+    hash = "sha256-ZvyiOnjqh3nt8OxofUPbXxN14j5bHcmT9TqOCPdwAVQ="
   [mod."github.com/samber/mo"]
-    version = "v1.12.0"
-    hash = "sha256-b01gDW5s6QXf8WU10UTZrsYx3U2DKPyBOT44uaXize4="
+    version = "v1.13.0"
+    hash = "sha256-mtMkttCJdlTc+gArMqWpkoO2V5Ef/OXuKk/dusez01g="
   [mod."github.com/sourcegraph/conc"]
     version = "v0.3.0"
     hash = "sha256-mIdMs9MLAOBKf3/0quf1iI3v8uNWydy7ae5MFa+F2Ko="
