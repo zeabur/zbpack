@@ -273,6 +273,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isNitroPack := packageJSON.FindDependency("nitropack"); isNitroPack {
+		*fw = optional.Some(types.NodeProjectFrameworkNitropack)
+		return fw.Unwrap()
+	}
+
 	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
 		*fw = optional.Some(types.NodeProjectFrameworkWaku)
 		return fw.Unwrap()
@@ -434,9 +439,11 @@ func GetStartScript(ctx *nodePlanContext) string {
 	return ss.Unwrap()
 }
 
-const defaultNodeVersion = "18"
-const maxNodeVersion uint64 = 21
-const maxLtsNodeVersion uint64 = 18
+const (
+	defaultNodeVersion        = "18"
+	maxNodeVersion     uint64 = 21
+	maxLtsNodeVersion  uint64 = 18
+)
 
 func getNodeVersion(versionConstraint string) string {
 	// .nvmrc extensions
@@ -739,12 +746,26 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	}
 
 	if startScript == "" {
-		if entry != "" {
-			startCmd = "node " + entry
-		} else if framework == types.NodeProjectFrameworkNuxtJs {
-			startCmd = "node .output/server/index.mjs"
-		} else {
-			startCmd = "node index.js"
+		switch {
+		case entry != "":
+			if ctx.Bun {
+				startCmd = "bun " + entry
+			} else {
+				startCmd = "node " + entry
+			}
+		case framework == types.NodeProjectFrameworkNuxtJs,
+			framework == types.NodeProjectFrameworkNitropack:
+			if ctx.Bun {
+				startCmd = "bun .output/server/index.mjs"
+			} else {
+				startCmd = "node .output/server/index.mjs"
+			}
+		default:
+			if ctx.Bun {
+				startCmd = "bun index.js"
+			} else {
+				startCmd = "node index.js"
+			}
 		}
 	}
 
@@ -755,11 +776,9 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	// For more information, see the discussion in Discord: Solid.js
 	// https://ptb.discord.com/channels/722131463138705510/
 	// 722131463889223772/1140159307648868382
-	if framework == types.NodeProjectFrameworkSolidStartNode {
-		if startScript == "start" {
-			// solid-start-node specific start script
-			startCmd = "node dist/server.js"
-		}
+	if framework == types.NodeProjectFrameworkSolidStartNode && startScript == "start" {
+		// solid-start-node specific start script
+		startCmd = "node dist/server.js"
 	}
 
 	*cmd = optional.Some(startCmd)
@@ -881,13 +900,14 @@ func getServerless(ctx *nodePlanContext) bool {
 	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs:  true,
-		types.NodeProjectFrameworkNuxtJs:  true,
-		types.NodeProjectFrameworkAstro:   true,
-		types.NodeProjectFrameworkSvelte:  true,
-		types.NodeProjectFrameworkWaku:    true,
-		types.NodeProjectFrameworkAngular: true,
-		types.NodeProjectFrameworkRemix:   true,
+		types.NodeProjectFrameworkNextJs:    true,
+		types.NodeProjectFrameworkNuxtJs:    true,
+		types.NodeProjectFrameworkNitropack: true,
+		types.NodeProjectFrameworkAstro:     true,
+		types.NodeProjectFrameworkSvelte:    true,
+		types.NodeProjectFrameworkWaku:      true,
+		types.NodeProjectFrameworkAngular:   true,
+		types.NodeProjectFrameworkRemix:     true,
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {

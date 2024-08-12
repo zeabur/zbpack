@@ -20,7 +20,6 @@ RUN bun install
 
 COPY . .
 
-
 # Build if we can build it
 
 
@@ -43,7 +42,6 @@ RUN corepack enable
 RUN yarn install
 
 COPY . .
-
 
 # Build if we can build it
 RUN yarn build
@@ -68,7 +66,6 @@ RUN corepack enable
 RUN yarn install
 
 COPY . .
-
 
 # Build if we can build it
 RUN yarn build
@@ -95,7 +92,6 @@ RUN yarn install
 
 
 
-
 # Build if we can build it
 
 
@@ -117,7 +113,6 @@ RUN corepack enable
 
 WORKDIR /src/myservice
 RUN yarn install
-
 
 
 
@@ -146,7 +141,6 @@ RUN yarn install
 
 
 
-
 # Build if we can build it
 
 
@@ -171,7 +165,6 @@ RUN yarn install
 
 COPY . .
 
-
 # Build if we can build it
 
 
@@ -195,7 +188,6 @@ RUN yarn install
 
 COPY . .
 
-
 # Build if we can build it
 
 
@@ -218,7 +210,6 @@ RUN corepack enable
 RUN yarn install
 
 COPY . .
-
 
 # Build if we can build it
 

@@ -31,9 +31,9 @@ func (i *identify) Match(fs afero.Fs) bool {
 		hasBunTypes = bytes.Contains(packageJSON, []byte(`"bun-types"`))
 	}
 
-	// Some developer use bun as package manager for their Next.js or Nuxt.js project.
+	// Some developer use bun as package manager for their Next.js project.
 	// In this case, we should treat it as a Node.js project.
-	if bytes.Contains(packageJSON, []byte(`"next"`)) || bytes.Contains(packageJSON, []byte(`"nuxt"`)) {
+	if bytes.Contains(packageJSON, []byte(`"next"`)) {
 		return false
 	}
 
