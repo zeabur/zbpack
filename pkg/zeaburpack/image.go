@@ -132,7 +132,7 @@ func buildImage(opt *buildImageOptions) error {
 		"--local", "dockerfile=" + path.Dir(dockerfilePath),
 	}
 
-	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" || opt.PlanType == types.PlanTypeStatic {
+	if opt.PlanMeta["serverless"] == "true" || opt.PlanMeta["outputDir"] != "" || opt.PlanType == types.PlanTypeStatic || opt.PlanType == types.PlanTypeNix {
 		buildKitCmd = append(buildKitCmd, "--output", "type=tar,dest="+ServerlessTarPath)
 	} else {
 		t := "image"
