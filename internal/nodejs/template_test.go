@@ -145,3 +145,83 @@ func TestTemplate_MonorepoServerlessOutDir(t *testing.T) {
 	assert.NoError(t, err)
 	snaps.MatchSnapshot(t, result)
 }
+
+func TestTemplate_NitroPreset(t *testing.T) {
+	t.Parallel()
+
+	nitroBasedFrameworks := []string{
+		"nuxt.js",
+		"nitropack",
+	}
+
+	for _, framework := range nitroBasedFrameworks {
+		t.Run(framework, func(t *testing.T) {
+			t.Parallel()
+
+			t.Run("node-server", func(t *testing.T) {
+				t.Parallel()
+
+				ctx := nodejs.TemplateContext{
+					NodeVersion: "18",
+					InstallCmd:  "RUN yarn install",
+					StartCmd:    "node .output/server/index.mjs",
+					Framework:   framework,
+					Serverless:  false,
+				}
+
+				result, err := ctx.Execute()
+				assert.NoError(t, err)
+				assert.Contains(t, result, "ENV NITRO_PRESET=node-server")
+			})
+
+			t.Run("bun", func(t *testing.T) {
+				t.Parallel()
+
+				ctx := nodejs.TemplateContext{
+					NodeVersion: "18",
+					InstallCmd:  "RUN bun install",
+					StartCmd:    "bun .output/server/index.mjs",
+					Framework:   framework,
+					Serverless:  false,
+					Bun:         true,
+				}
+
+				result, err := ctx.Execute()
+				assert.NoError(t, err)
+				assert.Contains(t, result, "ENV NITRO_PRESET=bun")
+			})
+
+			t.Run("node", func(t *testing.T) {
+				t.Parallel()
+
+				ctx := nodejs.TemplateContext{
+					NodeVersion: "18",
+					InstallCmd:  "RUN yarn install",
+					StartCmd:    "",
+					Framework:   framework,
+					Serverless:  true,
+				}
+
+				result, err := ctx.Execute()
+				assert.NoError(t, err)
+				assert.Contains(t, result, "ENV NITRO_PRESET=node")
+			})
+		})
+	}
+
+	t.Run("empty if not nitro-based framework", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := nodejs.TemplateContext{
+			NodeVersion: "18",
+			InstallCmd:  "RUN yarn install",
+			StartCmd:    "yarn start",
+			Framework:   "next.js",
+			Serverless:  false,
+		}
+
+		result, err := ctx.Execute()
+		assert.NoError(t, err)
+		assert.NotContains(t, result, "ENV NITRO_PRESET")
+	})
+}

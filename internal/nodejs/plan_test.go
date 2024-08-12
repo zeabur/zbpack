@@ -4,10 +4,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/moznion/go-optional"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/pkg/plan"
+	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func TestGetNodeVersion_Empty(t *testing.T) {
@@ -436,4 +438,147 @@ func TestGetStaticOutputDir(t *testing.T) {
 
 		assert.Equal(t, "docs/.vitepress/dist", GetStaticOutputDir(ctx))
 	})
+}
+
+func TestGetStartCommand_Entry(t *testing.T) {
+	t.Parallel()
+
+	t.Run("node.js main", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"main": "hello.js"
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "node hello.js", startCmd)
+	})
+
+	t.Run("node.js fallback", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "node index.js", startCmd)
+	})
+
+	t.Run("bun main", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"main": "hello.js"
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			Bun:                true,
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "bun hello.js", startCmd)
+	})
+
+	t.Run("bun fallback", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			Bun:                true,
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "bun index.js", startCmd)
+	})
+
+	t.Run("serverless nitro", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"devDependencies": {
+				"nitropack": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			Framework:          optional.Some(types.NodeProjectFrameworkNitropack),
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "", startCmd)
+
+		// bun
+		ctx.StartCmd = optional.None[string]()
+		ctx.Bun = true
+		startCmd = GetStartCmd(ctx)
+		assert.Equal(t, "", startCmd)
+	})
+
+	nitroBasedFrameworks := []types.NodeProjectFramework{
+		types.NodeProjectFrameworkNuxtJs,
+		types.NodeProjectFrameworkNitropack,
+	}
+
+	for _, framework := range nitroBasedFrameworks {
+		t.Run("nitro-"+string(framework), func(t *testing.T) {
+			t.Run("nodejs", func(t *testing.T) {
+				fs := afero.NewMemMapFs()
+				_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+				ctx := &nodePlanContext{
+					Src:                fs,
+					Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+					ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+					Framework:          optional.Some(framework),
+					Serverless:         optional.Some(false),
+				}
+
+				startCmd := GetStartCmd(ctx)
+				assert.Equal(t, "node .output/server/index.mjs", startCmd)
+			})
+
+			t.Run("bun", func(t *testing.T) {
+				fs := afero.NewMemMapFs()
+				_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+				ctx := &nodePlanContext{
+					Src:                fs,
+					Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+					ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+					Bun:                true,
+					Framework:          optional.Some(framework),
+					Serverless:         optional.Some(false),
+				}
+
+				startCmd := GetStartCmd(ctx)
+				assert.Equal(t, "bun .output/server/index.mjs", startCmd)
+			})
+		})
+	}
 }
