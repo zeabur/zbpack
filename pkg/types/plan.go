@@ -27,6 +27,7 @@ const (
 	PlanTypeStatic PlanType = "static"
 	PlanTypeSwift  PlanType = "swift"
 	PlanTypeDart   PlanType = "dart"
+	PlanTypeNix    PlanType = "nix"
 )
 
 type DartFramework string

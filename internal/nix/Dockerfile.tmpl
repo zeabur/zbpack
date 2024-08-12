@@ -1,0 +1,14 @@
+FROM nixos/nix:latest AS builder
+
+COPY . /build
+WORKDIR /build
+
+RUN nix \
+    --extra-experimental-features "nix-command flakes" \
+    build .#{{ .Package }} \
+	--max-jobs 8
+
+# We will get a "result", which is the built Docker image TAR.
+
+FROM scratch
+COPY --from=builder /build/result/ /

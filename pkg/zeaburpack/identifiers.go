@@ -10,6 +10,7 @@ import (
 	"github.com/zeabur/zbpack/internal/gleam"
 	"github.com/zeabur/zbpack/internal/golang"
 	"github.com/zeabur/zbpack/internal/java"
+	"github.com/zeabur/zbpack/internal/nix"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/python"
@@ -41,10 +42,14 @@ func SupportedIdentifiers(config plan.ImmutableProjectConfiguration) []plan.Iden
 		static.NewIdentifier(),
 	}
 
-	// if ignore_dockerfile in config is true, or ZBPACK_IGNORE_DOCKERFILE is true, ignore dockerfile
-	if plan.Cast(config.Get("ignore_dockerfile"), plan.ToWeakBoolE).TakeOr(false) {
-		return identifiers
+	if !plan.Cast(config.Get("nix.disabled"), plan.ToWeakBoolE).TakeOr(false) {
+		identifiers = append([]plan.Identifier{nix.NewIdentifier()}, identifiers...)
 	}
 
-	return append([]plan.Identifier{dockerfile.NewIdentifier()}, identifiers...)
+	// if ignore_dockerfile in config is true, or ZBPACK_IGNORE_DOCKERFILE is true, ignore dockerfile
+	if !plan.Cast(config.Get("ignore_dockerfile"), plan.ToWeakBoolE).TakeOr(false) {
+		identifiers = append([]plan.Identifier{dockerfile.NewIdentifier()}, identifiers...)
+	}
+
+	return identifiers
 }
