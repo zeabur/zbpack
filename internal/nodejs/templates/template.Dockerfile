@@ -22,10 +22,10 @@ RUN corepack enable
 {{ .InstallCmd }}
 
 {{ if eq .AppDir "" }}COPY . .{{ end }}
-{{ if and (eq .Framework "nuxt.js") .Serverless }}
+{{ if and (or (eq .Framework "nuxt.js") (eq .Framework "nitropack")) .Serverless }}
 ENV NITRO_PRESET=node
 {{ end }}
-{{ if and (eq .Framework "nuxt.js") (not .Serverless) }}
+{{ if and (or (eq .Framework "nuxt.js") (eq .Framework "nitropack")) (not .Serverless) }}
 ENV NITRO_PRESET=node-server
 {{ end }}
 # Build if we can build it

@@ -86,6 +86,7 @@ const (
 	NodeProjectFrameworkVocs             NodeProjectFramework = "vocs"
 	NodeProjectFrameworkRspress          NodeProjectFramework = "rspress"
 	NodeProjectFrameworkGrammY           NodeProjectFramework = "grammy"
+	NodeProjectFrameworkNitropack        NodeProjectFramework = "nitropack"
 )
 
 //revive:enable:exported

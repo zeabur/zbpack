@@ -273,6 +273,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isNitroPack := packageJSON.FindDependency("nitropack"); isNitroPack {
+		*fw = optional.Some(types.NodeProjectFrameworkNitropack)
+		return fw.Unwrap()
+	}
+
 	if _, isWaku := packageJSON.Dependencies["waku"]; isWaku {
 		*fw = optional.Some(types.NodeProjectFrameworkWaku)
 		return fw.Unwrap()
@@ -739,11 +744,13 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	}
 
 	if startScript == "" {
-		if entry != "" {
+		switch {
+		case entry != "":
 			startCmd = "node " + entry
-		} else if framework == types.NodeProjectFrameworkNuxtJs {
+		case framework == types.NodeProjectFrameworkNuxtJs,
+			framework == types.NodeProjectFrameworkNitropack:
 			startCmd = "node .output/server/index.mjs"
-		} else {
+		default:
 			startCmd = "node index.js"
 		}
 	}
@@ -755,11 +762,9 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	// For more information, see the discussion in Discord: Solid.js
 	// https://ptb.discord.com/channels/722131463138705510/
 	// 722131463889223772/1140159307648868382
-	if framework == types.NodeProjectFrameworkSolidStartNode {
-		if startScript == "start" {
-			// solid-start-node specific start script
-			startCmd = "node dist/server.js"
-		}
+	if framework == types.NodeProjectFrameworkSolidStartNode && startScript == "start" {
+		// solid-start-node specific start script
+		startCmd = "node dist/server.js"
 	}
 
 	*cmd = optional.Some(startCmd)
@@ -881,13 +886,14 @@ func getServerless(ctx *nodePlanContext) bool {
 	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs:  true,
-		types.NodeProjectFrameworkNuxtJs:  true,
-		types.NodeProjectFrameworkAstro:   true,
-		types.NodeProjectFrameworkSvelte:  true,
-		types.NodeProjectFrameworkWaku:    true,
-		types.NodeProjectFrameworkAngular: true,
-		types.NodeProjectFrameworkRemix:   true,
+		types.NodeProjectFrameworkNextJs:    true,
+		types.NodeProjectFrameworkNuxtJs:    true,
+		types.NodeProjectFrameworkNitropack: true,
+		types.NodeProjectFrameworkAstro:     true,
+		types.NodeProjectFrameworkSvelte:    true,
+		types.NodeProjectFrameworkWaku:      true,
+		types.NodeProjectFrameworkAngular:   true,
+		types.NodeProjectFrameworkRemix:     true,
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {
