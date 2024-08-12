@@ -1,7 +1,7 @@
 package nix
 
 import (
-	"bytes"
+	"strings"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
@@ -37,8 +37,8 @@ func (i *identify) Match(fs afero.Fs) bool {
 		return false
 	}
 
-	// <dockerTools>.[<buildImage>|<buildLayeredImage>|<streamLayeredImage>]
-	return bytes.Contains(content, []byte("buildImage")) && bytes.Contains(content, []byte("dockerTools"))
+	// <dockerTools>.[<buildImage>|<buildLayeredImage>]
+	return strings.Contains(string(content), "dockerTools") && (strings.Contains(string(content), "buildImage") || strings.Contains(string(content), "buildLayeredImage"))
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
