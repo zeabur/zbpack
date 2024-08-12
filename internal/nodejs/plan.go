@@ -439,9 +439,11 @@ func GetStartScript(ctx *nodePlanContext) string {
 	return ss.Unwrap()
 }
 
-const defaultNodeVersion = "18"
-const maxNodeVersion uint64 = 21
-const maxLtsNodeVersion uint64 = 18
+const (
+	defaultNodeVersion        = "18"
+	maxNodeVersion     uint64 = 21
+	maxLtsNodeVersion  uint64 = 18
+)
 
 func getNodeVersion(versionConstraint string) string {
 	// .nvmrc extensions
@@ -746,7 +748,11 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	if startScript == "" {
 		switch {
 		case entry != "":
-			startCmd = "node " + entry
+			if ctx.Bun {
+				startCmd = "bun " + entry
+			} else {
+				startCmd = "node " + entry
+			}
 		case framework == types.NodeProjectFrameworkNuxtJs,
 			framework == types.NodeProjectFrameworkNitropack:
 			if ctx.Bun {
@@ -755,7 +761,11 @@ func GetStartCmd(ctx *nodePlanContext) string {
 				startCmd = "node .output/server/index.mjs"
 			}
 		default:
-			startCmd = "node index.js"
+			if ctx.Bun {
+				startCmd = "bun index.js"
+			} else {
+				startCmd = "node index.js"
+			}
 		}
 	}
 
