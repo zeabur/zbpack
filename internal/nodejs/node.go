@@ -4,6 +4,7 @@ package nodejs
 import (
 	"bytes"
 	"embed"
+	"strings"
 	"text/template"
 
 	"github.com/zeabur/zbpack/pkg/packer"
@@ -32,6 +33,9 @@ var tmplFs embed.FS
 
 var tmpl = template.Must(
 	template.New("template.Dockerfile").
+		Funcs(template.FuncMap{
+			"prefixed": strings.HasPrefix,
+		}).
 		ParseFS(tmplFs, "templates/*"),
 )
 
