@@ -413,7 +413,7 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNuxtJs) && m["serverless"] == "true" {
+	if (t == types.PlanTypeNodejs || t == types.PlanTypeBun) && (m["framework"] == string(types.NodeProjectFrameworkNuxtJs) || m["framework"] == string(types.NodeProjectFrameworkNitropack)) && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
 		err = nuxtjs.TransformServerless(*opt.Path)
 		if err != nil {

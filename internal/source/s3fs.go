@@ -2,6 +2,7 @@ package source
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,15 @@ import (
 )
 
 var _ afero.Fs = &s3Fs{}
+
+var (
+	// ErrUnimplemented is returned when a method is not implemented.
+	ErrUnimplemented = errors.New("unimplemented")
+	// ErrReadonly is returned when this filesystem is readonly.
+	ErrReadonly = errors.New("readonly")
+	// ErrNotDir is returned when something is not a directory.
+	ErrNotDir = errors.New("not a directory")
+)
 
 // s3Fs is a read-only filesystem abstraction for Amazon S3.
 type s3Fs struct {
@@ -75,7 +85,7 @@ func (fs *s3Fs) OpenFile(name string, flag int, _ os.FileMode) (afero.File, erro
 					info: s3FileInfo{
 						name:  name,
 						size:  0,
-						mode:  os.FileMode(0444) | os.ModeDir,
+						mode:  os.FileMode(0o444) | os.ModeDir,
 						isDir: true,
 					},
 				}, nil
@@ -131,7 +141,7 @@ func (fs *s3Fs) Stat(name string) (os.FileInfo, error) {
 	return s3FileInfo{
 		name:    name,
 		size:    *result.ContentLength,
-		mode:    os.FileMode(0444),
+		mode:    os.FileMode(0o444),
 		modTime: *result.LastModified,
 		isDir:   false, // S3 does not have "directories" but emulates them using keys
 	}, nil
@@ -198,7 +208,7 @@ func (f *s3File) Readdir(count int) ([]os.FileInfo, error) {
 		fileInfos = append(fileInfos, s3FileInfo{
 			name:    strings.TrimPrefix(*obj.Key, prefix),
 			size:    *obj.Size,
-			mode:    os.FileMode(0444),
+			mode:    os.FileMode(0o444),
 			modTime: *obj.LastModified,
 			isDir:   false,
 		})
@@ -209,7 +219,7 @@ func (f *s3File) Readdir(count int) ([]os.FileInfo, error) {
 		fileInfos = append(fileInfos, s3FileInfo{
 			name:  dirName,
 			size:  0,
-			mode:  os.FileMode(0444) | os.ModeDir,
+			mode:  os.FileMode(0o444) | os.ModeDir,
 			isDir: true,
 		})
 	}
@@ -232,6 +242,7 @@ func (f *s3File) Readdirnames(n int) ([]string, error) {
 	}
 	return names, nil
 }
+
 func (f *s3File) Stat() (os.FileInfo, error) {
 	return f.info, nil
 }

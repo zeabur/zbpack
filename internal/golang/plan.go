@@ -2,10 +2,13 @@ package golang
 
 import (
 	"bufio"
+	"os"
 	"path"
+	"strconv"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -21,6 +24,31 @@ type goPlanContext struct {
 	Entry     optional.Option[string]
 
 	Serverless optional.Option[bool]
+}
+
+const (
+	// ConfigCgo indicates if cgo and its toolchains should be enabled.
+	ConfigCgo = "go.cgo"
+)
+
+func getBuildCommand(ctx *goPlanContext) string {
+	if buildCommand, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		return buildCommand
+	}
+
+	return ""
+}
+
+func isCgoEnabled(ctx *goPlanContext) bool {
+	if cgo, err := plan.Cast(ctx.Config.Get(ConfigCgo), cast.ToBoolE).Take(); err == nil && cgo {
+		return true
+	}
+
+	if os.Getenv("CGO_ENABLED") == "1" {
+		return true
+	}
+
+	return false
 }
 
 func getGoVersion(ctx *goPlanContext) string {
@@ -104,6 +132,12 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	entry := getEntry(ctx)
 	meta["entry"] = entry
+
+	if buildCommand := getBuildCommand(ctx); buildCommand != "" {
+		meta["buildCommand"] = buildCommand
+	}
+
+	meta["cgo"] = strconv.FormatBool(isCgoEnabled(ctx))
 
 	serverless := getServerless(ctx)
 	if serverless {

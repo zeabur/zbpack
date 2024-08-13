@@ -9,7 +9,7 @@ import (
 // GenerateDockerfile generates the Dockerfile for Gleam projects.
 func GenerateDockerfile(m types.PlanMeta) (string, error) {
 	if m["serverless"] == "true" {
-		return `FROM ghcr.io/gleam-lang/gleam:v1.0.0-erlang-alpine
+		return `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
 RUN apk add --no-cache elixir
 RUN mix local.hex --force
 RUN mix local.rebar --force
@@ -24,7 +24,7 @@ COPY --from=0 /app /
 `, nil
 	}
 
-	return `FROM ghcr.io/gleam-lang/gleam:v1.0.0-erlang-alpine
+	return `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
 RUN apk add --no-cache elixir
 RUN mix local.hex --force
 RUN mix local.rebar --force
