@@ -18,6 +18,7 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs/remix"
 	"github.com/zeabur/zbpack/internal/nodejs/waku"
 	"github.com/zeabur/zbpack/internal/static"
+	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -418,6 +419,41 @@ func Build(opt *BuildOptions) error {
 		if err != nil {
 			log.Println("Failed to transform serverless: " + err.Error())
 			handleBuildFailed(err)
+			return err
+		}
+	}
+
+	if t == types.PlanTypeGleam && m["serverless"] == "true" {
+		println("Transforming build output to serverless format ...")
+
+		funcPath := path.Join(*opt.Path, ".zeabur/output/functions/__erl.func")
+		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), funcPath)
+		if err != nil {
+			println("Failed to copy serverless function: " + err.Error())
+		}
+
+		content, err := os.ReadFile(path.Join(*opt.Path, ".zeabur/output/functions/__erl.func/entrypoint.sh"))
+		if err != nil {
+			handleLog("Failed to read entrypoint.sh: " + err.Error())
+		}
+
+		entry := utils.ExtractErlangEntryFromGleamEntrypointShell(string(content))
+		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "erlang27", Entry: entry}
+
+		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__erl.func"))
+		if err != nil {
+			handleLog("Failed to write function config to \".zeabur/output/functions/__py.func\": " + err.Error())
+		}
+
+		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__erl"}}}
+
+		configBytes, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		if err != nil {
 			return err
 		}
 	}
