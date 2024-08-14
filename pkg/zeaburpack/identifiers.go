@@ -42,7 +42,7 @@ func SupportedIdentifiers(config plan.ImmutableProjectConfiguration) []plan.Iden
 		static.NewIdentifier(),
 	}
 
-	if !plan.Cast(config.Get("nix.disabled"), plan.ToWeakBoolE).TakeOr(false) {
+	if !plan.Cast(config.Get("ignore_nix"), plan.ToWeakBoolE).TakeOr(false) {
 		identifiers = append([]plan.Identifier{nix.NewIdentifier()}, identifiers...)
 	}
 
