@@ -209,8 +209,7 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 	if _, isSolid := packageJSON.FindDependency("@solidjs/start"); isSolid {
-		// v1.0+. Nitro-based.
-		*fw = optional.Some(types.NodeProjectFrameworkSolidStartV1)
+		*fw = optional.Some(types.NodeProjectFrameworkSolidStartVinxi)
 		return fw.Unwrap()
 	}
 

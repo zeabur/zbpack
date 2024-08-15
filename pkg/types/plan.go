@@ -82,7 +82,7 @@ const (
 	NodeProjectFrameworkSliDev           NodeProjectFramework = "sli.dev"
 	NodeProjectFrameworkDocusaurus       NodeProjectFramework = "docusaurus"
 	NodeProjectFrameworkSolidStart       NodeProjectFramework = "solid-start"
-	NodeProjectFrameworkSolidStartV1     NodeProjectFramework = "solid-start-v1"
+	NodeProjectFrameworkSolidStartVinxi  NodeProjectFramework = "solid-start-vinxi"
 	NodeProjectFrameworkSolidStartNode   NodeProjectFramework = "solid-start-node"
 	NodeProjectFrameworkSolidStartStatic NodeProjectFramework = "solid-start-static"
 	NodeProjectFrameworkNueJs            NodeProjectFramework = "nuejs"
@@ -95,7 +95,7 @@ const (
 var NitroBasedFrameworks = []NodeProjectFramework{
 	NodeProjectFrameworkNuxtJs,
 	NodeProjectFrameworkNitropack,
-	NodeProjectFrameworkSolidStartV1,
+	NodeProjectFrameworkSolidStartVinxi,
 }
 
 func IsNitroBasedFramework(framework string) bool {
