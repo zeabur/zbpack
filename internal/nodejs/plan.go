@@ -904,14 +904,15 @@ func getServerless(ctx *nodePlanContext) bool {
 	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs:    true,
-		types.NodeProjectFrameworkNuxtJs:    true,
-		types.NodeProjectFrameworkNitropack: true,
-		types.NodeProjectFrameworkAstro:     true,
-		types.NodeProjectFrameworkSvelte:    true,
-		types.NodeProjectFrameworkWaku:      true,
-		types.NodeProjectFrameworkAngular:   true,
-		types.NodeProjectFrameworkRemix:     true,
+		types.NodeProjectFrameworkNextJs:  true,
+		types.NodeProjectFrameworkAstro:   true,
+		types.NodeProjectFrameworkSvelte:  true,
+		types.NodeProjectFrameworkWaku:    true,
+		types.NodeProjectFrameworkAngular: true,
+		types.NodeProjectFrameworkRemix:   true,
+	}
+	for _, framework := range types.NitroBasedFrameworks {
+		defaultServerless[framework] = true
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {
