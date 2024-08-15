@@ -172,6 +172,7 @@ func TestTemplate_NitroPreset(t *testing.T) {
 				result, err := ctx.Execute()
 				assert.NoError(t, err)
 				assert.Contains(t, result, "ENV NITRO_PRESET=node-server")
+				assert.Contains(t, result, "ENV HOST=0.0.0.0")
 			})
 
 			t.Run("bun", func(t *testing.T) {
@@ -189,6 +190,7 @@ func TestTemplate_NitroPreset(t *testing.T) {
 				result, err := ctx.Execute()
 				assert.NoError(t, err)
 				assert.Contains(t, result, "ENV NITRO_PRESET=bun")
+				assert.Contains(t, result, "ENV HOST=0.0.0.0")
 			})
 
 			t.Run("node", func(t *testing.T) {

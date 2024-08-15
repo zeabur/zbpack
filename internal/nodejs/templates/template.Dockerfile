@@ -27,8 +27,10 @@ RUN corepack enable
 ENV NITRO_PRESET=node
 {{ else if and (not .Serverless) (prefixed .StartCmd "bun") }}
 ENV NITRO_PRESET=bun
+ENV HOST=0.0.0.0
 {{ else }}
 ENV NITRO_PRESET=node-server
+ENV HOST=0.0.0.0
 {{ end }}
 {{ end }}
 # Build if we can build it
