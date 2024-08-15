@@ -37,6 +37,10 @@ RUN mvn clean dependency:list install -Dmaven.test.skip=true
 WORKDIR /src
 COPY . .
 RUN gradle build -x test
+
+FROM ` + baseImage + `
+WORKDIR /src
+COPY --from=0 /src/build /src/build
 `
 	}
 
