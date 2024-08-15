@@ -208,6 +208,10 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		*fw = optional.Some(types.NodeProjectFrameworkSolidStart)
 		return fw.Unwrap()
 	}
+	if _, isSolid := packageJSON.FindDependency("@solidjs/start"); isSolid {
+		*fw = optional.Some(types.NodeProjectFrameworkSolidStartVinxi)
+		return fw.Unwrap()
+	}
 
 	if _, isSliDev := packageJSON.Dependencies["@slidev/cli"]; isSliDev {
 		*fw = optional.Some(types.NodeProjectFrameworkSliDev)
@@ -753,8 +757,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			} else {
 				startCmd = "node " + entry
 			}
-		case framework == types.NodeProjectFrameworkNuxtJs,
-			framework == types.NodeProjectFrameworkNitropack:
+		case types.IsNitroBasedFramework(string(framework)):
 			if ctx.Bun {
 				startCmd = "bun .output/server/index.mjs"
 			} else {
@@ -900,14 +903,15 @@ func getServerless(ctx *nodePlanContext) bool {
 	framework := DetermineAppFramework(ctx)
 
 	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs:    true,
-		types.NodeProjectFrameworkNuxtJs:    true,
-		types.NodeProjectFrameworkNitropack: true,
-		types.NodeProjectFrameworkAstro:     true,
-		types.NodeProjectFrameworkSvelte:    true,
-		types.NodeProjectFrameworkWaku:      true,
-		types.NodeProjectFrameworkAngular:   true,
-		types.NodeProjectFrameworkRemix:     true,
+		types.NodeProjectFrameworkNextJs:  true,
+		types.NodeProjectFrameworkAstro:   true,
+		types.NodeProjectFrameworkSvelte:  true,
+		types.NodeProjectFrameworkWaku:    true,
+		types.NodeProjectFrameworkAngular: true,
+		types.NodeProjectFrameworkRemix:   true,
+	}
+	for _, framework := range types.NitroBasedFrameworks {
+		defaultServerless[framework] = true
 	}
 
 	if serverless, ok := defaultServerless[framework]; ok {

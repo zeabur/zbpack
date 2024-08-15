@@ -35,6 +35,7 @@ var tmpl = template.Must(
 	template.New("template.Dockerfile").
 		Funcs(template.FuncMap{
 			"prefixed": strings.HasPrefix,
+			"isNitro":  types.IsNitroBasedFramework,
 		}).
 		ParseFS(tmplFs, "templates/*"),
 )

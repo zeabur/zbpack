@@ -540,12 +540,7 @@ func TestGetStartCommand_Entry(t *testing.T) {
 		assert.Equal(t, "", startCmd)
 	})
 
-	nitroBasedFrameworks := []types.NodeProjectFramework{
-		types.NodeProjectFrameworkNuxtJs,
-		types.NodeProjectFrameworkNitropack,
-	}
-
-	for _, framework := range nitroBasedFrameworks {
+	for _, framework := range types.NitroBasedFrameworks {
 		t.Run("nitro-"+string(framework), func(t *testing.T) {
 			t.Run("nodejs", func(t *testing.T) {
 				fs := afero.NewMemMapFs()
@@ -581,4 +576,38 @@ func TestGetStartCommand_Entry(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestGetServerless(t *testing.T) {
+	t.Parallel()
+
+	for _, nitroFramework := range types.NitroBasedFrameworks {
+		t.Run("nitro-"+string(nitroFramework), func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+			ctx := &nodePlanContext{
+				Src:                fs,
+				Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+				ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+				Framework:          optional.Some(nitroFramework),
+			}
+
+			assert.True(t, getServerless(ctx))
+		})
+	}
+
+	t.Run("unknown", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			Framework:          optional.Some[types.NodeProjectFramework](""),
+		}
+
+		assert.False(t, getServerless(ctx))
+	})
 }
