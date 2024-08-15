@@ -753,8 +753,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			} else {
 				startCmd = "node " + entry
 			}
-		case framework == types.NodeProjectFrameworkNuxtJs,
-			framework == types.NodeProjectFrameworkNitropack:
+		case types.IsNitroBasedFramework(string(framework)):
 			if ctx.Bun {
 				startCmd = "bun .output/server/index.mjs"
 			} else {

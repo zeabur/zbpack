@@ -1,6 +1,8 @@
 // Package types is the type definitions for the build plan in Zbpack.
 package types
 
+import "slices"
+
 // PlanType is primary category of the build plan.
 // For example, the programing language or the runtime.
 type PlanType string
@@ -80,6 +82,7 @@ const (
 	NodeProjectFrameworkSliDev           NodeProjectFramework = "sli.dev"
 	NodeProjectFrameworkDocusaurus       NodeProjectFramework = "docusaurus"
 	NodeProjectFrameworkSolidStart       NodeProjectFramework = "solid-start"
+	NodeProjectFrameworkSolidStartV1     NodeProjectFramework = "solid-start-v1"
 	NodeProjectFrameworkSolidStartNode   NodeProjectFramework = "solid-start-node"
 	NodeProjectFrameworkSolidStartStatic NodeProjectFramework = "solid-start-static"
 	NodeProjectFrameworkNueJs            NodeProjectFramework = "nuejs"
@@ -88,6 +91,18 @@ const (
 	NodeProjectFrameworkGrammY           NodeProjectFramework = "grammy"
 	NodeProjectFrameworkNitropack        NodeProjectFramework = "nitropack"
 )
+
+var NitroBasedFrameworks = []NodeProjectFramework{
+	NodeProjectFrameworkNuxtJs,
+	NodeProjectFrameworkNitropack,
+	NodeProjectFrameworkSolidStartV1,
+}
+
+func IsNitroBasedFramework(framework string) bool {
+	return slices.ContainsFunc(NitroBasedFrameworks, func(f NodeProjectFramework) bool {
+		return string(f) == framework
+	})
+}
 
 //revive:enable:exported
 
