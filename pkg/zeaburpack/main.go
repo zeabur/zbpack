@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/codeclysm/extract/v3"
@@ -263,6 +265,33 @@ func Build(opt *BuildOptions) error {
 		if err != nil {
 			println("Failed to copy .zeabur directory from the output: " + err.Error())
 		}
+	}
+
+	if t == types.PlanTypeNix {
+		dockerTarName := filepath.Join(dockerBuildOutput, "result")
+
+		if !opt.PushImage {
+			// SAFE: zbpack are managed by ourselves. Besides,
+			// macOS does not contain policy.json by default.
+			skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTarName, "docker-daemon:"+*opt.ResultImage+":latest")
+			skopeoCmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
+			skopeoCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+			if err := skopeoCmd.Run(); err != nil {
+				return fmt.Errorf("run skopeo copy: %w", err)
+			}
+		} else {
+			// SAFE: zbpack are managed by ourselves. Besides,
+			// macOS does not contain policy.json by default.
+			skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTarName, "docker://"+*opt.ResultImage)
+			skopeoCmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
+			skopeoCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+			if err := skopeoCmd.Run(); err != nil {
+				return fmt.Errorf("run skopeo copy: %w", err)
+			}
+		}
+
+		// remove the TAR since we have imported it
+		_ = os.Remove(dockerTarName)
 	}
 
 	if t == types.PlanTypeGo && m["serverless"] == "true" {

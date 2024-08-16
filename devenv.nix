@@ -4,7 +4,7 @@
   # https://devenv.sh/basics/
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.buildkit pkgs.gomod2nix pkgs.golangci-lint ];
+  packages = [ pkgs.buildkit pkgs.skopeo pkgs.gomod2nix pkgs.golangci-lint ];
 
   # https://devenv.sh/scripts/
 

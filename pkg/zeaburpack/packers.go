@@ -10,6 +10,7 @@ import (
 	"github.com/zeabur/zbpack/internal/gleam"
 	"github.com/zeabur/zbpack/internal/golang"
 	"github.com/zeabur/zbpack/internal/java"
+	"github.com/zeabur/zbpack/internal/nix"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/php"
 	"github.com/zeabur/zbpack/internal/python"
@@ -23,6 +24,7 @@ import (
 // SupportedPackers returns all supported identifiers
 func SupportedPackers() []packer.Packer {
 	return []packer.Packer{
+		nix.NewPacker(),
 		dockerfile.NewPacker(),
 		dart.NewPacker(),
 		php.NewPacker(),
