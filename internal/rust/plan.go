@@ -30,6 +30,10 @@ const ConfigRustAppDir = "rust.app_dir"
 // The assets will be copied to the root of the application.
 const ConfigRustAssets = "rust.assets"
 
+// ConfigPreStartCommand is the key for the command before `CMD`.
+// Useful for installing dependencies for runtime.
+const ConfigPreStartCommand = "pre_start_command"
+
 type rustPlanContext struct {
 	Src           afero.Fs
 	Config        plan.ImmutableProjectConfiguration
@@ -115,6 +119,18 @@ func needOpenssl(source afero.Fs) bool {
 	return false
 }
 
+func getBuildCommand(ctx *rustPlanContext) string {
+	return plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).TakeOr("")
+}
+
+func getStartCommand(ctx *rustPlanContext) string {
+	return plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).TakeOr("")
+}
+
+func getPreStartCommand(ctx *rustPlanContext) string {
+	return plan.Cast(ctx.Config.Get(ConfigPreStartCommand), cast.ToStringE).TakeOr("")
+}
+
 // GetMeta gets the metadata of the Rust project.
 func GetMeta(options GetMetaOptions) types.PlanMeta {
 	ctx := &rustPlanContext{
@@ -129,7 +145,10 @@ func GetMeta(options GetMetaOptions) types.PlanMeta {
 		"entry":      getEntry(ctx),
 		"appDir":     getAppDir(ctx),
 		// assets/1:assets/2:...
-		"assets": strings.Join(getAssets(ctx), ":"),
+		"assets":          strings.Join(getAssets(ctx), ":"),
+		"buildCommand":    getBuildCommand(ctx),
+		"startCommand":    getStartCommand(ctx),
+		"preStartCommand": getPreStartCommand(ctx),
 	}
 
 	return meta

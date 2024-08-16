@@ -22,6 +22,10 @@ type TemplateContext struct {
 	Entry      string
 	AppDir     string
 	Assets     []string
+
+	BuildCommand    string
+	StartCommand    string
+	PreStartCommand string
 }
 
 // GenerateDockerfile generates the Dockerfile for the Rust project.
@@ -31,11 +35,14 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	)
 
 	context := TemplateContext{
-		OpenSSL:    meta["openssl"] == "true",
-		Serverless: meta["serverless"] == "true",
-		Entry:      meta["entry"],
-		AppDir:     meta["appDir"],
-		Assets:     strings.FieldsFunc(meta["assets"], func(r rune) bool { return r == ':' }),
+		OpenSSL:         meta["openssl"] == "true",
+		Serverless:      meta["serverless"] == "true",
+		Entry:           meta["entry"],
+		AppDir:          meta["appDir"],
+		Assets:          strings.FieldsFunc(meta["assets"], func(r rune) bool { return r == ':' }),
+		BuildCommand:    meta["buildCommand"],
+		StartCommand:    meta["startCommand"],
+		PreStartCommand: meta["preStartCommand"],
 	}
 
 	var result bytes.Buffer

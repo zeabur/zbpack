@@ -3,6 +3,10 @@ FROM rust:1 AS builder
 WORKDIR /app
 COPY . /app
 
+{{ if ne .BuildCommand "" }}
+RUN {{ .BuildCommand }}
+{{ end }}
+
 # output to /out/bin
 RUN mkdir /out && cargo install --path "{{ .AppDir }}" --root /out
 
@@ -37,7 +41,15 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 {{ end }}
 
+{{ if ne .PreStartCommand "" }}
+RUN {{ .PreStartCommand }}
+{{ end }}
+
 COPY --from=post-builder /app /app
+{{ if ne .StartCommand "" }}
+CMD {{ .StartCommand }}
+{{ else }}
 CMD ["/app/main"]
+{{ end }}
 
 {{ end }}
