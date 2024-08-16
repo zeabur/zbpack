@@ -1,8 +1,11 @@
 package rust_test
 
 import (
+	"slices"
+	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/internal/rust"
 )
@@ -182,4 +185,36 @@ func TestGenerateDockerfile_Entry(t *testing.T) {
 		assert.Contains(t, dockerfile, `if [ -x "configured" ]; then`)
 		assert.Contains(t, dockerfile, `mv "configured" /app/main`)
 	})
+}
+
+func TestGenerateDockerfile_Commands(t *testing.T) {
+	meta := map[string]string{
+		"openssl":         "false",
+		"serverless":      "false",
+		"entry":           "entry",
+		"appDir":          ".",
+		"assets":          "assets",
+		"buildCommand":    "echo build",
+		"startCommand":    "echo start",
+		"preStartCommand": "echo prestart",
+	}
+
+	dockerfile, err := rust.GenerateDockerfile(meta)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	lines := lo.Filter(strings.Split(dockerfile, "\n"), func(s string, _ int) bool {
+		return s != ""
+	})
+
+	builderLine := slices.Index(lines, "FROM rust:1 AS builder")
+	buildCommandLine := slices.Index(lines, "RUN echo build")
+	runtimeLine := slices.Index(lines, "FROM rust:1-slim AS runtime")
+	preStartCommandLine := slices.Index(lines, "RUN echo prestart")
+	startCommandLine := slices.Index(lines, "CMD echo start")
+
+	assert.Greater(t, buildCommandLine, builderLine)
+	assert.Greater(t, preStartCommandLine, runtimeLine)
+	assert.Greater(t, startCommandLine, preStartCommandLine)
 }

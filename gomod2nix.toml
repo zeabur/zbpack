@@ -134,8 +134,8 @@ schema = 3
     version = "v1.11.0"
     hash = "sha256-+rV3cDZr13N8E0rJ7iHmwsKYKH+EhV+IXBut+JbBiIE="
   [mod."github.com/spf13/cast"]
-    version = "v1.6.0"
-    hash = "sha256-hxioqRZfXE0AE5099wmn3YG0AZF8Wda2EB4c7zHF6zI="
+    version = "v1.7.0"
+    hash = "sha256-xO2kSmNmMHaJ1i3T0ou0pcaBCusuO6Ep3xtF1P7ZadA="
   [mod."github.com/spf13/cobra"]
     version = "v1.8.1"
     hash = "sha256-yDF6yAHycV1IZOrt3/hofR+QINe+B2yqkcIaVov3Ky8="
@@ -176,14 +176,14 @@ schema = 3
     version = "v0.0.0-20240112132812-db7319d0e0e3"
     hash = "sha256-7fKt9/+xQDQOtrsAWd3+qcUtcZSgKhHNWGu4f6lNyyQ="
   [mod."golang.org/x/sync"]
-    version = "v0.7.0"
-    hash = "sha256-2ETllEu2GDWoOd/yMkOkLC2hWBpKzbVZ8LhjLu0d2A8="
+    version = "v0.8.0"
+    hash = "sha256-usvF0z7gq1vsX58p4orX+8WHlv52pdXgaueXlwj2Wss="
   [mod."golang.org/x/sys"]
     version = "v0.21.0"
     hash = "sha256-gapzPWuEqY36V6W2YhIDYR49sEvjJRd7bSuf9K1f4JY="
   [mod."golang.org/x/text"]
-    version = "v0.16.0"
-    hash = "sha256-hMTO45upjEuA4sJzGplJT+La2n3oAfHccfYWZuHcH+8="
+    version = "v0.17.0"
+    hash = "sha256-R8JbsP7KX+KFTHH7SjRnUGCdvtagylVOfngWEnVSqBc="
   [mod."golang.org/x/xerrors"]
     version = "v0.0.0-20231012003039-104605ab7028"
     hash = "sha256-IsFTm5WZQ6W1ZDF8WOP+6xiOAc7pIq8r9Afvkjp3PRQ="
