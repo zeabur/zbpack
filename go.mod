@@ -72,7 +72,7 @@ require (
 	github.com/moznion/go-optional v0.12.0
 	github.com/otiai10/copy v1.14.0
 	github.com/pan93412/envexpander v1.1.0
-	github.com/samber/lo v1.46.0
+	github.com/samber/lo v1.47.0
 	github.com/samber/mo v1.13.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
