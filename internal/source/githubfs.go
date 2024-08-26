@@ -2,10 +2,10 @@ package source
 
 import (
 	"archive/tar"
-	"bytes"
 	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/google/go-github/v63/github"
@@ -48,6 +48,8 @@ func NewGitHubFs(repoOwner, repoName, token string, options ...GitHubFsOption) (
 	return fs, nil
 }
 
+const tarFileSizeLimit = 1024 * 1024 * 1024 /* 1 GiB */
+
 func getRefTarballFs(owner, name, ref string, token string) (afero.Fs, error) {
 	githubClient := github.NewClient(nil).WithAuthToken(token)
 
@@ -66,13 +68,10 @@ func getRefTarballFs(owner, name, ref string, token string) (afero.Fs, error) {
 		_ = tarContent.Body.Close()
 	}()
 
-	// move tar content to memory
-	buffer := &bytes.Buffer{}
-	if _, err := buffer.ReadFrom(tarContent.Body); err != nil {
-		return nil, fmt.Errorf("read from tar content: %w", err)
-	}
+	// FIXME: Hint users when the repo is too large.
+	lr := io.LimitReader(tarContent.Body, tarFileSizeLimit)
 
-	gzipReader, err := gzip.NewReader(buffer)
+	gzipReader, err := gzip.NewReader(lr)
 	if err != nil {
 		return nil, fmt.Errorf("new gzip reader: %w", err)
 	}
