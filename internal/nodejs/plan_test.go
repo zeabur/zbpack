@@ -438,6 +438,28 @@ func TestGetStaticOutputDir(t *testing.T) {
 
 		assert.Equal(t, "docs/.vitepress/dist", GetStaticOutputDir(ctx))
 	})
+
+	t.Run("vitepress, monorepo", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+		_ = afero.WriteFile(fs, "pnpm-workspace.yaml", []byte(`packages: [packages/*]`), 0o644)
+		_ = afero.WriteFile(fs, "packages/docs/package.json", []byte(`{
+			"scripts": {
+				"build": "pnpm -C ../ run build && vitepress build"
+			},
+			"devDependencies": {
+				"vitepress": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		assert.Equal(t, ".vitepress/dist", GetStaticOutputDir(ctx))
+	})
 }
 
 func TestGetStartCommand_Entry(t *testing.T) {

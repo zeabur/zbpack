@@ -850,10 +850,13 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		buildCommand := ctx.GetAppPackageJSON().Scripts[buildScriptName]
 
 		// Extract the outdir from the build script.
-		if outDir, ok := strings.CutPrefix(buildCommand, "vitepress build"); ok {
-			docsRoot := strings.TrimSpace(outDir)
-			*dir = optional.Some(filepath.Join(docsRoot, ".vitepress", "dist"))
-			return dir.Unwrap()
+		for _, buildCommandChunks := range strings.Split(buildCommand, "&&") {
+			buildCommandChunks = strings.TrimSpace(buildCommandChunks)
+			if outDir, ok := strings.CutPrefix(buildCommandChunks, "vitepress build"); ok {
+				docsRoot := strings.TrimSpace(outDir)
+				*dir = optional.Some(filepath.Join(docsRoot, ".vitepress", "dist"))
+				return dir.Unwrap()
+			}
 		}
 	}
 
