@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pan93412/envexpander"
+	"github.com/pan93412/envexpander/v3"
 	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -46,7 +46,7 @@ var ServerlessTarPath = filepath.Join(
 
 func buildImage(opt *buildImageOptions) error {
 	// resolve env variable statically and don't depend on Dockerfile's order
-	resolvedVars := envexpander.ResolveEnvVariable(opt.UserVars)
+	resolvedVars := envexpander.Expand(opt.UserVars)
 
 	refConstructor := newReferenceConstructor(opt.ProxyRegistry)
 	lines := strings.Split(opt.Dockerfile, "\n")

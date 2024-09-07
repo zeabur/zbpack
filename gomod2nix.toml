@@ -103,9 +103,9 @@ schema = 3
   [mod."github.com/otiai10/copy"]
     version = "v1.14.0"
     hash = "sha256-xsaL1ddkPS544y0Jv7u/INUALBYmYq29ddWvysLXk4A="
-  [mod."github.com/pan93412/envexpander"]
-    version = "v1.1.0"
-    hash = "sha256-xHQYC0gxv8m1sCh+felnbj3VprwUPYWRz9EyNb8EDnA="
+  [mod."github.com/pan93412/envexpander/v3"]
+    version = "v3.0.0"
+    hash = "sha256-k/ASXsh/jVp6g65TJsocIxkjb16+LbIDMpNxA3G0P88="
   [mod."github.com/pelletier/go-toml/v2"]
     version = "v2.2.2"
     hash = "sha256-ukxk1Cfm6cQW18g/aa19tLcUu5BnF7VmfAvrDHAOl6A="
