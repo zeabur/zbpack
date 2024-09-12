@@ -11,14 +11,14 @@ import (
 	"github.com/zeabur/zbpack/internal/source"
 )
 
-func getGithubToken(t *testing.T) string {
+func getGithubToken(t *testing.T) *string {
 	token, ok := os.LookupEnv("GITHUB_TOKEN")
 
 	if !ok {
 		t.Skip("no token (GITHUB_TOKEN) provided: skipping GitHub tests")
 	}
 
-	return token
+	return &token
 }
 
 func TestGitHubFsOpen_File(t *testing.T) {

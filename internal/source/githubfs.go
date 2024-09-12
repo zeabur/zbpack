@@ -30,7 +30,7 @@ func GitHubRef(ref string) GitHubFsOption {
 }
 
 // NewGitHubFs creates a new github filesystem.
-func NewGitHubFs(repoOwner, repoName, token string, options ...GitHubFsOption) (afero.Fs, error) {
+func NewGitHubFs(repoOwner, repoName string, token *string, options ...GitHubFsOption) (afero.Fs, error) {
 	fsOptions := &githubFsOptions{
 		owner: repoOwner,
 		name:  repoName,
@@ -50,8 +50,11 @@ func NewGitHubFs(repoOwner, repoName, token string, options ...GitHubFsOption) (
 
 const tarFileSizeLimit = 1024 * 1024 * 1024 /* 1 GiB */
 
-func getRefTarballFs(owner, name, ref string, token string) (afero.Fs, error) {
-	githubClient := github.NewClient(nil).WithAuthToken(token)
+func getRefTarballFs(owner, name, ref string, token *string) (afero.Fs, error) {
+	githubClient := github.NewClient(nil)
+	if token != nil {
+		githubClient = githubClient.WithAuthToken(*token)
+	}
 
 	repo, _, err := githubClient.Repositories.GetArchiveLink(context.Background(), owner, name, github.Tarball, &github.RepositoryContentGetOptions{
 		Ref: ref,

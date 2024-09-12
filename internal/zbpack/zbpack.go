@@ -131,16 +131,17 @@ func plan(path string) error {
 
 	log.Printf("using submoduleName: %s", submoduleName)
 
-	githubToken := os.Getenv("GITHUB_ACCESS_TOKEN")
-	if strings.HasPrefix(path, "https://github.com") && githubToken == "" {
-		return fmt.Errorf("GITHUB_ACCESS_TOKEN is required for GitHub URL")
+	var githubToken *string
+	githubTokenStr := os.Getenv("GITHUB_ACCESS_TOKEN")
+	if githubTokenStr != "" {
+		githubToken = &githubTokenStr
 	}
 
 	t, m := zeaburpack.Plan(
 		zeaburpack.PlanOptions{
 			SubmoduleName: &submoduleName,
 			Path:          &path,
-			AccessToken:   &githubToken,
+			AccessToken:   githubToken,
 		},
 	)
 
@@ -158,16 +159,18 @@ func PlanAndOutputDockerfile(path string) error {
 
 	log.Printf("using submoduleName: %s", submoduleName)
 
-	githubToken := os.Getenv("GITHUB_ACCESS_TOKEN")
-	if strings.HasPrefix(path, "https://github.com") && githubToken == "" {
-		return fmt.Errorf("GITHUB_ACCESS_TOKEN is required for GitHub URL")
+	var githubToken *string
+	githubTokenStr := os.Getenv("GITHUB_ACCESS_TOKEN")
+	if githubTokenStr != "" {
+		githubToken = &githubTokenStr
 	}
+
 	// Plan and output Dockerfile
 	return zeaburpack.PlanAndOutputDockerfile(
 		zeaburpack.PlanOptions{
 			SubmoduleName: &submoduleName,
 			Path:          &path,
-			AccessToken:   &githubToken,
+			AccessToken:   githubToken,
 		},
 	)
 }

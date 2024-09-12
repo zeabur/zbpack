@@ -60,7 +60,7 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	var src afero.Fs
 	if strings.HasPrefix(*opt.Path, "https://github.com") {
 		var err error
-		src, err = getGitHubSourceFromURL(*opt.Path, *opt.AccessToken)
+		src, err = getGitHubSourceFromURL(*opt.Path, opt.AccessToken)
 		if err != nil {
 			log.Printf("unexpected github source: %v\n", err)
 			return types.PlanTypeStatic, types.PlanMeta{"error": "unexpected github source", "details": err.Error()}
