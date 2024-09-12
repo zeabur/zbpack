@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -71,20 +72,12 @@ func getRefZipFs(owner, name, ref string, token *string) (afero.Fs, error) {
 		_ = content.Body.Close()
 	}()
 
-	zipballStreamReader := io.LimitReader(content.Body, zipFileSizeLimit+1)
-
-	buf := new(bytes.Buffer)
-	n, err := buf.ReadFrom(zipballStreamReader)
+	b, n, err := ReadLimited(content.Body, zipFileSizeLimit+1)
 	if err != nil {
-		return nil, fmt.Errorf("read tarball: %w", err)
-	}
-	if n > zipFileSizeLimit {
-		return nil, fmt.Errorf("repo is too large; limit is %f GiB", float64(zipFileSizeLimit)/1024/1024)
+		return nil, fmt.Errorf("read from GitHub response: %w", err)
 	}
 
-	zipballReadAtReader := bytes.NewReader(buf.Bytes())
-
-	zipReader, err := zip.NewReader(zipballReadAtReader, n)
+	zipReader, err := zip.NewReader(bytes.NewReader(b), n)
 	if err != nil {
 		return nil, fmt.Errorf("new zip reader: %w", err)
 	}
@@ -97,4 +90,23 @@ func getRefZipFs(owner, name, ref string, token *string) (afero.Fs, error) {
 	}
 
 	return fs, nil
+}
+
+// ErrOverSized is the error when the reader exceeds the limit.
+var ErrOverSized = errors.New("oversized reader")
+
+// ReadLimited reads from r until limit bytes or EOF, whichever comes first.
+// If the limit is exceeded, it returns an error.
+//
+// It returns the content read, the number of bytes read, and any error occurred.
+func ReadLimited(r io.Reader, limit int) (content []byte, n int64, err error) {
+	buf := new(bytes.Buffer)
+	n, err = buf.ReadFrom(io.LimitReader(r, int64(limit)+1))
+	if err != nil {
+		return nil, n, err
+	}
+	if n > int64(limit) {
+		return nil, n, ErrOverSized
+	}
+	return buf.Bytes(), n, nil
 }

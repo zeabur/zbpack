@@ -73,6 +73,14 @@ func TestGitHubFsOpen_Dir(t *testing.T) {
 	}
 }
 
+func TestGitHubFsOpen_WithoutToken(t *testing.T) {
+	// prevent rate limiting
+	_ = getGithubToken(t)
+
+	_, err := source.NewGitHubFs("zeabur", "zeabur", nil)
+	assert.NoError(t, err)
+}
+
 func TestGitHubFsOpenFile_WithWriteFlag(t *testing.T) {
 	token := getGithubToken(t)
 
@@ -161,4 +169,24 @@ func TestGitHubFsOpen_Dir_Ref(t *testing.T) {
 	for _, fi := range fileInfo {
 		t.Log(fi.Name())
 	}
+}
+
+func TestReadLimited(t *testing.T) {
+	t.Parallel()
+
+	t.Run("not oversized", func(t *testing.T) {
+		r := strings.NewReader("hello, world")
+
+		b, n, err := source.ReadLimited(r, 1024)
+		require.NoError(t, err)
+		assert.Equal(t, int64(12), n)
+		assert.Equal(t, "hello, world", string(b))
+	})
+
+	t.Run("oversized", func(t *testing.T) {
+		r := strings.NewReader(strings.Repeat("a", 1025))
+
+		_, _, err := source.ReadLimited(r, 1024)
+		assert.ErrorIs(t, err, source.ErrOverSized)
+	})
 }
