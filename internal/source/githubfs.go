@@ -1,8 +1,8 @@
 package source
 
 import (
-	"archive/tar"
-	"compress/gzip"
+	"archive/zip"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-github/v63/github"
 	"github.com/spf13/afero"
-	"github.com/spf13/afero/tarfs"
+	"github.com/spf13/afero/zipfs"
 )
 
 type githubFsOptions struct {
@@ -40,7 +40,7 @@ func NewGitHubFs(repoOwner, repoName string, token *string, options ...GitHubFsO
 		opt(fsOptions)
 	}
 
-	fs, err := getRefTarballFs(fsOptions.owner, fsOptions.name, fsOptions.ref, token)
+	fs, err := getRefZipFs(fsOptions.owner, fsOptions.name, fsOptions.ref, token)
 	if err != nil {
 		return nil, fmt.Errorf("get ref tarball fs: %w", err)
 	}
@@ -48,43 +48,52 @@ func NewGitHubFs(repoOwner, repoName string, token *string, options ...GitHubFsO
 	return fs, nil
 }
 
-const tarFileSizeLimit = 1024 * 1024 * 1024 /* 1 GiB */
+const zipFileSizeLimit = 1024 * 1024 * 1024 /* 1 GiB */
 
-func getRefTarballFs(owner, name, ref string, token *string) (afero.Fs, error) {
+func getRefZipFs(owner, name, ref string, token *string) (afero.Fs, error) {
 	githubClient := github.NewClient(nil)
 	if token != nil {
 		githubClient = githubClient.WithAuthToken(*token)
 	}
 
-	repo, _, err := githubClient.Repositories.GetArchiveLink(context.Background(), owner, name, github.Tarball, &github.RepositoryContentGetOptions{
+	repo, _, err := githubClient.Repositories.GetArchiveLink(context.Background(), owner, name, github.Zipball, &github.RepositoryContentGetOptions{
 		Ref: ref,
 	}, 1)
 	if err != nil {
 		return nil, fmt.Errorf("get archive link: %w", err)
 	}
 
-	tarContent, err := githubClient.Client().Get(repo.String())
+	content, err := githubClient.Client().Get(repo.String())
 	if err != nil {
 		return nil, fmt.Errorf("get tarball: %w", err)
 	}
 	defer func() {
-		_ = tarContent.Body.Close()
+		_ = content.Body.Close()
 	}()
 
-	// FIXME: Hint users when the repo is too large.
-	lr := io.LimitReader(tarContent.Body, tarFileSizeLimit)
+	zipballStreamReader := io.LimitReader(content.Body, zipFileSizeLimit+1)
 
-	gzipReader, err := gzip.NewReader(lr)
+	buf := new(bytes.Buffer)
+	n, err := buf.ReadFrom(zipballStreamReader)
 	if err != nil {
-		return nil, fmt.Errorf("new gzip reader: %w", err)
+		return nil, fmt.Errorf("read tarball: %w", err)
+	}
+	if n > zipFileSizeLimit {
+		return nil, fmt.Errorf("repo is too large; limit is %f GiB", float64(zipFileSizeLimit)/1024/1024)
 	}
 
-	tarReader := tar.NewReader(gzipReader)
-	fs := tarfs.New(tarReader)
+	zipballReadAtReader := bytes.NewReader(buf.Bytes())
 
-	filename := tarContent.Header.Get("Content-Disposition")
+	zipReader, err := zip.NewReader(zipballReadAtReader, n)
+	if err != nil {
+		return nil, fmt.Errorf("new zip reader: %w", err)
+	}
+
+	fs := zipfs.New(zipReader)
+
+	filename := content.Header.Get("Content-Disposition")
 	if attachmentName, ok := strings.CutPrefix(filename, "attachment; filename="); ok {
-		return afero.NewBasePathFs(fs, strings.TrimSuffix(attachmentName, ".tar.gz")), nil
+		return afero.NewBasePathFs(fs, strings.TrimSuffix(attachmentName, ".zip")), nil
 	}
 
 	return fs, nil
