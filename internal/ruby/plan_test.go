@@ -16,7 +16,7 @@ func TestDetermineRubyVersion(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(fs, "")
 
 	version := ruby.DetermineRubyVersion(fs, config)
-	assert.Equal(t, "2.7.2", version)
+	assert.Equal(t, "2.7", version)
 }
 
 func TestDetermineRubyVersion_Customized(t *testing.T) {

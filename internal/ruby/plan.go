@@ -32,7 +32,7 @@ func DetermineRubyVersion(source afero.Fs, config plan.ImmutableProjectConfigura
 		return version
 	}
 
-	reg := regexp.MustCompile(`ruby ["'](\d+\.\d+\.\d+)["']`)
+	reg := regexp.MustCompile(`ruby ["'](\d+\.\d+)\.\d+["']`)
 	sourceFile, err := utils.ReadFileToUTF8(source, "Gemfile")
 	if err != nil {
 		return DefaultRubyVersion
@@ -43,6 +43,7 @@ func DetermineRubyVersion(source afero.Fs, config plan.ImmutableProjectConfigura
 		return DefaultRubyVersion
 	}
 
+	// strip the patch version, since it may be pretty old (for example, 2.7.0)
 	return matches[1]
 }
 
