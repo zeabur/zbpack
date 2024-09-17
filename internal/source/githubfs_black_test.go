@@ -171,6 +171,19 @@ func TestGitHubFsOpen_Dir_Ref(t *testing.T) {
 	}
 }
 
+func TestGithubFs_Folder(t *testing.T) {
+	token := getGithubToken(t)
+
+	fs, err := source.NewGitHubFs("naiba", "nezha", token)
+	require.NoError(t, err)
+
+	f, err := fs.Open("")
+	require.NoError(t, err)
+
+	_, err = f.Stat()
+	require.NoError(t, err)
+}
+
 func TestReadLimited(t *testing.T) {
 	t.Parallel()
 

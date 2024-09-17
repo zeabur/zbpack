@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/google/go-github/v63/github"
 	"github.com/spf13/afero"
@@ -84,9 +83,14 @@ func getRefZipFs(owner, name, ref string, token *string) (afero.Fs, error) {
 
 	fs := zipfs.New(zipReader)
 
-	filename := content.Header.Get("Content-Disposition")
-	if attachmentName, ok := strings.CutPrefix(filename, "attachment; filename="); ok {
-		return afero.NewBasePathFs(fs, strings.TrimSuffix(attachmentName, ".zip")), nil
+	// A GitHub zipball contains a single directory that includes the repository root.
+	// Since the directory name is not fixed or deterministic, we need to find it.
+	directories, err := afero.ReadDir(fs, "")
+	if err != nil {
+		return nil, fmt.Errorf("read dir: %w", err)
+	}
+	if len(directories) == 1 && directories[0].IsDir() {
+		return afero.NewBasePathFs(fs, directories[0].Name()), nil
 	}
 
 	return fs, nil
