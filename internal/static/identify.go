@@ -1,6 +1,7 @@
 package static
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -28,13 +29,18 @@ func (i *identify) Match(fs afero.Fs) bool {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
+	serverless := utils.GetExplicitServerlessConfig(options.Config).TakeOr(true)
+
+	planMeta := types.PlanMeta{"serverless": strconv.FormatBool(serverless)}
 
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
-		return types.PlanMeta{"framework": "hugo"}
+		planMeta["framework"] = "hugo"
+		return planMeta
 	}
 
 	if utils.HasFile(options.Source, "mkdocs.yml") {
-		return types.PlanMeta{"framework": "mkdocs"}
+		planMeta["framework"] = "mkdocs"
+		return planMeta
 	}
 
 	if utils.HasFile(options.Source, "config.toml") {
@@ -48,17 +54,21 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 				ver = userSetVersion
 			}
 
-			return types.PlanMeta{"framework": "zola", "version": ver}
+			planMeta["framework"] = "zola"
+			planMeta["version"] = ver
+			return planMeta
 		}
 	}
 
 	html, err := utils.ReadFileToUTF8(options.Source, "index.html")
 
 	if err == nil && strings.Contains(string(html), "Hexo") {
-		return types.PlanMeta{"framework": "hexo"}
+		planMeta["framework"] = "hexo"
+		return planMeta
 	}
 
-	return types.PlanMeta{"framework": "unknown"}
+	planMeta["framework"] = "unknown"
+	return planMeta
 }
 
 var _ plan.Identifier = (*identify)(nil)
