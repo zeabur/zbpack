@@ -497,7 +497,7 @@ func Build(opt *BuildOptions) error {
 		}
 	}
 
-	if t == types.PlanTypeStatic {
+	if t == types.PlanTypeStatic && m["serverless"] == "true" {
 		println("Transforming build output to serverless format ...")
 		err = static.TransformServerless(*opt.Path, m)
 		if err != nil {
@@ -513,7 +513,7 @@ func Build(opt *BuildOptions) error {
 			handleLog("\033[90m" + "The compiled serverless function has been saved in the .zeabur directory." + "\033[0m")
 		} else {
 			handleLog("\033[90m" + "To run the image, use the following command:" + "\033[0m")
-			if m["outputDir"] != "" || t == types.PlanTypeStatic {
+			if m["outputDir"] != "" || (t == types.PlanTypeStatic && m["serverless"] == "true") {
 				handleLog("npx serve .zeabur/output/static")
 			} else {
 				handleLog("docker run -p 8080:8080 -e PORT=8080 -it " + *opt.ResultImage)

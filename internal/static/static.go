@@ -46,6 +46,15 @@ COPY --from=builder /docs/site /
 COPY . /
 `
 
+	// We run it with caddy for Containerized mode.
+	if serverless, ok := meta["serverless"]; ok && serverless != "true" {
+		caddy := `FROM caddy AS runtime
+COPY --from=output / /usr/share/caddy
+`
+
+		dockerfile += "\n" + caddy
+	}
+
 	return dockerfile, nil
 }
 
