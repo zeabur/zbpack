@@ -20,18 +20,11 @@ import (
 )
 
 type dockerfilePlanContext struct {
-	src           afero.Fs
-	submoduleName string
+	plan.NewPlannerOptions
 
 	dockerfileName    optional.Option[string]
 	dockerfileContent optional.Option[[]byte]
 	ExposePort        optional.Option[string]
-}
-
-// GetMetaOptions is the options for GetMeta.
-type GetMetaOptions struct {
-	Src           afero.Fs
-	SubmoduleName string
 }
 
 // ErrNoDockerfile is the error when there is no Dockerfile in the project.
@@ -39,15 +32,16 @@ var ErrNoDockerfile = errors.New("no dockerfile in this environment")
 
 // FindDockerfile finds the Dockerfile in the project.
 func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
-	src := ctx.src
-	submoduleName := ctx.submoduleName
+	src := ctx.Source
+	dockerFilename := ctx.SubmoduleName
+
 	path := &ctx.dockerfileName
 
 	if path, err := ctx.dockerfileName.Take(); err == nil {
 		return path, nil
 	}
 
-	dockerFilename, err := findDockerfile(src, submoduleName)
+	dockerFilename, err := findDockerfile(src, dockerFilename)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +50,7 @@ func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
 	return path.Unwrap(), nil
 }
 
-func findDockerfile(fs afero.Fs, submoduleName string) (string, error) {
+func findDockerfile(fs afero.Fs, dockerfileName string) (string, error) {
 	converter := cases.Fold()
 
 	files, err := afero.ReadDir(fs, ".")
@@ -64,7 +58,7 @@ func findDockerfile(fs afero.Fs, submoduleName string) (string, error) {
 		return "", err
 	}
 
-	foldedSubmoduleName := converter.String(submoduleName)
+	foldedDockerfileName := converter.String(dockerfileName)
 
 	// Create a map of all the files in the directory.
 	// The filename here has been folded.
@@ -80,13 +74,13 @@ func findDockerfile(fs afero.Fs, submoduleName string) (string, error) {
 	// Check if there is a Dockerfile.[submoduleName] or
 	// [submoduleName].Dockerfile in the directory.
 	// If there is, return it.
-	if submoduleName != "" {
-		expectedFoldedFilename := "dockerfile." + foldedSubmoduleName
+	if dockerfileName != "" {
+		expectedFoldedFilename := "dockerfile." + foldedDockerfileName
 		if originalFilename, ok := filesMap[expectedFoldedFilename]; ok {
 			return originalFilename, nil
 		}
 
-		anotherExpectedFoldedFilename := foldedSubmoduleName + ".dockerfile"
+		anotherExpectedFoldedFilename := foldedDockerfileName + ".dockerfile"
 		if originalFilename, ok := filesMap[anotherExpectedFoldedFilename]; ok {
 			return originalFilename, nil
 		}
@@ -113,7 +107,7 @@ func ReadDockerfile(ctx *dockerfilePlanContext) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	content, err := utils.ReadFileToUTF8(ctx.src, dockerfileName)
+	content, err := utils.ReadFileToUTF8(ctx.Source, dockerfileName)
 	if err != nil {
 		return nil, err
 	}
@@ -155,10 +149,10 @@ func GetExposePort(ctx *dockerfilePlanContext) string {
 }
 
 // GetMeta gets the meta of the Dockerfile project.
-func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	ctx := new(dockerfilePlanContext)
-	ctx.src = opt.Src
-	ctx.submoduleName = opt.SubmoduleName
+func GetMeta(opt plan.NewPlannerOptions) types.PlanMeta {
+	ctx := &dockerfilePlanContext{
+		NewPlannerOptions: opt,
+	}
 
 	dockerfileContent, err := ReadDockerfile(ctx)
 	if err != nil {

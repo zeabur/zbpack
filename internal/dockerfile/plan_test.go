@@ -5,14 +5,20 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeabur/zbpack/pkg/plan"
 )
 
 func TestFindDockerfile_WithUppercase(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -24,8 +30,13 @@ func TestFindDockerfile_WithLowercase(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -37,8 +48,13 @@ func TestFindDockerfile_WithRandomcase(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -51,9 +67,14 @@ func TestFindDockerfile_WithSubmodule(t *testing.T) {
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 	_ = afero.WriteFile(fs, "Dockerfile.Subm", []byte("FROM ubuntu"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src:           fs,
-		submoduleName: "Subm",
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        config,
+			SubmoduleName: "Subm",
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -66,9 +87,14 @@ func TestFindDockerfile_CaseInsensitiveSubmodule(t *testing.T) {
 	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
 	_ = afero.WriteFile(fs, "dOckErFIle.SUbM", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src:           fs,
-		submoduleName: "Subm",
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        config,
+			SubmoduleName: "Subm",
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -81,9 +107,14 @@ func TestFindDockerfile_WithSubmodulePrefixed(t *testing.T) {
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 	_ = afero.WriteFile(fs, "Subm.Dockerfile", []byte("FROM ubuntu"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src:           fs,
-		submoduleName: "Subm",
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        config,
+			SubmoduleName: "Subm",
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -96,9 +127,14 @@ func TestFindDockerfile_PrefixedCaseInsensitiveSubmodule(t *testing.T) {
 	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
 	_ = afero.WriteFile(fs, "sUbM.dOckErFIle", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src:           fs,
-		submoduleName: "Subm",
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        config,
+			SubmoduleName: "Subm",
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -111,9 +147,14 @@ func TestFindDockerfile_NoSuchSubmodule(t *testing.T) {
 	_ = afero.WriteFile(fs, "dOckErFIle", []byte("FROM alpine"), 0o644)
 	_ = afero.WriteFile(fs, "dOckErFIle.SUbM", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src:           fs,
-		submoduleName: "Subm2",
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source:        fs,
+			Config:        config,
+			SubmoduleName: "Subm2",
+		},
 	}
 	path, err := FindDockerfile(&ctx)
 
@@ -125,8 +166,13 @@ func TestGetExposePort_WithExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine\nEXPOSE 1145"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -137,8 +183,13 @@ func TestGetExposePort_WithoutExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -149,8 +200,13 @@ func TestGetExposePort_WithLowercaseExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine\nexpose 1145"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -161,8 +217,13 @@ func TestGetExposePort_WithLowercaseDockerfileSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine\nEXPOSE 1145"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -173,8 +234,13 @@ func TestGetExposePort_WithSpaceAfterExpose(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine\nEXPOSE 1145 "), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -185,8 +251,13 @@ func TestGetExposePort_WithLowercaseExpose(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "dockerfile", []byte("FROM alpine\nexpose 1145"), 0o644)
 
+	config := plan.NewProjectConfigurationFromFs(fs, "Subm")
+
 	ctx := dockerfilePlanContext{
-		src: fs,
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
 	}
 	port := GetExposePort(&ctx)
 
@@ -197,7 +268,9 @@ func TestGetMeta_Content(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 
-	meta := GetMeta(GetMetaOptions{Src: fs})
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	meta := GetMeta(plan.NewPlannerOptions{Source: fs, Config: config})
 
 	assert.Equal(t, "FROM alpine", meta["content"])
 }
