@@ -15,6 +15,7 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -30,10 +31,20 @@ type dockerfilePlanContext struct {
 // ErrNoDockerfile is the error when there is no Dockerfile in the project.
 var ErrNoDockerfile = errors.New("no dockerfile in this environment")
 
+// ConfigDockerfileName is the key of the Dockerfile name in the config.
+const ConfigDockerfileName = "dockerfile.name"
+
 // FindDockerfile finds the Dockerfile in the project.
 func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
 	src := ctx.Source
-	dockerFilename := ctx.SubmoduleName
+	config := ctx.Config
+
+	// Get the Dockerfile name from the config.
+	// If there is not set, use the submodule as the Dockerfile name.
+	dockerFilename := plan.Cast(
+		config.Get("dockerfile.name"),
+		cast.ToStringE,
+	).TakeOr(ctx.SubmoduleName)
 
 	path := &ctx.dockerfileName
 

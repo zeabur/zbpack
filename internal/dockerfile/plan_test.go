@@ -162,6 +162,26 @@ func TestFindDockerfile_NoSuchSubmodule(t *testing.T) {
 	assert.Equal(t, "dOckErFIle", path)
 }
 
+func TestFindDockerfile_WithConfig(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "Dockerfile.test", []byte("FROM ubuntu"), 0o644)
+
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set("dockerfile.name", "test")
+
+	ctx := dockerfilePlanContext{
+		NewPlannerOptions: plan.NewPlannerOptions{
+			Source: fs,
+			Config: config,
+		},
+	}
+	path, err := FindDockerfile(&ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Dockerfile.test", path)
+}
+
 func TestGetExposePort_WithExposeSpecified(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine\nEXPOSE 1145"), 0o644)
