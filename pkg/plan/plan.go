@@ -2,6 +2,8 @@
 package plan
 
 import (
+	"strconv"
+
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -68,5 +70,7 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 		}
 	}
 
-	return types.PlanTypeStatic, types.PlanMeta{}
+	serverless := Cast(b.NewPlannerOptions.Config.Get("serverless"), ToWeakBoolE).TakeOr(true)
+
+	return types.PlanTypeStatic, types.PlanMeta{"serverless": strconv.FormatBool(serverless)}
 }
