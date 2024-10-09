@@ -14,7 +14,9 @@ func TestGenerateDockerFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Dockerfile", []byte(expectedContent), 0o644)
 
-	ctx := GetMeta(GetMetaOptions{Src: fs})
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := GetMeta(plan.NewPlannerOptions{Source: fs, Config: config})
 	packer := NewPacker()
 	actualContent, err := packer.GenerateDockerfile(ctx)
 
@@ -24,7 +26,9 @@ func TestGenerateDockerFile(t *testing.T) {
 
 func TestNoMatchedDockerfile(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	ctx := GetMeta(GetMetaOptions{Src: fs})
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	ctx := GetMeta(plan.NewPlannerOptions{Source: fs, Config: config})
 
 	assert.Equal(t, plan.Continue(), ctx)
 }
