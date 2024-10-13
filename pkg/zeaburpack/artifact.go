@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
 
 	"github.com/codeclysm/extract/v3"
 	"github.com/moby/buildkit/client"
@@ -191,9 +192,7 @@ func (b *ImageBuilder) buildImageToArchive(ctx context.Context, imageType string
 		return "", fmt.Errorf("open artifact tar to write: %w", err)
 	}
 	defer func() {
-		if err := artifact.Close(); err != nil {
-			log.Println("close artifact tar:", err)
-		}
+		_ = artifact.Close()
 	}()
 
 	buildkitHost := os.Getenv("BUILDKIT_HOST")
@@ -208,6 +207,8 @@ func (b *ImageBuilder) buildImageToArchive(ctx context.Context, imageType string
 
 	frontendAttrs := map[string]string{
 		"filename": "Dockerfile",
+		"platform": fmt.Sprintf("linux/%s", runtime.GOARCH),
+		"target":   b.Stage,
 	}
 	for key, value := range b.BuildArgs {
 		frontendAttrs["build-arg:"+key] = value
@@ -258,9 +259,11 @@ func (b *ImageBuilder) buildImageToArchive(ctx context.Context, imageType string
 
 func (b *ImageBuilder) dotZeaburDirectory() string {
 	d := path.Join(b.Path, ".zeabur")
-	if _, err := os.Stat(d); os.IsNotExist(err) {
-		_ = os.Mkdir(d, 0o755)
+	if _, err := os.Stat(d); err == nil {
+		_ = os.RemoveAll(d)
 	}
+
+	_ = os.Mkdir(d, 0o755)
 
 	return d
 }
