@@ -46,16 +46,6 @@ type BuildOptions struct {
 	// Interactive is a flag to indicate if the build should be interactive.
 	Interactive *bool
 
-	// CustomBuildCommand is a custom build command that will be used instead of the default one.
-	CustomBuildCommand *string
-
-	// CustomStartCommand is a custom start command that will be used instead of the default one.
-	CustomStartCommand *string
-
-	// OutputDir is the directory where the build artifacts will be stored.
-	// Once provided, the service will deploy as static files with nginx.
-	OutputDir *string
-
 	CacheFrom *string
 	CacheTo   *string
 
@@ -119,16 +109,11 @@ func Build(opt *BuildOptions) error {
 	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
 	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
-	UpdateOptionsOnConfig(opt, config)
-
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
-			Source:             src,
-			Config:             config,
-			SubmoduleName:      submoduleName,
-			CustomBuildCommand: opt.CustomBuildCommand,
-			CustomStartCommand: opt.CustomStartCommand,
-			OutputDir:          opt.OutputDir,
+			Source:        src,
+			Config:        config,
+			SubmoduleName: submoduleName,
 		},
 		SupportedIdentifiers(config)...,
 	)
