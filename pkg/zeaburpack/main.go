@@ -141,14 +141,24 @@ func Build(opt *BuildOptions) error {
 		(*opt.HandlePlanDetermined)(t, m)
 	}
 
-	if m["zeaburImage"] == "" {
-		return fmt.Errorf("zeaburImage is not set")
+	var dockerfileContent string
+
+	if t == types.PlanTypeDocker {
+		dockerfileContent = m["content"]
+	}
+	if m["zeaburImage"] != "" {
+		dockerfileContentBytes, err := dockerfiles.GetDockerfileContent(m["zeaburImage"])
+		if err != nil {
+			return fmt.Errorf("get Dockerfile content: %w", err)
+		}
+
+		dockerfileContent = string(dockerfileContentBytes)
 	}
 
-	dockerfileContent, err := dockerfiles.GetDockerfileContent(m["zeaburImage"])
-	if err != nil {
-		return fmt.Errorf("get Dockerfile content: %w", err)
+	if dockerfileContent == "" {
+		return fmt.Errorf("no Dockerfile content found")
 	}
+
 	injectedDockerfileContent := InjectDockerfile(string(dockerfileContent), opt.ProxyRegistry, *opt.UserVars)
 
 	builder := ImageBuilder{
