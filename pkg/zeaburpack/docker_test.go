@@ -146,3 +146,32 @@ func TestParseFrom_String_AllowReplacing(t *testing.T) {
 	fs.Stage = mo.None[string]()
 	assert.Equal(t, "FROM alpine:3.12", fs.String())
 }
+
+func TestGetImageType(t *testing.T) {
+	t.Parallel()
+
+	dockerfile := `FROM zeabur/zbpack-dart-flutter-base:latest AS build
+ARG build
+
+WORKDIR /app
+COPY . .
+RUN flutter clean
+RUN flutter pub get
+RUN ${build}
+
+FROM scratch AS target-static
+LABEL com.zeabur.image-type="static"
+
+COPY --from=build /app/build/web /
+
+FROM caddy AS target-containerized
+LABEL com.zeabur.image-type="containerized"
+
+COPY --from=build /app/build/web /usr/share/caddy
+`
+
+	assert.Equal(t, "static", zeaburpack.GetImageType(dockerfile, "target-static"))
+	assert.Equal(t, "containerized", zeaburpack.GetImageType(dockerfile, "target-containerized"))
+	assert.Equal(t, "", zeaburpack.GetImageType(dockerfile, "target-unknown"))
+	assert.Equal(t, "containerized", zeaburpack.GetImageType(dockerfile, ""))
+}
