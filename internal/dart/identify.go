@@ -37,9 +37,8 @@ func (i *identify) Match(fs afero.Fs) bool {
 
 func determineFramework(ctx planContext) types.DartFramework {
 	src := ctx.Src
-	f := &ctx.Framework
 
-	if framework, err := f.Take(); err == nil {
+	if framework, err := ctx.Framework.Take(); err == nil {
 		return framework
 	}
 
@@ -49,17 +48,17 @@ func determineFramework(ctx planContext) types.DartFramework {
 	}
 
 	if strings.Contains(string(file), "flutter") {
-		*f = optional.Some(types.DartFrameworkFlutter)
-		return f.Unwrap()
+		ctx.Framework = optional.Some(types.DartFrameworkFlutter)
+		return ctx.Framework.Unwrap()
 	}
 
 	if strings.Contains(string(file), "serverpod") {
-		*f = optional.Some(types.DartFrameworkServerpod)
-		return f.Unwrap()
+		ctx.Framework = optional.Some(types.DartFrameworkServerpod)
+		return ctx.Framework.Unwrap()
 	}
 
-	*f = optional.Some(types.DartFrameworkNone)
-	return f.Unwrap()
+	ctx.Framework = optional.Some(types.DartFrameworkNone)
+	return ctx.Framework.Unwrap()
 }
 
 func determineBuildCommand(ctx planContext) string {
@@ -71,27 +70,17 @@ func determineBuildCommand(ctx planContext) string {
 	}
 
 	if customBuildCommand, err := plan.Cast(cfg.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
-		*cmd = optional.Some("RUN " + customBuildCommand)
+		*cmd = optional.Some(customBuildCommand)
 		return cmd.Unwrap()
 	}
 
 	if determineFramework(ctx) == types.DartFrameworkFlutter {
-		*cmd = optional.Some("RUN flutter build web")
+		*cmd = optional.Some("flutter build web")
 		return cmd.Unwrap()
 	}
 
 	*cmd = optional.Some("RUN dart compile exe bin/main.dart")
 	return cmd.Unwrap()
-}
-
-func determineOutputDir(ctx planContext) string {
-	framework := determineFramework(ctx)
-
-	if framework == types.DartFrameworkFlutter {
-		return "build/web"
-	}
-
-	return ""
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
@@ -110,8 +99,19 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		meta["build"] = build
 	}
 
-	if od := determineOutputDir(ctx); od != "" {
-		meta["outputDir"] = od
+	switch determineFramework(ctx) {
+	case types.DartFrameworkFlutter:
+		meta["zeaburImage"] = "dart-flutter"
+
+		if utils.GetExplicitServerlessConfig(options.Config).TakeOr(true) {
+			meta["zeaburImageStage"] = "target-static"
+		} else {
+			meta["zeaburImageStage"] = "target-containerized"
+		}
+	case types.DartFrameworkServerpod:
+		meta["zeaburImage"] = "dart-serverpod"
+	default:
+		meta["zeaburImage"] = "dart-base"
 	}
 
 	return meta

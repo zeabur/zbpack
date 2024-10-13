@@ -164,14 +164,55 @@ LABEL com.zeabur.image-type="static"
 
 COPY --from=build /app/build/web /
 
+FROM scratch AS target-serverless
+LABEL com.zeabur.image-type="serverless"
+LABEL com.zeabur.serverless-transformer="dart-serverless"
+
+COPY --from=build /app/build/web /
+
 FROM caddy AS target-containerized
 LABEL com.zeabur.image-type="containerized"
 
 COPY --from=build /app/build/web /usr/share/caddy
 `
 
-	assert.Equal(t, "static", zeaburpack.GetImageType(dockerfile, "target-static"))
-	assert.Equal(t, "containerized", zeaburpack.GetImageType(dockerfile, "target-containerized"))
-	assert.Equal(t, "", zeaburpack.GetImageType(dockerfile, "target-unknown"))
-	assert.Equal(t, "containerized", zeaburpack.GetImageType(dockerfile, ""))
+	t.Run("static", func(t *testing.T) {
+		t.Parallel()
+
+		imageType, attrs := zeaburpack.GetImageType(dockerfile, "target-static")
+		assert.Equal(t, "static", imageType)
+		assert.Empty(t, attrs)
+	})
+
+	t.Run("containerized", func(t *testing.T) {
+		t.Parallel()
+
+		imageType, attrs := zeaburpack.GetImageType(dockerfile, "target-containerized")
+		assert.Equal(t, "containerized", imageType)
+		assert.Empty(t, attrs)
+	})
+
+	t.Run("serverless", func(t *testing.T) {
+		t.Parallel()
+
+		imageType, attrs := zeaburpack.GetImageType(dockerfile, "target-serverless")
+		assert.Equal(t, "serverless", imageType)
+		assert.Equal(t, "dart-serverless", attrs["serverless-transformer"])
+	})
+
+	t.Run("unknown", func(t *testing.T) {
+		t.Parallel()
+
+		imageType, attrs := zeaburpack.GetImageType(dockerfile, "target-unknown")
+		assert.Empty(t, imageType)
+		assert.Empty(t, attrs)
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		t.Parallel()
+
+		imageType, attrs := zeaburpack.GetImageType(dockerfile, "")
+		assert.Equal(t, "containerized", imageType)
+		assert.Empty(t, attrs)
+	})
 }

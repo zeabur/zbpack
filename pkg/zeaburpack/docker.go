@@ -14,11 +14,11 @@ import (
 
 // InjectDockerfile injects the environment variables and
 // the Docker.io registry into the Dockerfile.
-func InjectDockerfile(dockerfile string, registry string, variables map[string]string) string {
+func InjectDockerfile(dockerfile string, registry *string, variables map[string]string) string {
 	// resolve env variable statically and don't depend on Dockerfile's order
 	resolvedVars := envexpander.Expand(variables)
 
-	refConstructor := newReferenceConstructor(&registry)
+	refConstructor := newReferenceConstructor(registry)
 	lines := strings.Split(dockerfile, "\n")
 	stageLines := make([]int, 0)
 
@@ -108,16 +108,17 @@ func (fs FromStatement) String() string {
 }
 
 // GetImageType extracts the image type of the specified stage from the Dockerfile.
-func GetImageType(dockerfile string, stage string) string {
+func GetImageType(dockerfile string, stage string) (imageType string, attrs map[string]string) {
+	attrs = make(map[string]string)
+
 	reader := bytes.NewReader([]byte(dockerfile))
 	parsed, err := parser.Parse(reader)
 	if err != nil {
-		return ""
+		return "", attrs
 	}
 
 	var finalStage string
 	var currentStage string
-	imageType := ""
 
 	for _, child := range parsed.AST.Children {
 		if child.Value == "FROM" {
@@ -127,14 +128,21 @@ func GetImageType(dockerfile string, stage string) string {
 				currentStage = child.Next.Next.Next.Value
 			}
 			finalStage = currentStage // Always track the final stage
+			continue
 		}
 
 		if child.Value == "LABEL" && child.Next != nil && child.Next.Value == "com.zeabur.image-type" {
 			if currentStage == stage || (stage == "" && currentStage == finalStage) {
 				imageType, _ = strconv.Unquote(child.Next.Next.Value)
+				attrs = make(map[string]string)
 			}
+			continue
+		}
+
+		if imageType == "serverless" && child.Value == "LABEL" && child.Next != nil && child.Next.Value == "com.zeabur.serverless-transformer" {
+			attrs["serverless-transformer"], _ = strconv.Unquote(child.Next.Next.Value)
 		}
 	}
 
-	return imageType
+	return imageType, attrs
 }
