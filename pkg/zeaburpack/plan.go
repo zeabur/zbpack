@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -87,24 +88,13 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 // PlanAndOutputDockerfile output dockerfile.
 func PlanAndOutputDockerfile(opt PlanOptions) error {
 	t, m := Plan(opt)
-	dockerfile, err := generateDockerfile(
-		&generateDockerfileOptions{
-			HandleLog: func(log string) {
-				println(log)
-			},
-			planType: t,
-			planMeta: m,
-		},
-	)
+
+	content, err := GetDockerfileContent(t, m, nil, make(map[string]string))
 	if err != nil {
-		log.Printf("Failed to generate Dockerfile: " + err.Error())
 		return err
 	}
-	println(dockerfile)
-	// Remove .zeabur directory if exists
-	if err := os.RemoveAll(path.Join(*opt.Path, ".zeabur")); err != nil {
-		log.Printf("Failed to remove .zeabur directory: %s\n", err)
-		return err
-	}
+
+	fmt.Println(content)
+
 	return nil
 }

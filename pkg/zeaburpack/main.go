@@ -126,31 +126,16 @@ func Build(opt *BuildOptions) error {
 		(*opt.HandlePlanDetermined)(t, m)
 	}
 
-	var dockerfileContent string
-
-	if t == types.PlanTypeDocker {
-		dockerfileContent = m["content"]
+	dockerfileContent, err := GetDockerfileContent(t, m, opt.ProxyRegistry, *opt.UserVars)
+	if err != nil {
+		return fmt.Errorf("get Dockerfile content: %w", err)
 	}
-	if m["zeaburImage"] != "" {
-		dockerfileContentBytes, err := dockerfiles.GetDockerfileContent(m["zeaburImage"])
-		if err != nil {
-			return fmt.Errorf("get Dockerfile content: %w", err)
-		}
-
-		dockerfileContent = string(dockerfileContentBytes)
-	}
-
-	if dockerfileContent == "" {
-		return fmt.Errorf("no Dockerfile content found")
-	}
-
-	injectedDockerfileContent := InjectDockerfile(string(dockerfileContent), opt.ProxyRegistry, *opt.UserVars)
 
 	builder := ImageBuilder{
 		Path:              *opt.Path,
 		PlanMeta:          m,
 		ResultImage:       *opt.ResultImage,
-		DockerfileContent: injectedDockerfileContent,
+		DockerfileContent: dockerfileContent,
 		Stage:             m["zeaburImageStage"],
 		BuildArgs:         m,
 		LogWriter:         opt.LogWriter,
@@ -173,4 +158,33 @@ func Build(opt *BuildOptions) error {
 	}
 
 	return nil
+}
+
+// GetDockerfileContent returns the content of the Dockerfile
+// of the given plan type and plan meta.
+func GetDockerfileContent(
+	t types.PlanType,
+	m types.PlanMeta,
+	proxyRegistry *string,
+	userVars map[string]string,
+) (string, error) {
+	var dockerfileContent string
+
+	if t == types.PlanTypeDocker {
+		dockerfileContent = m["content"]
+	}
+	if m["zeaburImage"] != "" {
+		dockerfileContentBytes, err := dockerfiles.GetDockerfileContent(m["zeaburImage"])
+		if err != nil {
+			return "", fmt.Errorf("get Dockerfile content: %w", err)
+		}
+
+		dockerfileContent = string(dockerfileContentBytes)
+	}
+
+	if dockerfileContent == "" {
+		return "", fmt.Errorf("no Dockerfile content found")
+	}
+
+	return InjectDockerfile(string(dockerfileContent), proxyRegistry, userVars), nil
 }
