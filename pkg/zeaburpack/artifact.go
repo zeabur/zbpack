@@ -19,7 +19,7 @@ import (
 	zbserverless "github.com/zeabur/zbpack/pkg/zeaburpack/serverless"
 	"golang.org/x/sync/errgroup"
 
-	// dockercontainer allows using ""
+	// allow using "docker-container://" protocol in the buildkit client.
 	_ "github.com/moby/buildkit/client/connhelper/dockercontainer"
 )
 
@@ -43,6 +43,10 @@ type ImageBuilder struct {
 
 	// BuildArgs are the build arguments to pass to the Docker build.
 	BuildArgs map[string]string
+
+	// LogWriter is the writer to write the buildkit logs to.
+	// If not provided, the logs will be written to os.Stderr.
+	LogWriter io.Writer
 }
 
 // Artifact is the output of the image build.
@@ -242,7 +246,7 @@ func (b *ImageBuilder) buildImageToArchive(ctx context.Context, imageType string
 		return err
 	})
 	eg.Go(func() error {
-		d, err := progressui.NewDisplay(os.Stderr, progressui.AutoMode)
+		d, err := progressui.NewDisplay(b.getLogWriter(), progressui.AutoMode)
 		if err != nil {
 			return err
 		}
@@ -266,6 +270,14 @@ func (b *ImageBuilder) dotZeaburDirectory() string {
 	_ = os.Mkdir(d, 0o755)
 
 	return d
+}
+
+func (b *ImageBuilder) getLogWriter() io.Writer {
+	if b.LogWriter == nil {
+		return os.Stderr
+	}
+
+	return b.LogWriter
 }
 
 func extractTarToDirectory(ctx context.Context, tarPath string) (string, error) {

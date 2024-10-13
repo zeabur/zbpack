@@ -3,6 +3,7 @@ package zeaburpack
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -26,12 +27,12 @@ type BuildOptions struct {
 	// the build plan is determined.
 	HandlePlanDetermined *func(types.PlanType, types.PlanMeta)
 
-	// HandleBuildFailed is a callback function that will be called when
-	// the build failed.
-	HandleBuildFailed *func(error)
-
 	// HandleLog is a function that will be called when a log is emitted.
 	HandleLog *func(string)
+
+	// LogWriter is the writer to write the buildkit logs to.
+	// If not provided, the logs will be written to os.Stderr.
+	LogWriter io.Writer
 
 	// Path is the path to the project directory.
 	Path *string
@@ -109,21 +110,8 @@ func Build(opt *BuildOptions) error {
 		handleLog = *opt.HandleLog
 	}
 
-	var handleBuildFailed func(error)
-	if opt.HandleBuildFailed == nil {
-		handleBuildFailed = func(err error) {
-			println("Build failed: " + err.Error())
-		}
-	} else {
-		handleBuildFailed = func(err error) {
-			println("Build failed: " + err.Error())
-			(*opt.HandleBuildFailed)(err)
-		}
-	}
-
 	if strings.HasPrefix(*opt.Path, "https://") {
 		println("Build from git repository is not supported yet")
-		handleBuildFailed(nil)
 		return fmt.Errorf("build from git repository is not supported yet")
 	}
 
@@ -170,6 +158,7 @@ func Build(opt *BuildOptions) error {
 		DockerfileContent: injectedDockerfileContent,
 		Stage:             m["zeaburImageStage"],
 		BuildArgs:         m,
+		LogWriter:         opt.LogWriter,
 	}
 	artifact, err := builder.BuildImage(context.Background())
 	if err != nil {
