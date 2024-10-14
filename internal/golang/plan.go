@@ -1,7 +1,6 @@
 package golang
 
 import (
-	"bufio"
 	"os"
 	"path"
 	"strconv"
@@ -51,36 +50,6 @@ func isCgoEnabled(ctx *goPlanContext) bool {
 	return false
 }
 
-func getGoVersion(ctx *goPlanContext) string {
-	ver := &ctx.GoVersion
-	if goVer, err := ver.Take(); err == nil {
-		return goVer
-	}
-
-	fs := ctx.Src
-
-	file, err := fs.Open("go.mod")
-	if err != nil {
-		return ""
-	}
-	defer func(file afero.File) {
-		_ = file.Close()
-	}(file)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if len(line) > 3 && line[:3] == "go " {
-			v := line[3:]
-			*ver = optional.Some(v)
-			return ver.Unwrap()
-		}
-	}
-
-	*ver = optional.Some("1.18")
-	return ver.Unwrap()
-}
-
 func getEntry(ctx *goPlanContext) string {
 	ent := &ctx.Entry
 	if entry, err := ent.Take(); err == nil {
@@ -127,21 +96,20 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 	meta := types.PlanMeta{}
 
-	goVersion := getGoVersion(ctx)
-	meta["goVersion"] = goVersion
-
 	entry := getEntry(ctx)
 	meta["entry"] = entry
 
-	if buildCommand := getBuildCommand(ctx); buildCommand != "" {
-		meta["buildCommand"] = buildCommand
+	if build := getBuildCommand(ctx); build != "" {
+		meta["build"] = build
 	}
 
 	meta["cgo"] = strconv.FormatBool(isCgoEnabled(ctx))
 
 	serverless := getServerless(ctx)
 	if serverless {
-		meta["serverless"] = "true"
+		meta["zeaburImageStage"] = "target-serverless"
+	} else {
+		meta["zeaburImageStage"] = "target-containerized"
 	}
 
 	return meta
