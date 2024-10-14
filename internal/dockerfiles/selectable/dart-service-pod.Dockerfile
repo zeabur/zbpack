@@ -1,4 +1,6 @@
-FROM dart:3.2.5 AS build
+FROM dart:3.2.5
+LABEL com.zeabur.image-type="containerized"
+
 ARG build
 
 WORKDIR /app

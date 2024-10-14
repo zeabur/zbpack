@@ -12,7 +12,7 @@ LABEL com.zeabur.image-type="static"
 
 COPY --from=build /app/build/web /
 
-FROM docker.io/library/caddy AS target-containerized
+FROM zeabur/zbpack-static-containerized AS target-containerized
 LABEL com.zeabur.image-type="containerized"
 
-COPY --from=build /app/build/web /usr/share/caddy
+COPY --from=build /app/build/web .
