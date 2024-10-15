@@ -600,6 +600,27 @@ func TestGetStartCommand_Entry(t *testing.T) {
 	}
 }
 
+func TestGetStartCommand_Config(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"main": "hello.js"
+		}`), 0o644)
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+
+	config.Set(plan.ConfigStartCommand, "echo 'hello'")
+
+	ctx := &nodePlanContext{
+		Src:                fs,
+		Config:             config,
+		ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+	}
+
+	startCmd := GetStartCmd(ctx)
+	assert.Equal(t, "echo 'hello'", startCmd)
+}
+
 func TestGetServerless(t *testing.T) {
 	t.Parallel()
 
