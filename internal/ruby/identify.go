@@ -50,14 +50,14 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	startCmd := DetermineStartCmd(framework, options.Config)
 
 	meta := types.PlanMeta{
+		"zeaburImage": "ruby",
 		"rubyVersion": rubyVersion,
-		"buildCmd":    buildCmd,
-		"startCmd":    startCmd,
+		"build":       buildCmd,
+		"start":       startCmd,
 	}
 
 	needNode := i.DetermineNeedNode(options.Source)
 	if needNode {
-		meta["needNode"] = "true"
 		meta["nodePackageManager"] = string(i.DetermineNodePackageManager(options.Source))
 	}
 

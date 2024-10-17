@@ -43,6 +43,7 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		entry := determineEntry(ctx)
 		if entry != "" {
 			meta["entry"] = entry
+			meta["zeaburImage"] = "bun-native"
 		}
 
 		return meta

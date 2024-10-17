@@ -46,7 +46,9 @@ type GetMetaOptions struct {
 
 // GetMeta returns the metadata of a Swift project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	meta := types.PlanMeta{}
+	meta := types.PlanMeta{
+		"zeaburImage": "swift-vapor",
+	}
 
 	ctx := &swiftPlanContext{
 		Src:    opt.Src,

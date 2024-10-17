@@ -103,11 +103,14 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		return plan.Continue()
 	}
 
+	out := strings.TrimSuffix(entryPoint, ".csproj")
+
 	return types.PlanMeta{
-		"sdk":          sdkVer,
-		"entryPoint":   entryPoint,
-		"submoduleDir": submoduleDir,
-		"framework":    framework,
+		"zeaburImage":   "dotnet",
+		"dotnetVersion": sdkVer,
+		"out":           out,
+		"submoduleDir":  submoduleDir,
+		"framework":     framework,
 	}
 }
 

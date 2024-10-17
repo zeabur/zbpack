@@ -186,12 +186,10 @@ func determineStartupFunction(config plan.ImmutableProjectConfiguration) string 
 }
 
 // DetermineStartCommand determines the start command of the project.
-func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startCommand *string) string {
+func DetermineStartCommand(config plan.ImmutableProjectConfiguration) string {
 	completeStartCommand := determineStartupFunction(config)
 
-	if startCommand != nil {
-		completeStartCommand += *startCommand
-	} else if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+	if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
 		completeStartCommand += startCommand
 	} else {
 		completeStartCommand += "_startup"
@@ -201,10 +199,7 @@ func DetermineStartCommand(config plan.ImmutableProjectConfiguration, startComma
 }
 
 // DetermineBuildCommand determines the build command of the project.
-func DetermineBuildCommand(source afero.Fs, config plan.ImmutableProjectConfiguration, buildCommand *string) string {
-	if buildCommand != nil {
-		return *buildCommand
-	}
+func DetermineBuildCommand(source afero.Fs, config plan.ImmutableProjectConfiguration) string {
 	if buildCommand, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
 		return buildCommand
 	}

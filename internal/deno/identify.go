@@ -26,12 +26,16 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	framework := DetermineFramework(options.Source)
 	entry := DetermineEntry(options.Source)
-	startCmd := GetStartCommand(options.Source)
+	stage := "run-basic"
+	if GetStartCommand(options.Source) != "" {
+		stage = "run-task"
+	}
 
 	return types.PlanMeta{
-		"framework":    string(framework),
-		"entry":        entry,
-		"startCommand": startCmd,
+		"framework":        string(framework),
+		"entry":            entry,
+		"zeaburImage":      "deno",
+		"zeaburImageStage": stage,
 	}
 }
 

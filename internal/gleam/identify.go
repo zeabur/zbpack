@@ -36,7 +36,10 @@ func getServerless(ctx *gleamPlanContext) bool {
 }
 
 func (i *identify) PlanMeta(opt plan.NewPlannerOptions) types.PlanMeta {
-	meta := types.PlanMeta{}
+	meta := types.PlanMeta{
+		"zeaburImage":      "gleam",
+		"zeaburImageStage": "runtime-containerized",
+	}
 
 	ctx := &gleamPlanContext{
 		Src:    opt.Source,
@@ -45,6 +48,7 @@ func (i *identify) PlanMeta(opt plan.NewPlannerOptions) types.PlanMeta {
 
 	serverless := getServerless(ctx)
 	if serverless {
+		meta["zeaburImageStage"] = "runtime-serverless"
 		meta["serverless"] = "true"
 	}
 

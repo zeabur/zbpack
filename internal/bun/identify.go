@@ -43,12 +43,9 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(
 		GetMetaOptions{
-			Src:            options.Source,
-			Config:         options.Config,
-			CustomBuildCmd: options.CustomBuildCommand,
-			CustomStartCmd: options.CustomStartCommand,
-			OutputDir:      options.OutputDir,
-			Bun:            true,
+			Src:    options.Source,
+			Config: options.Config,
+			Bun:    true,
 		},
 	)
 }

@@ -3,6 +3,7 @@ package zeaburpack
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,13 +20,15 @@ const (
 )
 
 // PrintPlanAndMeta prints the build plan and meta in a table format.
-func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(log string)) {
-	table := fmt.Sprintf(
+func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, logWriter io.Writer) {
+	_, _ = fmt.Fprintf(
+		logWriter,
 		"\n%s╔══════════════════════════════ %s%s %s═════════════════════════════╗\n",
 		blue, yellow, "Build Plan", blue,
 	)
 
-	table += fmt.Sprintf(
+	_, _ = fmt.Fprintf(
+		logWriter,
 		"%s║%s %-16s %s│%s %-50s %s║%s\n",
 		blue, reset, "provider", blue, reset, string(plan), blue, reset,
 	)
@@ -34,36 +37,41 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(l
 		if v == "" || v == "false" {
 			continue
 		}
-		table += blue + "║───────────────────────────────────────────────────────────────────────║\n" + reset
+		_, _ = fmt.Fprint(
+			logWriter,
+			blue+"║───────────────────────────────────────────────────────────────────────║\n"+reset,
+		)
 		if strings.Contains(v, "\n") {
 			lines := strings.Split(v, "\n")
 			for i, line := range lines {
 				if i == 0 {
-					table += fmt.Sprintf(
+					_, _ = fmt.Fprintf(
+						logWriter,
 						"%s║%s %-16s %s│%s %-50s %s║\n",
 						blue, reset, k, blue, reset, line, blue,
 					)
 					continue
 				}
-				table += fmt.Sprintf(
+				_, _ = fmt.Fprintf(
+					logWriter,
 					"%s║%s %-16s %s│%s %-50s %s║\n",
 					blue, reset, "", blue, reset, line, blue,
 				)
 			}
 		} else {
-			table += fmt.Sprintf(
+			_, _ = fmt.Fprintf(
+				logWriter,
 				"%s║%s %-16s %s│%s %-50s %s║\n%s",
 				blue, reset, k, blue, reset, v, blue, reset,
 			)
 		}
 	}
 
-	table += fmt.Sprintf(
+	_, _ = fmt.Fprintf(
+		logWriter,
 		"%s╚═══════════════════════════════════════════════════════════════════════╝%s\n",
 		blue, reset,
 	)
-
-	printFunc(table)
 }
 
 // getGitHubSourceFromURL returns a GitHub source from a GitHub URL.
