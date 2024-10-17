@@ -94,7 +94,9 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		Config:        opt.Config,
 		SubmoduleName: opt.SubmoduleName,
 	}
-	meta := types.PlanMeta{}
+	meta := types.PlanMeta{
+		"zeaburImage": "go",
+	}
 
 	entry := getEntry(ctx)
 	meta["entry"] = entry
