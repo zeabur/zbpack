@@ -27,9 +27,6 @@ type BuildOptions struct {
 	// the build plan is determined.
 	HandlePlanDetermined *func(types.PlanType, types.PlanMeta)
 
-	// HandleLog is a function that will be called when a log is emitted.
-	HandleLog *func(string)
-
 	// LogWriter is the writer to write the buildkit logs to.
 	// If not provided, the logs will be written to os.Stderr.
 	LogWriter io.Writer
@@ -64,6 +61,10 @@ func Build(opt *BuildOptions) error {
 		return err
 	}
 
+	if opt.LogWriter == nil {
+		opt.LogWriter = os.Stderr
+	}
+
 	if opt.Path == nil || *opt.Path == "" {
 		opt.Path = &wd
 	} else if !strings.HasPrefix(*opt.Path, "/") {
@@ -91,17 +92,8 @@ func Build(opt *BuildOptions) error {
 		opt.ProxyRegistry = lo.ToPtr(os.Getenv("REGISTRY"))
 	}
 
-	var handleLog func(log string)
-	if opt.HandleLog == nil {
-		handleLog = func(log string) {
-			println(log)
-		}
-	} else {
-		handleLog = *opt.HandleLog
-	}
-
 	if strings.HasPrefix(*opt.Path, "https://") {
-		println("Build from git repository is not supported yet")
+		_, _ = fmt.Fprintln(opt.LogWriter, "Build from git repository is not supported yet")
 		return fmt.Errorf("build from git repository is not supported yet")
 	}
 
@@ -120,7 +112,7 @@ func Build(opt *BuildOptions) error {
 
 	t, m := planner.Plan()
 
-	PrintPlanAndMeta(t, m, handleLog)
+	PrintPlanAndMeta(t, m, opt.LogWriter)
 
 	if opt.HandlePlanDetermined != nil {
 		(*opt.HandlePlanDetermined)(t, m)
@@ -146,14 +138,14 @@ func Build(opt *BuildOptions) error {
 	}
 
 	if opt.Interactive != nil && *opt.Interactive {
-		handleLog("\n\033[32mBuild successful\033[0m\n")
+		_, _ = fmt.Fprint(opt.LogWriter, "\n\033[32mBuild successful\033[0m\n")
 
 		if tar, ok := artifact.GetDockerTar(); ok {
-			handleLog("\033[90m" + "The Docker image has been saved in " + tar + "\033[0m")
+			_, _ = fmt.Fprint(opt.LogWriter, "\033[90m"+"The Docker image has been saved in "+tar+"\033[0m")
 		}
 
 		if dotZeaburDirectory, ok := artifact.GetDotZeaburDirectory(); ok {
-			handleLog("\033[90m" + "The compiled serverless function has been saved in " + dotZeaburDirectory + "\033[0m")
+			_, _ = fmt.Fprint(opt.LogWriter, "\033[90m"+"The compiled serverless function has been saved in "+dotZeaburDirectory+"\033[0m")
 		}
 	}
 
