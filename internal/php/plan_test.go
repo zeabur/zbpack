@@ -3,7 +3,6 @@ package php_test
 import (
 	"testing"
 
-	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeabur/zbpack/internal/php"
@@ -136,7 +135,7 @@ func TestDetermineApplication_AcgFaka(t *testing.T) {
 
 func TestDetermineStartCommand_Default(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	command := php.DetermineStartCommand(config, nil)
+	command := php.DetermineStartCommand(config)
 
 	assert.Contains(t, command, "nginx; php-fpm")
 }
@@ -144,7 +143,7 @@ func TestDetermineStartCommand_Default(t *testing.T) {
 func TestDetermineStartCommand_Swoole(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerSwoole)
-	command := php.DetermineStartCommand(config, nil)
+	command := php.DetermineStartCommand(config)
 
 	assert.Contains(t, command, "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080")
 }
@@ -154,7 +153,7 @@ func TestDetermineStartCommand_Roadrunner(t *testing.T) {
 
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerRoadrunner)
-	command := php.DetermineStartCommand(config, nil)
+	command := php.DetermineStartCommand(config)
 
 	assert.Contains(t, command, "nginx; php-fpm")
 }
@@ -162,7 +161,7 @@ func TestDetermineStartCommand_Roadrunner(t *testing.T) {
 func TestDetermineStartCommand_UnknownOctane(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	config.Set(php.ConfigLaravelOctaneServer, "unknown")
-	command := php.DetermineStartCommand(config, nil)
+	command := php.DetermineStartCommand(config)
 
 	assert.Contains(t, command, "nginx; php-fpm")
 }
@@ -173,16 +172,7 @@ func TestDetermineStartCommand_CustomInConfig(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
 	config.Set(plan.ConfigStartCommand, expectedCommand)
 
-	actualCommand := php.DetermineStartCommand(config, nil)
-
-	assert.Contains(t, actualCommand, expectedCommand)
-}
-
-func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
-	const expectedCommand = "php artisan serve; _startup"
-
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	actualCommand := php.DetermineStartCommand(config, lo.ToPtr(expectedCommand))
+	actualCommand := php.DetermineStartCommand(config)
 
 	assert.Contains(t, actualCommand, expectedCommand)
 }
@@ -190,7 +180,7 @@ func TestDetermineStartCommand_CustomInOptions(t *testing.T) {
 func TestDetermineBuildCommand_Default(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	config := plan.NewProjectConfigurationFromFs(fs, "")
-	command := php.DetermineBuildCommand(fs, config, nil)
+	command := php.DetermineBuildCommand(fs, config)
 
 	assert.Equal(t, "", command)
 }
@@ -202,17 +192,7 @@ func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(fs, "")
 	config.Set(plan.ConfigBuildCommand, expectedCommand)
 
-	actualCommand := php.DetermineBuildCommand(fs, config, nil)
-
-	assert.Equal(t, expectedCommand, actualCommand)
-}
-
-func TestDetermineBuildCommand_CustomInOptions(t *testing.T) {
-	const expectedCommand = "php bin/build"
-
-	fs := afero.NewMemMapFs()
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-	actualCommand := php.DetermineBuildCommand(fs, config, lo.ToPtr(expectedCommand))
+	actualCommand := php.DetermineBuildCommand(fs, config)
 
 	assert.Equal(t, expectedCommand, actualCommand)
 }
@@ -225,7 +205,7 @@ func TestDetermineBuildCommand_NPMBuild(t *testing.T) {
 		}
 	}`), 0o644)
 	config := plan.NewProjectConfigurationFromFs(fs, "")
-	command := php.DetermineBuildCommand(fs, config, nil)
+	command := php.DetermineBuildCommand(fs, config)
 
 	assert.Equal(t, "npm install && npm run build", command)
 }
