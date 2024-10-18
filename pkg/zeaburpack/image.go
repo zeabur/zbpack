@@ -3,6 +3,7 @@ package zeaburpack
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -24,7 +25,6 @@ type buildImageOptions struct {
 	AbsPath             string
 	UserVars            map[string]string
 	ResultImage         string
-	HandleLog           *func(log string)
 	PlainDockerProgress bool
 
 	CacheFrom *string
@@ -36,6 +36,10 @@ type buildImageOptions struct {
 
 	// PushImage is a flag to indicate if the image should be pushed to the registry.
 	PushImage bool
+
+	// LogWriter is a [io.Writer] that will be written when a log is emitted.
+	// nil to use the default log writer.
+	LogWriter io.Writer
 }
 
 // ServerlessTarPath is the path to the serverless output tar file
@@ -45,6 +49,10 @@ var ServerlessTarPath = filepath.Join(
 )
 
 func buildImage(opt *buildImageOptions) error {
+	if opt.LogWriter == nil {
+		opt.LogWriter = os.Stderr
+	}
+
 	// resolve env variable statically and don't depend on Dockerfile's order
 	resolvedVars := envexpander.Expand(opt.UserVars)
 
@@ -163,7 +171,7 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	buildctlCmd := exec.Command("buildctl", buildKitCmd...)
-	buildctlCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	buildctlCmd.Stderr = opt.LogWriter
 	output, err := buildctlCmd.Output()
 	if err != nil {
 		return fmt.Errorf("run buildctl build: %w", err)
@@ -175,8 +183,8 @@ func buildImage(opt *buildImageOptions) error {
 
 	dockerLoadCmd := exec.Command("docker", "load")
 	dockerLoadCmd.Stdin = bytes.NewReader(output)
-	dockerLoadCmd.Stdout = NewHandledWriter(os.Stdout, opt.HandleLog)
-	dockerLoadCmd.Stderr = NewHandledWriter(os.Stderr, opt.HandleLog)
+	dockerLoadCmd.Stdout = opt.LogWriter
+	dockerLoadCmd.Stderr = opt.LogWriter
 	if err := dockerLoadCmd.Run(); err != nil {
 		return fmt.Errorf("run docker load: %w", err)
 	}

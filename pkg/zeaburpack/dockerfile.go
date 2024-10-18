@@ -6,9 +6,8 @@ import (
 )
 
 type generateDockerfileOptions struct {
-	HandleLog func(log string)
-	planType  types.PlanType
-	planMeta  types.PlanMeta
+	planType types.PlanType
+	planMeta types.PlanMeta
 }
 
 func generateDockerfile(opt *generateDockerfileOptions) (string, error) {
