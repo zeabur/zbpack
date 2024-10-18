@@ -183,7 +183,7 @@ func buildMiddleware(workdir, zeaburOutputDir string) error {
 		Loader:        map[string]esbuild.Loader{".wasm": esbuild.LoaderBinary},
 		AbsWorkingDir: workdir,
 	})
-	if res.Errors != nil && len(res.Errors) > 0 {
+	if len(res.Errors) > 0 {
 		println(res.Errors[0].Text)
 		return fmt.Errorf("esbuild run failed")
 	}

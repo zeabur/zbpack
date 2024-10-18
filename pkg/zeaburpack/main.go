@@ -76,7 +76,6 @@ type BuildOptions struct {
 
 // Build will analyze the project, determine the plan and build the image.
 func Build(opt *BuildOptions) error {
-
 	// clean up the buildkit output directory after the build
 	defer func() {
 		_ = os.RemoveAll(path.Join(os.TempDir(), "zbpack/buildkit"))
@@ -229,7 +228,7 @@ func Build(opt *BuildOptions) error {
 
 	stat, err := os.Stat(dotZeaburDirInOutput)
 	if err == nil && stat.IsDir() {
-		_ = os.MkdirAll(path.Join(*opt.Path, ".zeabur"), 0755)
+		_ = os.MkdirAll(path.Join(*opt.Path, ".zeabur"), 0o755)
 		err = cp.Copy(dotZeaburDirInOutput, path.Join(*opt.Path, ".zeabur"))
 		if err != nil {
 			opt.Log("Failed to copy .zeabur directory from the output: %s\n", err)
@@ -284,7 +283,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -311,7 +310,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -375,7 +374,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -446,7 +445,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -479,7 +478,7 @@ func Build(opt *BuildOptions) error {
 			if m["outputDir"] != "" || (t == types.PlanTypeStatic && m["serverless"] == "true") {
 				opt.Log("npx serve .zeabur/output/static")
 			} else {
-				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it " + *opt.ResultImage)
+				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it %s", *opt.ResultImage)
 			}
 		}
 	}
@@ -487,6 +486,9 @@ func Build(opt *BuildOptions) error {
 	return nil
 }
 
+// Log writes a log message to the log writer.
+//
+// It passes the parameters to [fmt.Fprintf] internally.
 func (opt *BuildOptions) Log(msg string, args ...any) {
 	_, _ = fmt.Fprintf(opt.LogWriter, msg, args...)
 }
