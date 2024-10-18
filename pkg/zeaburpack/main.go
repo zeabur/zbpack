@@ -465,7 +465,7 @@ func Build(opt *BuildOptions) error {
 			if m["outputDir"] != "" || (t == types.PlanTypeStatic && m["serverless"] == "true") {
 				opt.Log("npx serve .zeabur/output/static")
 			} else {
-				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it " + *opt.ResultImage)
+				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it %s", *opt.ResultImage)
 			}
 		}
 	}
@@ -473,6 +473,9 @@ func Build(opt *BuildOptions) error {
 	return nil
 }
 
+// Log writes a log message to the log writer.
+//
+// It passes the parameters to [fmt.Fprintf] internally.
 func (opt *BuildOptions) Log(msg string, args ...any) {
 	_, _ = fmt.Fprintf(opt.LogWriter, msg, args...)
 }
