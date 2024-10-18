@@ -56,16 +56,6 @@ type BuildOptions struct {
 	// Interactive is a flag to indicate if the build should be interactive.
 	Interactive *bool
 
-	// CustomBuildCommand is a custom build command that will be used instead of the default one.
-	CustomBuildCommand *string
-
-	// CustomStartCommand is a custom start command that will be used instead of the default one.
-	CustomStartCommand *string
-
-	// OutputDir is the directory where the build artifacts will be stored.
-	// Once provided, the service will deploy as static files with nginx.
-	OutputDir *string
-
 	CacheFrom *string
 	CacheTo   *string
 
@@ -79,7 +69,6 @@ type BuildOptions struct {
 
 // Build will analyze the project, determine the plan and build the image.
 func Build(opt *BuildOptions) error {
-
 	// clean up the buildkit output directory after the build
 	defer func() {
 		_ = os.RemoveAll(path.Join(os.TempDir(), "zbpack/buildkit"))
@@ -148,16 +137,11 @@ func Build(opt *BuildOptions) error {
 	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
 	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
-	UpdateOptionsOnConfig(opt, config)
-
 	planner := plan.NewPlanner(
 		&plan.NewPlannerOptions{
-			Source:             src,
-			Config:             config,
-			SubmoduleName:      submoduleName,
-			CustomBuildCommand: opt.CustomBuildCommand,
-			CustomStartCommand: opt.CustomStartCommand,
-			OutputDir:          opt.OutputDir,
+			Source:        src,
+			Config:        config,
+			SubmoduleName: submoduleName,
 		},
 		SupportedIdentifiers(config)...,
 	)
@@ -220,7 +204,7 @@ func Build(opt *BuildOptions) error {
 	dockerBuildOutput := path.Join(os.TempDir(), "zbpack/buildkit")
 	// decompress TAR to the output directory
 	func() {
-		if err := os.MkdirAll(dockerBuildOutput, 0755); err != nil {
+		if err := os.MkdirAll(dockerBuildOutput, 0o755); err != nil {
 			println("Failed to create output directory: " + err.Error())
 			return
 		}
@@ -260,7 +244,7 @@ func Build(opt *BuildOptions) error {
 
 	stat, err := os.Stat(dotZeaburDirInOutput)
 	if err == nil && stat.IsDir() {
-		_ = os.MkdirAll(path.Join(*opt.Path, ".zeabur"), 0755)
+		_ = os.MkdirAll(path.Join(*opt.Path, ".zeabur"), 0o755)
 		err = cp.Copy(dotZeaburDirInOutput, path.Join(*opt.Path, ".zeabur"))
 		if err != nil {
 			println("Failed to copy .zeabur directory from the output: " + err.Error())
@@ -315,7 +299,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -342,7 +326,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -406,7 +390,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}
@@ -481,7 +465,7 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0644)
+		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
 		if err != nil {
 			return err
 		}

@@ -21,12 +21,9 @@ type planner struct {
 
 // NewPlannerOptions is the options for NewPlanner.
 type NewPlannerOptions struct {
-	Source             afero.Fs
-	Config             ImmutableProjectConfiguration
-	SubmoduleName      string
-	CustomBuildCommand *string
-	CustomStartCommand *string
-	OutputDir          *string
+	Source        afero.Fs
+	Config        ImmutableProjectConfiguration
+	SubmoduleName string
 
 	AWSConfig *AWSConfig
 }

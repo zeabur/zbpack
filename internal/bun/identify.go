@@ -45,9 +45,6 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		GetMetaOptions{
 			Src:            options.Source,
 			Config:         options.Config,
-			CustomBuildCmd: options.CustomBuildCommand,
-			CustomStartCmd: options.CustomStartCommand,
-			OutputDir:      options.OutputDir,
 			Bun:            true,
 		},
 	)
