@@ -192,12 +192,15 @@ func Build(opt *BuildOptions) error {
 	// Remove .zeabur directory if exists
 	_ = os.RemoveAll(path.Join(*opt.Path, ".zeabur"))
 
+	// Inject dockerfile to contain the variables, registry, etc.
+	newDockerfile := InjectDockerfile(dockerfile, opt.ProxyRegistry, *opt.UserVars)
+
 	err = buildImage(
 		&buildImageOptions{
 			PlanType: t,
 			PlanMeta: m,
 
-			Dockerfile:          dockerfile,
+			Dockerfile:          newDockerfile,
 			AbsPath:             *opt.Path,
 			UserVars:            *opt.UserVars,
 			HandleLog:           buildImageHandleLog,
@@ -206,9 +209,8 @@ func Build(opt *BuildOptions) error {
 			ResultImage: *opt.ResultImage,
 			PushImage:   opt.PushImage,
 
-			CacheFrom:     opt.CacheFrom,
-			CacheTo:       opt.CacheTo,
-			ProxyRegistry: opt.ProxyRegistry,
+			CacheFrom: opt.CacheFrom,
+			CacheTo:   opt.CacheTo,
 		},
 	)
 	if err != nil {

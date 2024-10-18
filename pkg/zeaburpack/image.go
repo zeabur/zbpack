@@ -8,11 +8,9 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/pan93412/envexpander/v3"
 	"github.com/samber/lo"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -30,10 +28,6 @@ type buildImageOptions struct {
 	CacheFrom *string
 	CacheTo   *string
 
-	// ProxyRegistry is the registry to be used for the image.
-	// See referenceConstructor for more details.
-	ProxyRegistry *string
-
 	// PushImage is a flag to indicate if the image should be pushed to the registry.
 	PushImage bool
 }
@@ -45,65 +39,6 @@ var ServerlessTarPath = filepath.Join(
 )
 
 func buildImage(opt *buildImageOptions) error {
-	// resolve env variable statically and don't depend on Dockerfile's order
-	resolvedVars := envexpander.Expand(opt.UserVars)
-
-	refConstructor := newReferenceConstructor(opt.ProxyRegistry)
-	lines := strings.Split(opt.Dockerfile, "\n")
-	stageLines := make([]int, 0)
-
-	for i, line := range lines {
-		fromStatement, isFromStatement := ParseFrom(line)
-		if !isFromStatement {
-			continue
-		}
-
-		// Construct the reference.
-		newRef := refConstructor.Construct(fromStatement.Source)
-
-		// Replace this FROM line.
-		fromStatement.Source = newRef
-		lines[i] = fromStatement.String()
-
-		// Mark this FROM line as a stage.
-		if stage, ok := fromStatement.Stage.Get(); ok {
-			refConstructor.AddStage(stage)
-		}
-		stageLines = append(stageLines, i)
-	}
-
-	// sort the resolvedVars by key so we can build
-	// the reproducible dockerfile
-	sortedResolvedVarsKey := make([]string, 0, len(resolvedVars))
-	for key := range resolvedVars {
-		sortedResolvedVarsKey = append(sortedResolvedVarsKey, key)
-	}
-	sort.Strings(sortedResolvedVarsKey)
-
-	// build the dockerfile
-	dockerfileEnv := ""
-
-	for _, key := range sortedResolvedVarsKey {
-		value := resolvedVars[key]
-
-		// skip empty value
-		if len(value) == 0 {
-			continue
-		}
-
-		value = strings.ReplaceAll(value, "\\", "\\\\")
-		value = strings.ReplaceAll(value, "\n", "\\n")
-		value = strings.ReplaceAll(value, "'", "\\'")
-		value = strings.ReplaceAll(value, "\"", "\\\"")
-
-		dockerfileEnv += "ENV " + key + "=\"" + value + "\"\n"
-	}
-
-	for _, stageLine := range stageLines {
-		lines[stageLine] = lines[stageLine] + "\n" + dockerfileEnv + "\n"
-	}
-	newDockerfile := strings.Join(lines, "\n")
-
 	tempDir := os.TempDir()
 	buildID := strconv.Itoa(rand.Int())
 
@@ -113,7 +48,7 @@ func buildImage(opt *buildImageOptions) error {
 	}
 
 	dockerfilePath := path.Join(tempDir, buildID, "Dockerfile")
-	err = os.WriteFile(dockerfilePath, []byte(newDockerfile), 0o644)
+	err = os.WriteFile(dockerfilePath, []byte(opt.Dockerfile), 0o644)
 	if err != nil {
 		return fmt.Errorf("write Dockerfile: %w", err)
 	}
