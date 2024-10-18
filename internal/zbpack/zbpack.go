@@ -145,7 +145,7 @@ func plan(path string) error {
 		},
 	)
 
-	zeaburpack.PrintPlanAndMeta(t, m, func(info string) { log.Println(info) })
+	zeaburpack.PrintPlanAndMeta(t, m, os.Stderr)
 
 	return nil
 }
