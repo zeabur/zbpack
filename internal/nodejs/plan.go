@@ -803,6 +803,11 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 		return outputDir
 	}
 
+	if outputDir, err := plan.Cast(ctx.Config.Get(plan.ConfigOutputDir), cast.ToStringE).Take(); err == nil {
+		*dir = optional.Some(outputDir)
+		return dir.Unwrap()
+	}
+
 	framework := DetermineAppFramework(ctx)
 
 	// the default output directory of Angular is `dist/<project-name>/browser`
@@ -901,6 +906,12 @@ func getServerless(ctx *nodePlanContext) bool {
 		return sl.Unwrap()
 	}
 
+	// For projects with outputDir, it should be always serverless (if not explicitly set).
+	if GetStaticOutputDir(ctx) != "" {
+		*sl = optional.Some(true)
+		return sl.Unwrap()
+	}
+
 	// For monorepo projects, we should not deploy as serverless
 	// until ZEA-3469 is resolved.
 	if GetMonorepoAppRoot(ctx) != "" {
@@ -983,6 +994,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 	meta["buildCmd"] = buildCmd
 
+	serverless := getServerless(ctx)
+	if serverless {
+		meta["serverless"] = strconv.FormatBool(serverless)
+	}
+
 	// only set outputDir if there is no custom start command (because if there is, it shouldn't be a static project)
 	if opt.CustomStartCmd == nil || *opt.CustomStartCmd == "" {
 
@@ -1008,11 +1024,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		startCmd = *opt.CustomStartCmd
 	}
 	meta["startCmd"] = startCmd
-
-	serverless := getServerless(ctx)
-	if serverless {
-		meta["serverless"] = strconv.FormatBool(serverless)
-	}
 
 	return meta
 }

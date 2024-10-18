@@ -1,6 +1,7 @@
 package dart
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/moznion/go-optional"
@@ -111,6 +112,9 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	}
 
 	if od := determineOutputDir(ctx); od != "" {
+		meta["serverless"] = strconv.FormatBool(
+			utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false),
+		)
 		meta["outputDir"] = od
 	}
 
