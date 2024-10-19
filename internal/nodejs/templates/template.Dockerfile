@@ -1,6 +1,6 @@
 {{- if .Bun -}}
 # Install bun if we need it
-FROM oven/bun:1.0 as bun-runtime
+FROM oven/bun:{{.BunVersion}} as bun-runtime
 {{ end -}}
 FROM node:{{.NodeVersion}} as build
 
