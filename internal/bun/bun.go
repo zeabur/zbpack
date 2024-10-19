@@ -11,7 +11,7 @@ import (
 // GenerateDockerfile generates the Dockerfile for Bun projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	if meta["framework"] == string(types.BunFrameworkHono) {
-		return `FROM oven/bun:1 as base
+		return `FROM oven/bun:` + meta["bunVersion"] + ` as base
 WORKDIR /src
 COPY package.json bun.lockb* ./
 RUN bun install

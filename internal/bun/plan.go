@@ -11,7 +11,8 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-type bunPlanContext struct {
+// PlanContext is the context for Bun project planning.
+type PlanContext struct {
 	PackageJSON nodejs.PackageJSON
 	Src         afero.Fs
 
@@ -23,21 +24,15 @@ type GetMetaOptions nodejs.GetMetaOptions
 
 // GetMeta gets the metadata of the Node.js project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	packageJSON, err := nodejs.DeserializePackageJSON(opt.Src)
-	if err != nil {
-		log.Printf("Failed to read package.json: %v", err)
-		// not fatal
-	}
-
-	ctx := &bunPlanContext{
-		PackageJSON: packageJSON,
-		Src:         opt.Src,
-	}
+	ctx := CreateBunContext(GetMetaOptions(opt))
 
 	meta := types.PlanMeta{}
 
 	framework := DetermineFramework(ctx)
 	meta["framework"] = string(framework)
+
+	bunVersion := DetermineVersion(ctx)
+	meta["bunVersion"] = bunVersion
 
 	if framework == types.BunFrameworkHono {
 		entry := determineEntry(ctx)
@@ -52,8 +47,22 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	return meta
 }
 
+// CreateBunContext creates a new [PlanContext].
+func CreateBunContext(opt GetMetaOptions) *PlanContext {
+	packageJSON, err := nodejs.DeserializePackageJSON(opt.Src)
+	if err != nil {
+		log.Printf("Failed to read package.json: %v", err)
+		// not fatal
+	}
+
+	return &PlanContext{
+		PackageJSON: packageJSON,
+		Src:         opt.Src,
+	}
+}
+
 // DetermineFramework determines the framework of the Bun project.
-func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
+func DetermineFramework(ctx *PlanContext) types.BunFramework {
 	fw := &ctx.Framework
 	packageJSON := ctx.PackageJSON
 
@@ -85,7 +94,7 @@ func DetermineFramework(ctx *bunPlanContext) types.BunFramework {
 	return fw.Unwrap()
 }
 
-func determineEntry(ctx *bunPlanContext) string {
+func determineEntry(ctx *PlanContext) string {
 	if strings.HasPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot") {
 		return strings.TrimPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot ")
 	}
@@ -99,4 +108,9 @@ func determineEntry(ctx *bunPlanContext) string {
 	}
 
 	return ""
+}
+
+// DetermineVersion determines the Bun version to use.
+func DetermineVersion(ctx *PlanContext) string {
+	return utils.ConstraintToVersion(ctx.PackageJSON.Engines.Bun, "latest")
 }

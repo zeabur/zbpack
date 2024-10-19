@@ -11,6 +11,7 @@ import (
 // PackageJSONEngine is the structure of `package.json`'s `engines` field.
 type PackageJSONEngine struct {
 	Node string `json:"node"`
+	Bun  string `json:"bun,omitempty"`
 }
 
 // PackageJSON is the structure of `package.json`.
