@@ -75,7 +75,7 @@ func TransformServerless(workdir string) error {
 	funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "node20", Entry: entry}
 	err = funcConfig.WriteTo(path.Join(zeaburOutputDir, "functions/index.func"))
 	if err != nil {
-		return fmt.Errorf("Failed to write function config to \".zeabur/output/functions/index.func\": " + err.Error())
+		return fmt.Errorf("Failed to write function config to \".zeabur/output/functions/index.func\": %s", err)
 	}
 
 	fmt.Println("=> Copying node_modules")

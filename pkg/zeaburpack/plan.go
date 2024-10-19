@@ -89,15 +89,12 @@ func PlanAndOutputDockerfile(opt PlanOptions) error {
 	t, m := Plan(opt)
 	dockerfile, err := generateDockerfile(
 		&generateDockerfileOptions{
-			HandleLog: func(log string) {
-				println(log)
-			},
 			planType: t,
 			planMeta: m,
 		},
 	)
 	if err != nil {
-		log.Printf("Failed to generate Dockerfile: " + err.Error())
+		log.Printf("Failed to generate Dockerfile: %s\n", err.Error())
 		return err
 	}
 	println(dockerfile)

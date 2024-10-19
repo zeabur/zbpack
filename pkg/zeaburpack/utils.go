@@ -3,6 +3,7 @@ package zeaburpack
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,7 +20,7 @@ const (
 )
 
 // PrintPlanAndMeta prints the build plan and meta in a table format.
-func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(log string)) {
+func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, writer io.Writer) {
 	table := fmt.Sprintf(
 		"\n%s╔══════════════════════════════ %s%s %s═════════════════════════════╗\n",
 		blue, yellow, "Build Plan", blue,
@@ -63,7 +64,7 @@ func PrintPlanAndMeta(plan types.PlanType, meta types.PlanMeta, printFunc func(l
 		blue, reset,
 	)
 
-	printFunc(table)
+	_, _ = writer.Write([]byte(table))
 }
 
 // getGitHubSourceFromURL returns a GitHub source from a GitHub URL.
