@@ -947,10 +947,6 @@ type GetMetaOptions struct {
 	Src    afero.Fs
 	Config plan.ImmutableProjectConfiguration
 
-	CustomBuildCmd *string
-	CustomStartCmd *string
-	OutputDir      *string
-
 	Bun bool
 }
 
@@ -989,9 +985,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta["installCmd"] = installCmd
 
 	buildCmd := GetBuildCmd(ctx)
-	if opt.CustomBuildCmd != nil && *opt.CustomBuildCmd != "" {
-		buildCmd = *opt.CustomBuildCmd
-	}
 	meta["buildCmd"] = buildCmd
 
 	serverless := getServerless(ctx)
@@ -1000,29 +993,15 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 
 	// only set outputDir if there is no custom start command (because if there is, it shouldn't be a static project)
-	if opt.CustomStartCmd == nil || *opt.CustomStartCmd == "" {
-
-		if opt.OutputDir != nil && *opt.OutputDir != "" {
-			if strings.HasPrefix(*opt.OutputDir, "/") {
-				meta["outputDir"] = strings.TrimPrefix(*opt.OutputDir, "/")
-			} else {
-				meta["outputDir"] = *opt.OutputDir
-			}
-			return meta
-		}
-
+	if buildCmd == "" {
 		staticOutputDir := GetStaticOutputDir(ctx)
 		if staticOutputDir != "" {
 			meta["outputDir"] = staticOutputDir
 			return meta
 		}
-
 	}
 
 	startCmd := GetStartCmd(ctx)
-	if opt.CustomStartCmd != nil && *opt.CustomStartCmd != "" {
-		startCmd = *opt.CustomStartCmd
-	}
 	meta["startCmd"] = startCmd
 
 	return meta

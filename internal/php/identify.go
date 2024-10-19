@@ -34,8 +34,8 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	deps := DetermineAptDependencies(options.Source, server)
 	exts := DeterminePHPExtensions(options.Source)
 	app, property := DetermineApplication(options.Source)
-	buildCommand := DetermineBuildCommand(options.Source, options.Config, options.CustomBuildCommand)
-	startCommand := DetermineStartCommand(options.Config, options.CustomStartCommand)
+	buildCommand := DetermineBuildCommand(options.Source, options.Config)
+	startCommand := DetermineStartCommand(options.Config)
 
 	// Some meta will be added to the plan dynamically later.
 	meta := types.PlanMeta{
