@@ -1,12 +1,11 @@
 package zeaburpack
 
 import (
-	"regexp"
+	"strings"
 
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/samber/mo"
 )
-
-var fromStatementRegex = regexp.MustCompile(`(?i)^\s*FROM(?:\s+--platform=.+?)?\s+(?P<src>\S*)(?:\s+AS\s+(?P<stage>\S+))?`)
 
 // FromStatement represents a FROM statement in a Dockerfile.
 type FromStatement struct {
@@ -16,26 +15,30 @@ type FromStatement struct {
 
 // ParseFrom parses a FROM statement from a Dockerfile line.
 func ParseFrom(line string) (FromStatement, bool) {
-	statement := FromStatement{}
-
-	names := fromStatementRegex.SubexpNames()
-	submatch := fromStatementRegex.FindStringSubmatch(line)
-	if len(submatch) == 0 {
-		return statement, false
+	parsed, err := parser.Parse(strings.NewReader(line))
+	if err != nil {
+		return FromStatement{}, false
 	}
 
-	for i, name := range names {
-		switch name {
-		case "src":
-			statement.Source = submatch[i]
-		case "stage":
-			if submatch[i] != "" {
-				statement.Stage = mo.Some(submatch[i])
+	for _, child := range parsed.AST.Children {
+		if child.Value == "FROM" {
+			source := child.Next.Value
+
+			if child.Next.Next != nil && child.Next.Next.Value == "AS" {
+				return FromStatement{
+					Source: child.Next.Value,
+					Stage:  mo.Some(child.Next.Next.Next.Value),
+				}, true
 			}
+
+			return FromStatement{
+				Source: source,
+				Stage:  mo.None[string](),
+			}, true
 		}
 	}
 
-	return statement, true
+	return FromStatement{}, false
 }
 
 func (fs FromStatement) String() string {
