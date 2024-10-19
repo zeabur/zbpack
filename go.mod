@@ -63,7 +63,6 @@ require (
 require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/codeclysm/extract/v3 v3.1.1
-	github.com/containerd/console v1.0.4
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.6.0
 	github.com/evanw/esbuild v0.24.0
