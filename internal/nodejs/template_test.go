@@ -95,6 +95,7 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 func TestTemplate_BuildCmd_Bun(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		Bun:         true,
+		BunVersion:  "1.2",
 		NodeVersion: "18",
 		InstallCmd:  "RUN bun install",
 		StartCmd:    "bun start main.ts",
@@ -226,4 +227,18 @@ func TestTemplate_NitroPreset(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotContains(t, result, "ENV NITRO_PRESET")
 	})
+}
+
+func TestTemplate_Bun(t *testing.T) {
+	ctx := nodejs.TemplateContext{
+		NodeVersion: "18",
+		InstallCmd:  "RUN bun install",
+		StartCmd:    "bun start main.ts",
+		Bun:         true,
+		BunVersion:  "1",
+	}
+
+	result, err := ctx.Execute()
+	assert.NoError(t, err)
+	snaps.MatchSnapshot(t, result)
 }

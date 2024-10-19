@@ -14,6 +14,7 @@ import (
 // TemplateContext is the context for the Node.js Dockerfile template.
 type TemplateContext struct {
 	NodeVersion string
+	BunVersion  string
 
 	AppDir string
 
@@ -60,7 +61,8 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		OutputDir:   meta["outputDir"],
 
 		// The flag specific to planner/bun.
-		Bun: meta["bun"] == "true" || meta["packageManager"] == "bun",
+		Bun:        meta["bun"] == "true" || meta["packageManager"] == "bun",
+		BunVersion: meta["bunVersion"],
 	}
 
 	return context
