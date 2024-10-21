@@ -1,8 +1,8 @@
 {{- if .Bun -}}
 # Install bun if we need it
-FROM oven/bun:{{.BunVersion}} as bun-runtime
+FROM oven/bun:{{.BunVersion}} AS bun-runtime
 {{ end -}}
-FROM node:{{.NodeVersion}} as build
+FROM node:{{.NodeVersion}} AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -36,10 +36,10 @@ ENV HOST=0.0.0.0
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 {{ if .Serverless }}
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src/{{ .AppDir }} /
 {{ else if ne .OutputDir "" }}
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src/{{ .AppDir }}/{{ .OutputDir }} /
 {{ else }}
 EXPOSE 8080

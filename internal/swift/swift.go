@@ -19,9 +19,8 @@ func NewPacker() packer.Packer {
 
 // GenerateDockerfile generates a Dockerfile for Swift project
 func GenerateDockerfile(_ types.PlanMeta) (string, error) {
-
 	// TODO: following dockerfile is copied from Vapor's template, need to be modified to support other Swift use cases
-	return `FROM swift:5.9-jammy as build
+	return `FROM swift:5.9-jammy AS build
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
   && apt-get -q update \

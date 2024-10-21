@@ -1,5 +1,5 @@
 {{define "nginx-runtime"}}
-FROM nginx:alpine as runtime
+FROM nginx:alpine AS runtime
 ENV PORT=8080
 WORKDIR /usr/share/nginx/html
 COPY --from=build /app/wwwroot ./static/
