@@ -71,7 +71,7 @@ func TestCLI(t *testing.T) {
 	t.Run("only show info when give --info flag", func(t *testing.T) {
 		path, _ := os.Getwd()
 		path = filepath.Join(path, "../../")
-		testFilePath := filepath.Join(path, "/tests/node-corepack")
+		testFilePath := filepath.Join(path, "/tests/nodejs-a-lot-of-dependencies")
 		cmd := exec.Command(binName, "--info", testFilePath)
 		out, err := cmd.CombinedOutput()
 		if err != nil {

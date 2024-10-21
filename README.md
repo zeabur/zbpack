@@ -31,7 +31,7 @@ You should see the `build plan` block and the subsequent `build log` block. The 
 Use `-i` or `--info` to show the build plan only.
 
 ```bash
-$ ./zbpack --info ./tests/node-corepack
+$ ./zbpack --info corepack-project
 
 ╔══════════════════════════ Build Plan ═════════════════════════╗
 ║ provider         │ nodejs                                     ║

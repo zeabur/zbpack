@@ -1,0 +1,7 @@
+PlanType: dotnet
+
+Meta:
+  entryPoint: "dotnetapp.csproj"
+  framework: "console"
+  sdk: "7.0"
+  submoduleDir: ""

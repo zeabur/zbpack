@@ -1,0 +1,6 @@
+PlanType: elixir
+
+Meta:
+  ecto: "true"
+  framework: ""
+  ver: "1.13"

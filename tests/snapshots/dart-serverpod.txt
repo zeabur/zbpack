@@ -1,0 +1,5 @@
+PlanType: dart
+
+Meta:
+  build: "RUN dart compile exe bin/main.dart"
+  framework: "serverpod"

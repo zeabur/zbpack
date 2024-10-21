@@ -1,0 +1,6 @@
+PlanType: bun
+
+Meta:
+  bunVersion: "latest"
+  entry: "src/index.ts"
+  framework: "hono"

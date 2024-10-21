@@ -1,0 +1,7 @@
+PlanType: java
+
+Meta:
+  framework: "spring-boot"
+  jdk: "17"
+  targetExt: "jar"
+  type: "gradle"

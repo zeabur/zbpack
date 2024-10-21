@@ -1,0 +1,4 @@
+PlanType: swift
+
+Meta:
+  framework: "vapor"
