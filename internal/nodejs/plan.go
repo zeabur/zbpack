@@ -947,7 +947,8 @@ type GetMetaOptions struct {
 	Src    afero.Fs
 	Config plan.ImmutableProjectConfiguration
 
-	Bun bool
+	Bun          bool
+	BunFramework optional.Option[types.BunFramework]
 }
 
 // GetMeta gets the metadata of the Node.js project.
@@ -963,6 +964,11 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		Config:             opt.Config,
 		Src:                opt.Src,
 		Bun:                opt.Bun,
+	}
+
+	if bunFramework, err := opt.BunFramework.Take(); err == nil {
+		// Bun and Node is interchangeable.
+		ctx.Framework = optional.Some(types.NodeProjectFramework(bunFramework))
 	}
 
 	meta := types.PlanMeta{

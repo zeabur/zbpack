@@ -24,7 +24,7 @@ type GetMetaOptions nodejs.GetMetaOptions
 
 // GetMeta gets the metadata of the Node.js project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
-	ctx := CreateBunContext(GetMetaOptions(opt))
+	ctx := CreateBunContext(opt)
 
 	meta := types.PlanMeta{}
 
@@ -41,6 +41,10 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		}
 
 		return meta
+	}
+
+	if framework != types.BunFrameworkNone {
+		opt.BunFramework = optional.Some(framework)
 	}
 
 	meta = nodejs.GetMeta(nodejs.GetMetaOptions(opt))
@@ -68,11 +72,6 @@ func DetermineFramework(ctx *PlanContext) types.BunFramework {
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
-	}
-
-	if _, isElysia := packageJSON.Dependencies["elysia"]; isElysia {
-		*fw = optional.Some(types.BunFrameworkElysia)
-		return fw.Unwrap()
 	}
 
 	if _, isBaojs := packageJSON.Dependencies["baojs"]; isBaojs {
