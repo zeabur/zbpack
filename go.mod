@@ -80,5 +80,6 @@ require (
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
+	go.nhat.io/aferocopy/v2 v2.0.2
 	golang.org/x/text v0.19.0
 )
