@@ -1,0 +1,11 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "npm run build"
+  bun: "false"
+  framework: "qwik"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY package-lock.json* .\nRUN npm install"
+  nodeVersion: "15"
+  packageManager: "npm"
+  startCmd: "npm run deploy"

@@ -1,0 +1,9 @@
+PlanType: python
+
+Meta:
+  apt-deps: "build-essential pkg-config"
+  build: "RUN pip install -r requirements.txt"
+  install: "COPY requirements.txt* .\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
+  packageManager: "pip"
+  pythonVersion: "3.10"
+  start: "_startup() { python app.py; }; _startup"

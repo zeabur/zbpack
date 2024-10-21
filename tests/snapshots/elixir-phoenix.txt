@@ -1,0 +1,6 @@
+PlanType: elixir
+
+Meta:
+  ecto: "false"
+  framework: "phoenix"
+  ver: "1.12"

@@ -1,0 +1,11 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "pnpm run build"
+  bun: "false"
+  framework: "none"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY pnpm-lock.yaml* .\nRUN pnpm install"
+  nodeVersion: "20"
+  packageManager: "pnpm"
+  startCmd: "pnpm start"

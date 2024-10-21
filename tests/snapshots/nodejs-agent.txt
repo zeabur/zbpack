@@ -1,0 +1,5 @@
+PlanType: docker
+
+Meta:
+  content: "FROM node:16-alpine\nWORKDIR app\nRUN npm i -g pnpm\nCOPY package.json pnpm-lock.yaml ./\nRUN pnpm i\nCOPY . .\nRUN pnpm build\nCMD [\"node\", \"index.cjs\"]\n"
+  expose: "8080"

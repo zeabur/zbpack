@@ -1,0 +1,7 @@
+PlanType: dotnet
+
+Meta:
+  entryPoint: "asp-dotnet-web-api-template.csproj"
+  framework: "aspnet"
+  sdk: "6.0"
+  submoduleDir: ""
