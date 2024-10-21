@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/codeclysm/extract/v3"
@@ -22,6 +20,7 @@ import (
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
+	"github.com/zeabur/zbpack/pkg/transformer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -175,7 +174,7 @@ func Build(opt *BuildOptions) error {
 	dockerBuildOutput := path.Join(os.TempDir(), "zbpack/buildkit")
 	// decompress TAR to the output directory
 	func() {
-		if err := os.MkdirAll(dockerBuildOutput, 0755); err != nil {
+		if err := os.MkdirAll(dockerBuildOutput, 0o755); err != nil {
 			println("Failed to create output directory: " + err.Error())
 			return
 		}
@@ -211,160 +210,19 @@ func Build(opt *BuildOptions) error {
 		}
 	}()
 
-	dotZeaburDirInOutput := path.Join(dockerBuildOutput, ".zeabur")
-
-	stat, err := os.Stat(dotZeaburDirInOutput)
-	if err == nil && stat.IsDir() {
-		_ = os.MkdirAll(path.Join(*opt.Path, ".zeabur"), 0o755)
-		err = cp.Copy(dotZeaburDirInOutput, path.Join(*opt.Path, ".zeabur"))
-		if err != nil {
-			opt.Log("Failed to copy .zeabur directory from the output: %s\n", err)
-		}
-	}
-
-	if t == types.PlanTypeNix {
-		dockerTarName := filepath.Join(dockerBuildOutput, "result")
-
-		if !opt.PushImage {
-			// SAFE: zbpack are managed by ourselves. Besides,
-			// macOS does not contain policy.json by default.
-			skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTarName, "docker-daemon:"+*opt.ResultImage+":latest")
-			skopeoCmd.Stdout = opt.LogWriter
-			skopeoCmd.Stderr = opt.LogWriter
-			if err := skopeoCmd.Run(); err != nil {
-				return fmt.Errorf("run skopeo copy: %w", err)
-			}
-		} else {
-			// SAFE: zbpack are managed by ourselves. Besides,
-			// macOS does not contain policy.json by default.
-			skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTarName, "docker://"+*opt.ResultImage)
-			skopeoCmd.Stdout = opt.LogWriter
-			skopeoCmd.Stderr = opt.LogWriter
-			if err := skopeoCmd.Run(); err != nil {
-				return fmt.Errorf("run skopeo copy: %w", err)
-			}
-		}
-
-		// remove the TAR since we have imported it
-		_ = os.Remove(dockerTarName)
-	}
-
-	if t == types.PlanTypeGo && m["serverless"] == "true" {
-		opt.Log("Transforming build output to serverless format ...")
-		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__go.func"))
-		if err != nil {
-			opt.Log("Failed to copy serverless function: %s\n", err)
-		}
-
-		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "binary", Entry: "./main"}
-
-		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__go.func"))
-		if err != nil {
-			opt.Log("Failed to write function config to \".zeabur/output/functions/__go.func\": %s\n", err)
-		}
-
-		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__go"}}}
-
-		configBytes, err := json.Marshal(config)
-		if err != nil {
-			return err
-		}
-
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
-		if err != nil {
-			return err
-		}
-	}
-
-	if t == types.PlanTypeRust && m["serverless"] == "true" {
-		opt.Log("Transforming build output to serverless format ...")
-		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), path.Join(*opt.Path, ".zeabur/output/functions/__rs.func"))
-		if err != nil {
-			opt.Log("Failed to copy serverless function: %s\n", err)
-		}
-
-		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "binary", Entry: "./main"}
-
-		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__rs.func"))
-		if err != nil {
-			opt.Log("Failed to write function config to \".zeabur/output/functions/__rs.func\": %s\n", err)
-		}
-
-		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__rs"}}}
-
-		configBytes, err := json.Marshal(config)
-		if err != nil {
-			return err
-		}
-
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
-		if err != nil {
-			return err
-		}
-	}
-
-	if t == types.PlanTypePython && m["serverless"] == "true" {
-		opt.Log("Transforming build output to serverless format ...")
-		funcPath := path.Join(*opt.Path, ".zeabur/output/functions/__py.func")
-		err := cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit"), funcPath)
-		if err != nil {
-			opt.Log("Failed to copy serverless function: %s\n", err)
-		}
-
-		// if there is "static" directory in the output, we will copy it to .zeabur/output/static
-		statStatic, errStatic := os.Stat(path.Join(os.TempDir(), "/zbpack/buildkit/static"))
-		if errStatic == nil && statStatic.IsDir() {
-			err = cp.Copy(path.Join(os.TempDir(), "/zbpack/buildkit/static"), path.Join(*opt.Path, ".zeabur/output/static"))
-			if err != nil {
-				opt.Log("Failed to copy static directory: %s\n", err)
-			}
-		}
-
-		var venvPath string
-		dirs, err := os.ReadDir(funcPath)
-		if err == nil {
-			for _, dir := range dirs {
-				if !dir.IsDir() {
-					continue
-				}
-				readLib, err := os.Stat(path.Join(funcPath, dir.Name(), "lib", "python"+m["pythonVersion"], "site-packages"))
-				if err != nil || !readLib.IsDir() {
-					continue
-				}
-				venvPath = path.Join(funcPath, dir.Name())
-			}
-		}
-
-		if venvPath != "" {
-			oldSp := path.Join(*opt.Path, ".zeabur/output/functions/__py.func/.site-packages")
-			newSp := path.Join(venvPath, "lib", "python"+m["pythonVersion"], "site-packages")
-			_ = os.RemoveAll(oldSp)
-			_ = cp.Copy(newSp, oldSp)
-			_ = os.RemoveAll(venvPath)
-		}
-
-		pythonVersionWithoutDot := strings.ReplaceAll(m["pythonVersion"], ".", "")
-		funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "python" + pythonVersionWithoutDot}
-		if m["entry"] != "" {
-			funcConfig.Entry = m["entry"]
-		}
-
-		err = funcConfig.WriteTo(path.Join(*opt.Path, ".zeabur/output/functions/__py.func"))
-		if err != nil {
-			opt.Log("Failed to write function config to \".zeabur/output/functions/__py.func\": %s\n", err)
-		}
-
-		config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/__py"}}}
-
-		configBytes, err := json.Marshal(config)
-		if err != nil {
-			return err
-		}
-
-		err = os.WriteFile(path.Join(*opt.Path, ".zeabur/output/config.json"), configBytes, 0o644)
-		if err != nil {
-			return err
-		}
+	opt.Log("Transforming build output ...")
+	err = transformer.Transform(&transformer.Context{
+		PlanType:     t,
+		PlanMeta:     m,
+		BuildkitPath: afero.NewBasePathFs(afero.NewOsFs(), dockerBuildOutput),
+		AppPath:      afero.NewBasePathFs(afero.NewOsFs(), *opt.Path),
+		PushImage:    opt.PushImage,
+		ResultImage:  *opt.ResultImage,
+		LogWriter:    opt.LogWriter,
+	})
+	if err != nil {
+		opt.Log("Failed to transform build output: %s\n", err)
+		return fmt.Errorf("transform build output: %w", err)
 	}
 
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkWaku) && m["serverless"] == "true" {
