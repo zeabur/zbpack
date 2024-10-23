@@ -1,0 +1,7 @@
+PlanType: dotnet
+
+Meta:
+  entryPoint: "dotnet-mvc-template.csproj"
+  framework: "aspnet"
+  sdk: "6.0"
+  submoduleDir: ""

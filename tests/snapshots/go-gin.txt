@@ -1,0 +1,6 @@
+PlanType: go
+
+Meta:
+  cgo: "false"
+  entry: ""
+  goVersion: "1.19"

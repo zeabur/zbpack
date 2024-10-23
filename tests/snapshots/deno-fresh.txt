@@ -1,0 +1,6 @@
+PlanType: deno
+
+Meta:
+  entry: "main.ts"
+  framework: "fresh"
+  startCommand: "deno run --allow-net --allow-env --allow-read main.ts"

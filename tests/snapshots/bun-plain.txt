@@ -1,0 +1,4 @@
+PlanType: static
+
+Meta:
+  serverless: "true"

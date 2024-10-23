@@ -1,0 +1,11 @@
+PlanType: rust
+
+Meta:
+  appDir: "."
+  assets: ""
+  buildCommand: ""
+  entry: "rust-axum"
+  openssl: "false"
+  preStartCommand: ""
+  serverless: "false"
+  startCommand: ""

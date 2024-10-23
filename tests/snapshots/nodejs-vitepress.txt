@@ -1,0 +1,12 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "pnpm run docs:build"
+  bun: "false"
+  framework: "vitepress"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY pnpm-lock.yaml* .\nRUN pnpm install"
+  nodeVersion: "20"
+  packageManager: "pnpm"
+  serverless: "true"
+  startCmd: ""

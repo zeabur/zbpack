@@ -1,9 +1,0 @@
-[[source]]
-url = "https://pypi.org/simple"
-verify_ssl = true
-name = "pypi"
-
-[packages]
-numpy = "==1.24.3"
-
-[dev-packages]

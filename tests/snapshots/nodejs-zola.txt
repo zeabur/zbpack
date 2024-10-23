@@ -1,0 +1,6 @@
+PlanType: static
+
+Meta:
+  framework: "zola"
+  serverless: "true"
+  version: "0.18.0"

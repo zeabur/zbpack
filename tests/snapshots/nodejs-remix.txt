@@ -1,0 +1,12 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "pnpm run build"
+  bun: "false"
+  framework: "remix"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY pnpm-lock.yaml* .\nRUN pnpm install"
+  nodeVersion: "18"
+  packageManager: "pnpm"
+  serverless: "true"
+  startCmd: ""

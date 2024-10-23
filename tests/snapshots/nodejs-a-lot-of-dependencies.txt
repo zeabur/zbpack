@@ -1,0 +1,12 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: ""
+  bun: "false"
+  framework: "next.js"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY yarn.lock* .\nRUN yarn install"
+  nodeVersion: "20"
+  packageManager: "yarn"
+  serverless: "true"
+  startCmd: ""

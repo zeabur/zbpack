@@ -1,15 +1,9 @@
-[submodule "tests/python-pip-fastapi"]
-	path = tests/python-pip-fastapi
-	url = https://github.com/zeabur/fastapi-template
-[submodule "tests/python-pip-flask"]
-	path = tests/python-pip-flask
-	url = https://github.com/zeabur/flask-template
-[submodule "tests/python-flask-static-send"]
-	path = tests/python-flask-static-send
-	url = https://github.com/rtdtwo/flask-static-tutorial.git
-[submodule "tests/python-django-static-whitenoise"]
-	path = tests/python-django-static-whitenoise
-	url = https://github.com/testdrivenio/django-static-media-files.git
-[submodule "tests/django-hello-world"]
-	path = tests/python-django-hello-world
-	url = https://github.com/django-ve/django-helloworld.git
+[submodule "tests/elixir-cases/elixir"]
+	path = tests/elixir-cases/elixir
+	url = https://github.com/zeabur/elixir-phoenix-template
+[submodule "tests/elixir-cases/elixir_ecto"]
+	path = tests/elixir-cases/elixir_ecto
+	url = https://github.com/zeabur/elixir-ecto-template
+[submodule "tests/dotnet-samples/dotnetapp"]
+	path = tests/dotnet-samples/dotnetapp
+	url = https://github.com/zeabur/dotnet-cli-template

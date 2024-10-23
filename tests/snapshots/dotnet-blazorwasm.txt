@@ -1,0 +1,7 @@
+PlanType: dotnet
+
+Meta:
+  entryPoint: "blazorwasm-template.csproj"
+  framework: "blazorwasm"
+  sdk: "6.0"
+  submoduleDir: ""
