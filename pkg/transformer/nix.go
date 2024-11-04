@@ -15,7 +15,7 @@ func TransformNix(ctx *Context) error {
 		return ErrSkip
 	}
 
-	ctx.Log("Transforming Nix...")
+	ctx.Log("Transforming Nix...\n")
 
 	dockerTar := filepath.Join(ctx.BuildkitPath, "result")
 

@@ -32,13 +32,13 @@ func TransformNodejsWaku(ctx *Context) error {
 	// /workDir/.zeabur/output
 	zeaburOutputDir := path.Join(ctx.AppPath, ".zeabur/output")
 
-	ctx.Log("=> Copying build output from image")
+	ctx.Log("=> Copying build output from image\n")
 	err = cp.Copy(ctx.BuildkitPath, tmpDir)
 	if err != nil {
 		return err
 	}
 
-	ctx.Log("=> Copying static asset files")
+	ctx.Log("=> Copying static asset files\n")
 
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0o755)
 	if err != nil {

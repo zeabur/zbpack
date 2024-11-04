@@ -30,13 +30,13 @@ func TransformNodejsRemix(ctx *Context) error {
 	// /workDir/.zeabur/output
 	zeaburOutputDir := path.Join(ctx.AppPath, ".zeabur/output")
 
-	ctx.Log("=> Copying build output from image")
+	ctx.Log("=> Copying build output from image\n")
 	err = cp.Copy(ctx.BuildkitPath, tmpDir)
 	if err != nil {
 		return err
 	}
 
-	ctx.Log("=> Copying static asset files")
+	ctx.Log("=> Copying static asset files\n")
 
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0o755)
 	if err != nil {
@@ -48,7 +48,7 @@ func TransformNodejsRemix(ctx *Context) error {
 		return fmt.Errorf("copy static dir: %w", err)
 	}
 
-	ctx.Log("=> Copying remix build output")
+	ctx.Log("=> Copying remix build output\n")
 
 	err = os.MkdirAll(path.Join(zeaburOutputDir, "functions"), 0o755)
 	if err != nil {
@@ -76,14 +76,14 @@ func TransformNodejsRemix(ctx *Context) error {
 		return fmt.Errorf("Failed to write function config to \".zeabur/output/functions/index.func\": %s", err)
 	}
 
-	ctx.Log("=> Copying node_modules")
+	ctx.Log("=> Copying node_modules\n")
 
 	err = cp.Copy(path.Join(remixBuildDir, "../node_modules"), path.Join(zeaburOutputDir, "functions/index.func/node_modules"))
 	if err != nil {
 		return fmt.Errorf("copy node_modules/waku dir: %w", err)
 	}
 
-	ctx.Log("=> Writing config.json ...")
+	ctx.Log("=> Writing config.json ...\n")
 
 	config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/"}}}
 
@@ -97,7 +97,7 @@ func TransformNodejsRemix(ctx *Context) error {
 		return err
 	}
 
-	ctx.Log("=> Copying package.json ...")
+	ctx.Log("=> Copying package.json ...\n")
 
 	err = cp.Copy(path.Join(tmpDir, "package.json"), path.Join(zeaburOutputDir, "functions/index.func/package.json"))
 	if err != nil {
