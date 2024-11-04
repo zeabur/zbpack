@@ -11,7 +11,6 @@ import (
 	"github.com/codeclysm/extract/v3"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/transformer"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -216,24 +215,6 @@ func Build(opt *BuildOptions) error {
 	if err != nil {
 		opt.Log("Failed to transform build output: %s\n", err)
 		return fmt.Errorf("transform build output: %w", err)
-	}
-
-	if m["outputDir"] != "" {
-		opt.Log("Transforming build output to serverless format ...\n")
-		err = static.TransformServerless(*opt.Path, m)
-		if err != nil {
-			opt.Log("Failed to transform serverless: %s\n", err)
-			return err
-		}
-	}
-
-	if t == types.PlanTypeStatic && m["serverless"] == "true" {
-		opt.Log("Transforming build output to serverless format ...\n")
-		err = static.TransformServerless(*opt.Path, m)
-		if err != nil {
-			opt.Log("Failed to transform serverless: %s\n", err)
-			return err
-		}
 	}
 
 	if opt.Interactive != nil && *opt.Interactive {
