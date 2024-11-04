@@ -16,7 +16,6 @@ import (
 	"github.com/zeabur/zbpack/internal/nodejs/nextjs"
 	"github.com/zeabur/zbpack/internal/nodejs/nuxtjs"
 	"github.com/zeabur/zbpack/internal/nodejs/remix"
-	"github.com/zeabur/zbpack/internal/nodejs/waku"
 	"github.com/zeabur/zbpack/internal/static"
 	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -223,15 +222,6 @@ func Build(opt *BuildOptions) error {
 	if err != nil {
 		opt.Log("Failed to transform build output: %s\n", err)
 		return fmt.Errorf("transform build output: %w", err)
-	}
-
-	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkWaku) && m["serverless"] == "true" {
-		opt.Log("Transforming build output to serverless format ...\n")
-		err = waku.TransformServerless(*opt.Path)
-		if err != nil {
-			opt.Log("Failed to transform serverless: %s\n", err)
-			return err
-		}
 	}
 
 	if t == types.PlanTypeNodejs && m["framework"] == string(types.NodeProjectFrameworkNextJs) && m["serverless"] == "true" {

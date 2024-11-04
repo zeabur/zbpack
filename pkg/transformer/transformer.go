@@ -64,6 +64,7 @@ func Transform(ctx *Context) error {
 		TransformGolang,
 		TransformRust,
 		TransformPython,
+		TransformNodejsWaku,
 	}
 
 	for tid, t := range transformers {
