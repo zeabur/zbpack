@@ -1,11 +1,9 @@
 PlanType: php
 
 Meta:
-  app: "default"
   buildCommand: ""
-  deps: "libicu-dev pkg-config unzip git nginx"
-  exts: "pdo pdo_mysql mysqli gd curl zip intl pcntl bcmath"
+  deps: ""
+  exts: ""
   framework: "thinkphp"
   phpVersion: "7"
-  property: "1"
-  startCommand: "_startup(){ nginx; php-fpm; }; _startup"
+  startCommand: "_startup() { nginx; php-fpm; }; _startup"

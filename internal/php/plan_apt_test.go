@@ -7,13 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var baseDepsWithNginx = append(baseDep, "nginx")
-
 func TestDetermineAptDependencies_None(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, baseDepsWithNginx, deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Empty(t, deps)
 }
 
 func TestDetermineAptDependencies_NoRequire(t *testing.T) {
@@ -22,8 +20,8 @@ func TestDetermineAptDependencies_NoRequire(t *testing.T) {
 		"name": "test"
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, baseDepsWithNginx, deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Empty(t, deps)
 }
 
 func TestDetermineAptDependencies_EmptyRequire(t *testing.T) {
@@ -33,8 +31,8 @@ func TestDetermineAptDependencies_EmptyRequire(t *testing.T) {
 		"require": {}
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, baseDepsWithNginx, deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Empty(t, deps)
 }
 
 func TestDetermineAptDependencies_RequireOpenssl(t *testing.T) {
@@ -46,8 +44,8 @@ func TestDetermineAptDependencies_RequireOpenssl(t *testing.T) {
 		}
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, append(baseDepsWithNginx, depMap["ext-openssl"]...), deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Equal(t, depMap["ext-openssl"], deps)
 }
 
 func TestDetermineAptDependencies_RequireZip(t *testing.T) {
@@ -59,8 +57,8 @@ func TestDetermineAptDependencies_RequireZip(t *testing.T) {
 		}
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, append(baseDepsWithNginx, depMap["ext-zip"]...), deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Equal(t, depMap["ext-zip"], deps)
 }
 
 func TestDetermineAptDependencies_RequireCurl(t *testing.T) {
@@ -72,8 +70,8 @@ func TestDetermineAptDependencies_RequireCurl(t *testing.T) {
 		}
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, append(baseDepsWithNginx, depMap["ext-curl"]...), deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Equal(t, depMap["ext-curl"], deps)
 }
 
 func TestDetermineAptDependencies_RequireGd(t *testing.T) {
@@ -85,29 +83,13 @@ func TestDetermineAptDependencies_RequireGd(t *testing.T) {
 		}
 	}`), 0o644)
 
-	deps := DetermineAptDependencies(fs, "")
-	assert.Equal(t, append(baseDepsWithNginx, depMap["ext-gd"]...), deps)
-}
-
-func TestDetermineAptDependencies_Swoole(t *testing.T) {
-	fs := afero.NewMemMapFs()
-
-	deps := DetermineAptDependencies(fs, "swoole")
-	assert.Equal(t, baseDep, deps)
+	deps := DetermineAptDependencies(fs)
+	assert.Equal(t, depMap["ext-gd"], deps)
 }
 
 func TestDetermineAptDependencies_Unknown(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	deps := DetermineAptDependencies(fs, "unknown")
-	assert.Equal(t, baseDepsWithNginx, deps)
-}
-
-func TestDetermineAptDependencies_NodeNpm(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0644)
-
-	deps := DetermineAptDependencies(fs, "unknown")
-	assert.Contains(t, deps, "nodejs")
-	assert.Contains(t, deps, "npm")
+	deps := DetermineAptDependencies(fs)
+	assert.Empty(t, deps)
 }

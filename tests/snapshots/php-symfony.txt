@@ -3,7 +3,7 @@ PlanType: php
 Meta:
   buildCommand: ""
   deps: ""
-  exts: "intl"
-  framework: "codeigniter"
+  exts: "ctype iconv"
+  framework: "symfony"
   phpVersion: "8"
   startCommand: "_startup() { nginx; php-fpm; }; _startup"
