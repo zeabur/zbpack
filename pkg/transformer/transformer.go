@@ -65,6 +65,8 @@ func Transform(ctx *Context) error {
 		TransformRust,
 		TransformPython,
 		TransformNodejsWaku,
+		TransformNodejsNext,
+		TransformNodejsRemix,
 	}
 
 	for tid, t := range transformers {
