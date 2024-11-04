@@ -67,6 +67,8 @@ func Transform(ctx *Context) error {
 		TransformNodejsWaku,
 		TransformNodejsNext,
 		TransformNodejsRemix,
+		TransformNodejsNuxt,
+		TransformGleam,
 	}
 
 	for tid, t := range transformers {
