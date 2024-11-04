@@ -103,69 +103,6 @@ func TestDetermineProjectFramework_Unknown(t *testing.T) {
 	assert.Equal(t, framework, types.PHPFrameworkNone)
 }
 
-func TestDetermineApplication_NoComposer(t *testing.T) {
-	fs := afero.NewMemMapFs()
-
-	app, kind := php.DetermineApplication(fs)
-	assert.Equal(t, app, types.PHPApplicationDefault)
-	assert.Equal(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
-}
-
-func TestDetermineApplication_UnknownWithComposer(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "composer.json", []byte(`{
-		"name": "test"
-	}`), 0o644)
-
-	app, kind := php.DetermineApplication(fs)
-	assert.Equal(t, app, types.PHPApplicationDefault)
-	assert.NotEqual(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
-}
-
-func TestDetermineApplication_AcgFaka(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "composer.json", []byte(`{
-		"name": "lizhipay/acg-faka"
-	}`), 0o644)
-
-	app, kind := php.DetermineApplication(fs)
-	assert.Equal(t, app, types.PHPApplicationAcgFaka)
-	assert.NotEqual(t, types.PHPPropertyNone, kind&types.PHPPropertyComposer)
-}
-
-func TestDetermineStartCommand_Default(t *testing.T) {
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	command := php.DetermineStartCommand(config)
-
-	assert.Contains(t, command, "nginx; php-fpm")
-}
-
-func TestDetermineStartCommand_Swoole(t *testing.T) {
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerSwoole)
-	command := php.DetermineStartCommand(config)
-
-	assert.Contains(t, command, "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080")
-}
-
-func TestDetermineStartCommand_Roadrunner(t *testing.T) {
-	// unimplemented, so it should fall back to the default command
-
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	config.Set(php.ConfigLaravelOctaneServer, php.OctaneServerRoadrunner)
-	command := php.DetermineStartCommand(config)
-
-	assert.Contains(t, command, "nginx; php-fpm")
-}
-
-func TestDetermineStartCommand_UnknownOctane(t *testing.T) {
-	config := plan.NewProjectConfigurationFromFs(afero.NewMemMapFs(), "")
-	config.Set(php.ConfigLaravelOctaneServer, "unknown")
-	command := php.DetermineStartCommand(config)
-
-	assert.Contains(t, command, "nginx; php-fpm")
-}
-
 func TestDetermineStartCommand_CustomInConfig(t *testing.T) {
 	const expectedCommand = "php artisan serve; _startup"
 
@@ -180,7 +117,7 @@ func TestDetermineStartCommand_CustomInConfig(t *testing.T) {
 func TestDetermineBuildCommand_Default(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	config := plan.NewProjectConfigurationFromFs(fs, "")
-	command := php.DetermineBuildCommand(fs, config)
+	command := php.DetermineBuildCommand(config)
 
 	assert.Equal(t, "", command)
 }
@@ -192,20 +129,7 @@ func TestDetermineBuildCommand_CustomInConfig(t *testing.T) {
 	config := plan.NewProjectConfigurationFromFs(fs, "")
 	config.Set(plan.ConfigBuildCommand, expectedCommand)
 
-	actualCommand := php.DetermineBuildCommand(fs, config)
+	actualCommand := php.DetermineBuildCommand(config)
 
 	assert.Equal(t, expectedCommand, actualCommand)
-}
-
-func TestDetermineBuildCommand_NPMBuild(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "package.json", []byte(`{
-		"scripts": {
-			"build": "npm run build"
-		}
-	}`), 0o644)
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-	command := php.DetermineBuildCommand(fs, config)
-
-	assert.Equal(t, "npm install && npm run build", command)
 }

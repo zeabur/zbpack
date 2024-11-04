@@ -27,14 +27,11 @@ func (i *identify) Match(fs afero.Fs) bool {
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	config := options.Config
 
-	server := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
-
 	framework := DetermineProjectFramework(options.Source)
 	phpVersion := GetPHPVersion(config, options.Source)
-	deps := DetermineAptDependencies(options.Source, server)
+	deps := DetermineAptDependencies(options.Source)
 	exts := DeterminePHPExtensions(options.Source)
-	app, property := DetermineApplication(options.Source)
-	buildCommand := DetermineBuildCommand(options.Source, options.Config)
+	buildCommand := DetermineBuildCommand(options.Config)
 	startCommand := DetermineStartCommand(options.Config)
 
 	// Some meta will be added to the plan dynamically later.
@@ -43,14 +40,8 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		"phpVersion":   phpVersion,
 		"deps":         strings.Join(deps, " "),
 		"exts":         strings.Join(exts, " "),
-		"app":          string(app),
-		"property":     PropertyToString(property),
 		"buildCommand": buildCommand,
 		"startCommand": startCommand,
-	}
-
-	if framework == types.PHPFrameworkLaravel && server != "" {
-		meta["octaneServer"] = server
 	}
 
 	return meta

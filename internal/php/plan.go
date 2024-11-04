@@ -1,9 +1,6 @@
 package php
 
 import (
-	"bytes"
-	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/samber/lo"
@@ -87,26 +84,9 @@ var depMap = map[string][]string{
 	"ext-gmp":     {"libgmp-dev"},
 }
 
-var baseDep = []string{"libicu-dev", "pkg-config", "unzip", "git"}
-
 // DetermineAptDependencies determines the required apt dependencies of the project.
-//
-// We install Nginx server unless server is "swoole".
-func DetermineAptDependencies(source afero.Fs, server string) []string {
-	// deep copy the base dependencies
-	dependencies := slices.Clone(baseDep)
-
-	// If Octane Server is not "swoole", we should install Nginx.
-	//
-	// TODO: support RoadRunner
-	if server != "swoole" {
-		dependencies = append(dependencies, "nginx")
-	}
-
-	// Install Node.js if package.json exists.
-	if exists, _ := afero.Exists(source, "package.json"); exists {
-		dependencies = append(dependencies, "nodejs", "npm")
-	}
+func DetermineAptDependencies(source afero.Fs) []string {
+	var dependencies []string
 
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
@@ -128,12 +108,8 @@ func DetermineAptDependencies(source afero.Fs, server string) []string {
 	return dependencies
 }
 
-var baseExt = []string{"pdo", "pdo_mysql", "mysqli", "gd", "curl", "zip", "intl", "pcntl", "bcmath"}
-
 // DeterminePHPExtensions determines the required PHP extensions from composer.json of the project.
-func DeterminePHPExtensions(source afero.Fs) []string {
-	extensions := slices.Clone(baseExt)
-
+func DeterminePHPExtensions(source afero.Fs) (extensions []string) {
 	composerJSON, err := parseComposerJSON(source)
 	if err != nil {
 		return extensions
@@ -153,41 +129,9 @@ func DeterminePHPExtensions(source afero.Fs) []string {
 	return lo.Uniq(extensions)
 }
 
-// DetermineApplication determines what application the project is using.
-// Therefore, we can apply some custom fixes such as the nginx configuration.
-func DetermineApplication(source afero.Fs) (types.PHPApplication, types.PHPProperty) {
-	composerJSON, err := parseComposerJSON(source)
-	if err != nil {
-		return types.PHPApplicationDefault, types.PHPPropertyNone
-	}
-
-	if composerJSON.Name == "lizhipay/acg-faka" {
-		return types.PHPApplicationAcgFaka, types.PHPPropertyComposer
-	}
-
-	return types.PHPApplicationDefault, types.PHPPropertyComposer
-}
-
-// determineStartupFunction determines the startup function of the project.
-func determineStartupFunction(config plan.ImmutableProjectConfiguration) string {
-	var startupFnBody string
-
-	octaneServerType := plan.Cast(config.Get(ConfigLaravelOctaneServer), castOctaneServer).TakeOr("")
-	switch octaneServerType {
-	case OctaneServerSwoole:
-		startupFnBody = "php artisan octane:start --server=swoole --host=0.0.0.0 --port=8080"
-	case OctaneServerRoadrunner: // unimplemented
-		fallthrough
-	default: // none
-		startupFnBody = "nginx; php-fpm"
-	}
-
-	return "_startup(){ " + startupFnBody + "; }; "
-}
-
 // DetermineStartCommand determines the start command of the project.
 func DetermineStartCommand(config plan.ImmutableProjectConfiguration) string {
-	completeStartCommand := determineStartupFunction(config)
+	completeStartCommand := "_startup() { nginx; php-fpm; }; "
 
 	if startCommand, err := plan.Cast(config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
 		completeStartCommand += startCommand
@@ -199,37 +143,10 @@ func DetermineStartCommand(config plan.ImmutableProjectConfiguration) string {
 }
 
 // DetermineBuildCommand determines the build command of the project.
-func DetermineBuildCommand(source afero.Fs, config plan.ImmutableProjectConfiguration) string {
+func DetermineBuildCommand(config plan.ImmutableProjectConfiguration) string {
 	if buildCommand, err := plan.Cast(config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
 		return buildCommand
 	}
-	if content, err := afero.ReadFile(source, "package.json"); err == nil {
-		if bytes.Contains(content, []byte("\"build\":")) {
-			// "build": "vite build"
-			return "npm install && npm run build"
-		}
-	}
 
 	return ""
-}
-
-const (
-	// OctaneServerRoadrunner indicates this Laravel Octane server uses RoadRunner.
-	OctaneServerRoadrunner = "roadrunner"
-	// OctaneServerSwoole indicates this Laravel Octane server uses Swoole.
-	OctaneServerSwoole = "swoole"
-)
-
-func castOctaneServer(i interface{}) (string, error) {
-	s, err := cast.ToStringE(i)
-	if err != nil {
-		return "", err
-	}
-
-	switch s {
-	case OctaneServerRoadrunner, OctaneServerSwoole:
-		return s, nil
-	default:
-		return "", fmt.Errorf("unknown octane server: %s", s)
-	}
 }

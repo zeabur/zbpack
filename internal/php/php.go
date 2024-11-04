@@ -3,88 +3,34 @@ package php
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
+
+	_ "embed"
 )
+
+//go:embed Dockerfile
+var dockerfile string
 
 // GenerateDockerfile generates the Dockerfile for PHP projects.
 func GenerateDockerfile(meta types.PlanMeta) (string, error) {
-	phpVersion := meta["phpVersion"]
-	projectProperty := PropertyFromString(meta["property"])
-	serverMode := "fpm"
+	compiledDockerfile := dockerfile
 
-	getPhpImage := "FROM docker.io/library/php:" + phpVersion + "-fpm\n"
-
-	// Custom server for Laravel Octane
-	switch meta["octaneServer"] {
-	case OctaneServerSwoole:
-		getPhpImage = "FROM docker.io/phpswoole/swoole:php" + phpVersion + "\n" +
-			"RUN docker-php-ext-install pcntl\n"
-		serverMode = "swoole"
+	variables := map[string]string{
+		"PHP_VERSION":            meta["phpVersion"],
+		"APT_EXTRA_DEPENDENCIES": meta["deps"],
+		"PHP_EXTENSIONS":         meta["exts"],
+		"BUILD_COMMAND":          meta["buildCommand"],
+		"START_COMMAND":          meta["startCommand"],
 	}
 
-	environmentInstallCmd := "\n"
-	if meta["deps"] != "" {
-		environmentInstallCmd += fmt.Sprintf(`RUN apt-get update && apt-get install -y %s && rm -rf /var/lib/apt/lists/*
-`, meta["deps"])
-	}
-	if projectProperty&types.PHPPropertyComposer != 0 {
-		environmentInstallCmd += "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n"
-	}
-	if meta["exts"] != "" {
-		environmentInstallCmd += `ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-RUN chmod +x /usr/local/bin/install-php-extensions && sync
-RUN install-php-extensions ` + meta["exts"] + "\n"
+	for k, v := range variables {
+		compiledDockerfile = strings.Replace(compiledDockerfile, "ARG "+k, fmt.Sprintf("ARG %s=%q", k, v), 1)
 	}
 
-	// copy source code to /var/www/public, which is Nginx root directory
-	copyCommand := `
-RUN chown -R www-data:www-data /var/www
-COPY --chown=www-data:www-data --chmod=755 . /var/www/public
-WORKDIR /var/www/public
-`
-
-	if meta["framework"] != "none" {
-		copyCommand = `
-RUN chown -R www-data:www-data /var/www
-COPY --chown=www-data:www-data --chmod=755 . /var/www
-WORKDIR /var/www
-`
-	}
-
-	if serverMode == "fpm" {
-		// generate Nginx config to let it pass the request to php-fpm
-		nginxConf, err := RetrieveNginxConf(meta["app"])
-		if err != nil {
-			return "", fmt.Errorf("retrieve nginx conf: %w", err)
-		}
-
-		copyCommand += `
-RUN rm /etc/nginx/sites-enabled/default
-RUN echo "` + nginxConf + `" >> /etc/nginx/sites-enabled/default
-`
-	}
-
-	// install project dependencies
-	projectInstallCmd := "\nUSER www-data\n"
-	if projectProperty&types.PHPPropertyComposer != 0 {
-		projectInstallCmd += `RUN composer install --optimize-autoloader --no-dev` + "\n"
-	}
-	if buildCommand := meta["buildCommand"]; buildCommand != "" {
-		projectInstallCmd += "RUN " + buildCommand + "\n"
-	}
-	projectInstallCmd += "\nUSER root\n"
-
-	startCmd := "\n" + "CMD " + meta["startCommand"] + "\n"
-
-	dockerFile := getPhpImage +
-		environmentInstallCmd +
-		copyCommand +
-		projectInstallCmd +
-		startCmd
-
-	return dockerFile, nil
+	return compiledDockerfile, nil
 }
 
 type pack struct {

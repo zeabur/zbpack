@@ -188,23 +188,6 @@ const (
 
 //revive:enable:exported
 
-// PHPApplication represents the application type of a PHP project.
-type PHPApplication string
-
-// PHPProperty represents the property flag of a PHP project.
-type PHPProperty uint64
-
-//revive:disable:exported
-const (
-	PHPApplicationDefault PHPApplication = "default"
-	PHPApplicationAcgFaka PHPApplication = "acg-faka"
-)
-
-const (
-	PHPPropertyNone     PHPProperty = iota
-	PHPPropertyComposer PHPProperty = 1 << (iota - 1)
-)
-
 // RubyFramework represents the framework of a Ruby project.
 //
 //revive:enable:exported
