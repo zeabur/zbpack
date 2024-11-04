@@ -41,13 +41,13 @@ CMD ` + startCmd, nil
 	}
 
 	if serverless == "true" {
-		return `FROM docker.io/library/python:` + pyVer + `-slim as builder
+		return `FROM docker.io/library/python:` + pyVer + `-slim AS builder
 WORKDIR /app
 ` + installCmd + `
 COPY . .
 ` + buildCmd + `
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=builder /usr/local/lib/python` + pyVer + `/site-packages /.site-packages
 COPY --from=builder /app /
 `, nil

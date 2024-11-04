@@ -1,8 +1,8 @@
 
 [TestTemplate_BuildCmd_Bun - 1]
 # Install bun if we need it
-FROM oven/bun:1.2 as bun-runtime
-FROM node:18 as build
+FROM oven/bun:1.2 AS bun-runtime
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -29,7 +29,7 @@ CMD bun start main.ts
 ---
 
 [TestTemplate_BuildCmd_NOutputDir - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -46,14 +46,14 @@ COPY . .
 # Build if we can build it
 RUN yarn build
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src/ /
 
 
 ---
 
 [TestTemplate_BuildCmd_OutputDir - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -70,7 +70,7 @@ COPY . .
 # Build if we can build it
 RUN yarn build
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src///app/dist /
 
 
@@ -78,8 +78,8 @@ COPY --from=build /src///app/dist /
 
 [TestTemplate_Bun - 1]
 # Install bun if we need it
-FROM oven/bun:1 as bun-runtime
-FROM node:18 as build
+FROM oven/bun:1 AS bun-runtime
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -106,7 +106,7 @@ CMD bun start main.ts
 ---
 
 [TestTemplate_Monorepo - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -130,7 +130,7 @@ CMD yarn start
 ---
 
 [TestTemplate_MonorepoServerless - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -148,14 +148,14 @@ RUN yarn install
 # Build if we can build it
 
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src/myservice /
 
 
 ---
 
 [TestTemplate_MonorepoServerlessOutDir - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -173,14 +173,14 @@ RUN yarn install
 # Build if we can build it
 
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=build /src/myservice//app/dist /
 
 
 ---
 
 [TestTemplate_NBuildCmd_NOutputDir - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -203,7 +203,7 @@ CMD yarn start
 ---
 
 [TestTemplate_NBuildCmd_OutputDir_NSPA - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
@@ -226,7 +226,7 @@ CMD yarn start
 ---
 
 [TestTemplate_NBuildCmd_OutputDir_SPA - 1]
-FROM node:18 as build
+FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src

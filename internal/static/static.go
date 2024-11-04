@@ -12,37 +12,37 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	switch meta["framework"] {
 	case "hugo":
-		dockerfile = `FROM hugomods/hugo:exts as builder
+		dockerfile = `FROM hugomods/hugo:exts AS builder
 WORKDIR /src
 COPY . .
 RUN hugo --minify
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=builder /src/public /
 `
 	case "zola":
-		dockerfile = `FROM ghcr.io/getzola/zola:v` + meta["version"] + ` as builder
+		dockerfile = `FROM ghcr.io/getzola/zola:v` + meta["version"] + ` AS builder
 WORKDIR /app
 COPY . .
 RUN ["zola", "build"]
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=builder /app/public /
 `
 
 	case "mkdocs":
-		dockerfile = `FROM squidfunk/mkdocs-material as builder
+		dockerfile = `FROM squidfunk/mkdocs-material AS builder
 WORKDIR /docs
 COPY . .
 RUN if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 RUN mkdocs build
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=builder /docs/site /
 `
 
 	default:
-		dockerfile = `FROM scratch as output
+		dockerfile = `FROM scratch AS output
 COPY . /
 `
 	}

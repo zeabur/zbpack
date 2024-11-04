@@ -23,7 +23,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		buildCommandSegment = `RUN ` + meta["buildCommand"] + "\n"
 	}
 
-	buildStage := `FROM docker.io/library/golang:` + meta["goVersion"] + `-alpine as builder
+	buildStage := `FROM docker.io/library/golang:` + meta["goVersion"] + `-alpine AS builder
 RUN mkdir /src
 WORKDIR /src
 ` + dependencySegment + `
@@ -33,7 +33,7 @@ COPY . /src/
 ` + cgoEnvSegment + buildCommandSegment + `
 RUN go build -o ./bin/server ` + meta["entry"]
 
-	runtimeStage := `FROM alpine as runtime
+	runtimeStage := `FROM alpine AS runtime
 COPY --from=builder /src/bin/server /bin/server
 CMD ["/bin/server"]`
 

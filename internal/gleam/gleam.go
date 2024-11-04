@@ -19,7 +19,7 @@ RUN cd /build \
   && mv build/erlang-shipment /app \
   && rm -r /build
 
-FROM scratch as output
+FROM scratch AS output
 COPY --from=0 /app /
 `, nil
 	}
