@@ -2,23 +2,23 @@ package transformer
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
-	"github.com/spf13/afero"
-	"go.nhat.io/aferocopy/v2"
+	cp "github.com/otiai10/copy"
 )
 
 // TransformZeaburDir is a transformer function to copy the .zeabur directory.
 func TransformZeaburDir(ctx *Context) error {
-	if contains, err := afero.DirExists(ctx.BuildkitPath, ".zeabur"); !contains || err != nil {
+	if statZeabur, err := os.Stat(
+		filepath.Join(ctx.BuildkitPath, ".zeabur"),
+	); err != nil || !statZeabur.IsDir() {
 		return ErrSkip
 	}
 
 	ctx.Log("Transforming .zeabur directory...\n")
 
-	err := aferocopy.Copy(".zeabur", ".zeabur", aferocopy.Options{
-		SrcFs:  ctx.BuildkitPath,
-		DestFs: ctx.AppPath,
-	})
+	err := cp.Copy(filepath.Join(ctx.BuildkitPath, ".zeabur"), ctx.ZeaburPath())
 	if err != nil {
 		return fmt.Errorf("copy .zeabur directory: %w", err)
 	}

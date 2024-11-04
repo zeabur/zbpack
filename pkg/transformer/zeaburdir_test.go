@@ -2,10 +2,11 @@ package transformer_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeabur/zbpack/pkg/transformer"
 )
 
@@ -15,10 +16,8 @@ func TestTransformerZeaburDir(t *testing.T) {
 	t.Run("has .zeabur directory", func(t *testing.T) {
 		t.Parallel()
 
-		appPath := afero.NewMemMapFs()
-		buildkitPath := afero.NewMemMapFs()
-		_ = afero.WriteFile(buildkitPath, ".zeabur/aaa", []byte("Hello"), 0o644)
-		_ = afero.WriteFile(buildkitPath, ".zeabur/bbb/text.txt", []byte("World"), 0o644)
+		buildkitPath := GetInputPath(t, "zeabur-dir")
+		appPath := GetOutputSnapshotPath(t)
 
 		context := &transformer.Context{
 			PlanType:     "",
@@ -31,25 +30,30 @@ func TestTransformerZeaburDir(t *testing.T) {
 		}
 
 		err := transformer.TransformZeaburDir(context)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
-		_, err = appPath.Stat(".zeabur")
-		assert.NoError(t, err)
+		stat, err := os.Stat(filepath.Join(buildkitPath, ".zeabur"))
+		require.NoError(t, err)
+		assert.True(t, stat.IsDir())
 
-		data, err := afero.ReadFile(appPath, ".zeabur/aaa")
-		assert.NoError(t, err)
-		assert.Equal(t, "Hello", string(data))
+		data, err := os.Stat(filepath.Join(buildkitPath, ".zeabur/aaa"))
+		require.NoError(t, err)
+		assert.False(t, data.IsDir())
 
-		data, err = afero.ReadFile(appPath, ".zeabur/bbb/text.txt")
-		assert.NoError(t, err)
-		assert.Equal(t, "World", string(data))
+		stat, err = os.Stat(filepath.Join(appPath, ".zeabur/bbb"))
+		require.NoError(t, err)
+		assert.True(t, stat.IsDir())
+
+		data, err = os.Stat(filepath.Join(appPath, ".zeabur/bbb/bbb"))
+		require.NoError(t, err)
+		assert.False(t, data.IsDir())
 	})
 
 	t.Run("no .zeabur directory", func(t *testing.T) {
 		t.Parallel()
 
-		appPath := afero.NewMemMapFs()
-		buildkitPath := afero.NewMemMapFs()
+		buildkitPath := GetInputPath(t, "empty")
+		appPath := GetOutputSnapshotPath(t)
 
 		context := &transformer.Context{
 			PlanType:     "",

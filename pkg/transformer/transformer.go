@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
-	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -20,8 +20,8 @@ type Context struct {
 	PlanType types.PlanType
 	PlanMeta types.PlanMeta
 
-	BuildkitPath afero.Fs
-	AppPath      afero.Fs
+	BuildkitPath string
+	AppPath      string
 
 	PushImage   bool
 	ResultImage string
@@ -29,15 +29,19 @@ type Context struct {
 }
 
 // ZeaburPath returns the `.zeabur` directory of the App path.
-func (c *Context) ZeaburPath() afero.Fs {
-	if exists, err := afero.DirExists(c.AppPath, ".zeabur"); !exists || err != nil {
-		err = c.AppPath.Mkdir(".zeabur", 0o755)
-		if err != nil {
-			panic(fmt.Errorf("failed to create .zeabur directory: %w", err))
+func (c *Context) ZeaburPath() string {
+	if _, err := os.Stat(filepath.Join(c.AppPath, ".zeabur")); err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(filepath.Join(c.AppPath, ".zeabur"), 0o755)
+			if err != nil {
+				panic(fmt.Errorf("failed to create .zeabur directory: %w", err))
+			}
+		} else {
+			panic(fmt.Errorf("failed to stat .zeabur directory: %w", err))
 		}
 	}
 
-	return afero.NewBasePathFs(c.AppPath, ".zeabur")
+	return filepath.Join(c.AppPath, ".zeabur")
 }
 
 // Log writes a log message to the log writer.

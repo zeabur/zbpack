@@ -3,10 +3,11 @@ package transformer
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
-	"github.com/spf13/afero"
+	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/pkg/types"
-	"go.nhat.io/aferocopy/v2"
 )
 
 // TransformGolang transforms Golang functions.
@@ -16,18 +17,16 @@ func TransformGolang(ctx *Context) error {
 	}
 
 	ctx.Log("Transforming Golang functions...\n")
+	zeaburPath := ctx.ZeaburPath()
 
-	err := aferocopy.Copy("", ".zeabur/output/functions/__go.func", aferocopy.Options{
-		SrcFs:  ctx.BuildkitPath,
-		DestFs: ctx.AppPath,
-	})
+	err := cp.Copy(ctx.BuildkitPath, filepath.Join(zeaburPath, "output/functions/__go.func"))
 	if err != nil {
 		return fmt.Errorf("copy Golang functions: %w", err)
 	}
 
 	funcConfig := types.ZeaburOutputFunctionConfig{Runtime: "binary", Entry: "./main"}
 
-	err = funcConfig.WriteToFs(ctx.AppPath, ".zeabur/output/functions/__go.func")
+	err = funcConfig.WriteTo(filepath.Join(zeaburPath, "output/functions/__go.func"))
 	if err != nil {
 		return fmt.Errorf("write function config: %w", err)
 	}
@@ -39,7 +38,7 @@ func TransformGolang(ctx *Context) error {
 		return fmt.Errorf("marshal config: %w", err)
 	}
 
-	err = afero.WriteFile(ctx.AppPath, ".zeabur/output/config.json", configBytes, 0o644)
+	err = os.WriteFile(filepath.Join(zeaburPath, "output/config.json"), configBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}

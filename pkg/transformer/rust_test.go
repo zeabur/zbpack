@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"github.com/zeabur/zbpack/pkg/transformer"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -17,11 +16,14 @@ func TestTransformRust(t *testing.T) {
 	t.Run("not a rust project", func(t *testing.T) {
 		t.Parallel()
 
+		buildkitPath := GetInputPath(t, "empty")
+		appPath := GetOutputSnapshotPath(t)
+
 		ctx := &transformer.Context{
 			PlanType:     types.PlanTypeDeno,
 			PlanMeta:     map[string]string{},
-			BuildkitPath: afero.NewMemMapFs(),
-			AppPath:      afero.NewMemMapFs(),
+			BuildkitPath: buildkitPath,
+			AppPath:      appPath,
 			PushImage:    false,
 			ResultImage:  "",
 			LogWriter:    os.Stderr,
@@ -34,11 +36,14 @@ func TestTransformRust(t *testing.T) {
 	t.Run("not a serverless project", func(t *testing.T) {
 		t.Parallel()
 
+		buildkitPath := GetInputPath(t, "empty")
+		appPath := GetOutputSnapshotPath(t)
+
 		ctx := &transformer.Context{
 			PlanType:     types.PlanTypeRust,
 			PlanMeta:     map[string]string{},
-			BuildkitPath: afero.NewMemMapFs(),
-			AppPath:      afero.NewMemMapFs(),
+			BuildkitPath: buildkitPath,
+			AppPath:      appPath,
 			PushImage:    false,
 			ResultImage:  "",
 			LogWriter:    os.Stderr,
@@ -51,10 +56,8 @@ func TestTransformRust(t *testing.T) {
 	t.Run("serverless", func(t *testing.T) {
 		t.Parallel()
 
-		appPath := afero.NewMemMapFs()
-		buildkitPath := afero.NewMemMapFs()
-
-		_ = afero.WriteFile(buildkitPath, "main", []byte("data"), 0o644)
+		buildkitPath := GetInputPath(t, "binary-serverless")
+		appPath := GetOutputSnapshotPath(t)
 
 		ctx := &transformer.Context{
 			PlanType:     types.PlanTypeRust,
@@ -68,7 +71,5 @@ func TestTransformRust(t *testing.T) {
 
 		err := transformer.TransformRust(ctx)
 		require.NoError(t, err)
-
-		SnapshotFs(t, "rust-serverless", appPath)
 	})
 }

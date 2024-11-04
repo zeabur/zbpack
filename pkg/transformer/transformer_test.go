@@ -2,25 +2,36 @@ package transformer_test
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
-
-	"github.com/spf13/afero"
-	"go.nhat.io/aferocopy/v2"
 )
 
-func SnapshotFs(t *testing.T, id string, fs afero.Fs) {
+// GetOutputSnapshotPath returns the path to the output snapshot.
+func GetOutputSnapshotPath(t *testing.T) string {
+	t.Helper()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = aferocopy.Copy("", path.Join("snapshot", id), aferocopy.Options{
-		SrcFs:             fs,
-		DestFs:            afero.NewBasePathFs(afero.NewOsFs(), wd),
-		PermissionControl: aferocopy.AddPermission(0o777),
-	})
+	snapshotDir := filepath.Join(wd, "snapshot", t.Name())
+	err = os.MkdirAll(snapshotDir, 0o755)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	return snapshotDir
+}
+
+// GetInputPath returns the path to the input.
+func GetInputPath(t *testing.T, name string) string {
+	t.Helper()
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return filepath.Join(wd, "inputs", name)
 }

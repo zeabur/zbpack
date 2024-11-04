@@ -3,46 +3,42 @@ package transformer
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
-	"github.com/spf13/afero"
+	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/pkg/types"
-	"go.nhat.io/aferocopy/v2"
 )
 
 // TransformPython transforms Python functions.
 func TransformPython(ctx *Context) error {
-	const funcPathname = ".zeabur/output/functions/__py.func"
+	const funcPathname = "output/functions/__py.func"
 
 	if ctx.PlanType != types.PlanTypePython || ctx.PlanMeta["serverless"] != "true" {
 		return ErrSkip
 	}
 
-	ctx.Log("Transforming Python functions...\n")
+	zeaburPath := ctx.ZeaburPath()
 
-	err := aferocopy.Copy("", funcPathname, aferocopy.Options{
-		SrcFs:  ctx.BuildkitPath,
-		DestFs: ctx.AppPath,
-	})
+	ctx.Log("Transforming Python functions...\n")
+	err := cp.Copy(ctx.BuildkitPath, filepath.Join(zeaburPath, funcPathname))
 	if err != nil {
 		return fmt.Errorf("copy Python functions: %w", err)
 	}
 
 	// if there is "static" directory in the output, we will copy it to .zeabur/output/static
-	dirStatic, errStatic := afero.DirExists(ctx.BuildkitPath, "static")
-	if errStatic == nil && dirStatic {
-		err = aferocopy.Copy("static", ".zeabur/output/static", aferocopy.Options{
-			SrcFs:  ctx.BuildkitPath,
-			DestFs: ctx.AppPath,
-		})
+	statStatic, err := os.Stat(filepath.Join(ctx.BuildkitPath, "static"))
+	if err == nil && statStatic.IsDir() {
+		err = cp.Copy(filepath.Join(ctx.BuildkitPath, "static"), filepath.Join(zeaburPath, "output/static"))
 		if err != nil {
 			return fmt.Errorf("copy static directory: %w", err)
 		}
 	}
 
-	var venvFs afero.Fs
-	dirs, err := afero.ReadDir(ctx.AppPath, funcPathname)
+	var venvDir string
+	dirs, err := os.ReadDir(filepath.Join(zeaburPath, funcPathname))
 	if err == nil {
 		for _, dir := range dirs {
 			if !dir.IsDir() {
@@ -51,23 +47,21 @@ func TransformPython(ctx *Context) error {
 
 			sitePackagesPathname := path.Join("lib", "python"+ctx.PlanMeta["pythonVersion"], "site-packages")
 
-			isLibraryDirectory, err := afero.IsDir(ctx.AppPath, path.Join(funcPathname, dir.Name(), sitePackagesPathname))
-			if err != nil || !isLibraryDirectory {
+			statLib, err := os.Stat(filepath.Join(zeaburPath, funcPathname, dir.Name(), sitePackagesPathname))
+			if err != nil || !statLib.IsDir() {
 				continue
 			}
 
-			venvFs = afero.NewBasePathFs(ctx.AppPath, funcPathname)
+			venvDir = filepath.Join(zeaburPath, funcPathname, dir.Name())
 		}
 	}
 
-	if venvFs != nil {
-		outFuncFs := afero.NewBasePathFs(ctx.AppPath, funcPathname)
+	if venvDir != "" {
+		outFuncDir := filepath.Join(zeaburPath, funcPathname)
 
-		_ = outFuncFs.RemoveAll(".site-packages")
-		err := aferocopy.Copy("", "site-packages", aferocopy.Options{
-			SrcFs:  venvFs,
-			DestFs: outFuncFs,
-		})
+		_ = os.RemoveAll(filepath.Join(outFuncDir, ".site-packages"))
+
+		err = cp.Copy(venvDir, filepath.Join(outFuncDir, ".site-packages"))
 		if err != nil {
 			return fmt.Errorf("copy site-packages: %w", err)
 		}
@@ -79,7 +73,7 @@ func TransformPython(ctx *Context) error {
 		funcConfig.Entry = ctx.PlanMeta["entry"]
 	}
 
-	err = funcConfig.WriteToFs(ctx.AppPath, funcPathname)
+	err = funcConfig.WriteTo(filepath.Join(zeaburPath, funcPathname))
 	if err != nil {
 		return fmt.Errorf("write function config: %w", err)
 	}
@@ -91,7 +85,7 @@ func TransformPython(ctx *Context) error {
 		return fmt.Errorf("marshal config: %w", err)
 	}
 
-	err = afero.WriteFile(ctx.AppPath, ".zeabur/output/config.json", configBytes, 0o644)
+	err = os.WriteFile(filepath.Join(zeaburPath, "output/config.json"), configBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("write config: %w", err)
 	}

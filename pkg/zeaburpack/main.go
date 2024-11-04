@@ -214,8 +214,8 @@ func Build(opt *BuildOptions) error {
 	err = transformer.Transform(&transformer.Context{
 		PlanType:     t,
 		PlanMeta:     m,
-		BuildkitPath: afero.NewBasePathFs(afero.NewOsFs(), dockerBuildOutput),
-		AppPath:      afero.NewBasePathFs(afero.NewOsFs(), *opt.Path),
+		BuildkitPath: dockerBuildOutput,
+		AppPath:      *opt.Path,
 		PushImage:    opt.PushImage,
 		ResultImage:  *opt.ResultImage,
 		LogWriter:    opt.LogWriter,

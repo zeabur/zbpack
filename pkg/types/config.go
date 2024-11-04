@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-
-	"github.com/spf13/afero"
 )
 
 // ZeaburOutputConfigRoute is a route in the output config to override the default route
@@ -40,21 +38,6 @@ func (c ZeaburOutputFunctionConfig) WriteTo(funcPath string) error {
 	}
 
 	err = os.WriteFile(path.Join(funcPath, ".zb-config.json"), funcConfigBytes, 0o644)
-	if err != nil {
-		return fmt.Errorf("write function config: %w", err)
-	}
-
-	return nil
-}
-
-// WriteToFs writes the output config to the given path of function (using afero.Fs)
-func (c ZeaburOutputFunctionConfig) WriteToFs(fs afero.Fs, funcPath string) error {
-	funcConfigBytes, err := json.Marshal(c)
-	if err != nil {
-		return fmt.Errorf("marshal function config: %w", err)
-	}
-
-	err = afero.WriteFile(fs, path.Join(funcPath, ".zb-config.json"), funcConfigBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("write function config: %w", err)
 	}

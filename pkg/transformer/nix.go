@@ -2,7 +2,9 @@ package transformer
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -15,12 +17,12 @@ func TransformNix(ctx *Context) error {
 
 	ctx.Log("Transforming Nix...")
 
-	dockerTar := ctx.BuildkitPath
+	dockerTar := filepath.Join(ctx.BuildkitPath, "result")
 
 	if !ctx.PushImage {
 		// SAFE: zbpack are managed by ourselves. Besides,
 		// macOS does not contain policy.json by default.
-		skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTar.Name(), "docker-daemon:"+ctx.ResultImage+":latest")
+		skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTar, "docker-daemon:"+ctx.ResultImage+":latest")
 		skopeoCmd.Stdout = ctx.LogWriter
 		skopeoCmd.Stderr = ctx.LogWriter
 		if err := skopeoCmd.Run(); err != nil {
@@ -29,7 +31,7 @@ func TransformNix(ctx *Context) error {
 	} else {
 		// SAFE: zbpack are managed by ourselves. Besides,
 		// macOS does not contain policy.json by default.
-		skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTar.Name(), "docker://"+ctx.ResultImage)
+		skopeoCmd := exec.Command("skopeo", "copy", "--insecure-policy", "docker-archive:"+dockerTar, "docker://"+ctx.ResultImage)
 		skopeoCmd.Stdout = ctx.LogWriter
 		skopeoCmd.Stderr = ctx.LogWriter
 		if err := skopeoCmd.Run(); err != nil {
@@ -38,5 +40,7 @@ func TransformNix(ctx *Context) error {
 	}
 
 	// remove the TAR since we have imported it
-	return dockerTar.Remove("")
+	_ = os.Remove(dockerTar)
+
+	return nil
 }
