@@ -250,11 +250,6 @@ var projects = []struct {
 		repo:  "docusaurus-template",
 	},
 	{
-		name:  "nodejs-agent",
-		owner: "zeabur",
-		repo:  "agent-template",
-	},
-	{
 		name:  "nodejs-slidev",
 		owner: "zeabur",
 		repo:  "slidev-template",
