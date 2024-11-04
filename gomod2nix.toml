@@ -175,9 +175,6 @@ schema = 3
   [mod."github.com/ulikunitz/xz"]
     version = "v0.5.11"
     hash = "sha256-SUyrjc2wyN3cTGKe5JdBEXjtZC1rJySRxJHVUZ59row="
-  [mod."go.nhat.io/aferocopy/v2"]
-    version = "v2.0.2"
-    hash = "sha256-KP3EnnU5UIHZ9HJJ0Pvmr11DypVnKSEI75Tbec8znkU="
   [mod."go.uber.org/multierr"]
     version = "v1.11.0"
     hash = "sha256-Lb6rHHfR62Ozg2j2JZy3MKOMKdsfzd1IYTR57r3Mhp0="
