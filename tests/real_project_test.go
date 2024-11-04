@@ -48,7 +48,7 @@ var projects = []struct {
 	},
 	{
 		name: "bun-plain",
-		dir:  "bun-common",
+		dir:  "bun-plain",
 	},
 	{
 		name: "bun-without-lockfile",
@@ -284,6 +284,11 @@ var projects = []struct {
 		name:  "php-laravel",
 		owner: "zeabur",
 		repo:  "laravel-template",
+	},
+	{
+		name:  "php-symfony",
+		owner: "zeabur",
+		repo:  "symfony-template",
 	},
 
 	/* python */
