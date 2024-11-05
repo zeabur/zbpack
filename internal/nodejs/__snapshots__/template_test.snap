@@ -73,7 +73,7 @@ RUN yarn build
 FROM scratch AS output
 COPY --from=build /src///app/dist /
 
-FROM caddy AS runtime
+FROM zeabur/caddy-static AS runtime
 COPY --from=output / /usr/share/caddy
 
 
@@ -180,7 +180,7 @@ RUN yarn install
 FROM scratch AS output
 COPY --from=build /src/myservice//app/dist /
 
-FROM caddy AS runtime
+FROM zeabur/caddy-static AS runtime
 COPY --from=output / /usr/share/caddy
 
 

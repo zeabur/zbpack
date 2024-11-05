@@ -259,7 +259,7 @@ func TestTemplate_ServerlessOutputDir(t *testing.T) {
 		assert.NoError(t, err)
 
 		require.Contains(t, result, "FROM scratch AS output")
-		require.NotContains(t, result, "FROM caddy AS runtime")
+		require.NotContains(t, result, "FROM zeabur/caddy-static AS runtime")
 	})
 
 	t.Run("without serverless", func(t *testing.T) {
@@ -274,6 +274,6 @@ func TestTemplate_ServerlessOutputDir(t *testing.T) {
 		assert.NoError(t, err)
 
 		require.Contains(t, result, "FROM scratch AS output")
-		require.Contains(t, result, "FROM caddy AS runtime")
+		require.Contains(t, result, "FROM zeabur/caddy-static AS runtime")
 	})
 }

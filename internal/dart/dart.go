@@ -29,7 +29,7 @@ COPY --from=0 /app/build/web /
 		// We run it with caddy for Containerized mode.
 		if serverless, ok := meta["serverless"]; ok && serverless != "true" {
 			caddy := `
-FROM caddy AS runtime
+FROM zeabur/caddy-static AS runtime
 COPY --from=1 / /usr/share/caddy
 `
 

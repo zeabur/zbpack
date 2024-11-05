@@ -42,7 +42,7 @@ COPY --from=build /src/{{ .AppDir }} /
 FROM scratch AS output
 COPY --from=build /src/{{ .AppDir }}/{{ .OutputDir }} /
 {{ if not .Serverless }}
-FROM caddy AS runtime
+FROM zeabur/caddy-static AS runtime
 COPY --from=output / /usr/share/caddy
 {{ end }}
 {{ else }}
