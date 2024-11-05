@@ -1,46 +1,44 @@
-// Package remix is used to transform build output of Remix app to the serverless build output format of Zeabur
-package remix
+package transformer
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"path"
 
-	uuid2 "github.com/google/uuid"
 	cp "github.com/otiai10/copy"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
-// TransformServerless will transform the build output of Remix app to the serverless build output format of Zeabur
-func TransformServerless(workdir string) error {
+// TransformNodejsRemix transforms Node.js Remix.js functions.
+func TransformNodejsRemix(ctx *Context) error {
+	if ctx.PlanType != types.PlanTypeNodejs || ctx.PlanMeta["framework"] != string(types.NodeProjectFrameworkRemix) || ctx.PlanMeta["serverless"] != "true" {
+		return ErrSkip
+	}
 
-	// create a tmpDir to store the build output
-	uuid := uuid2.New().String()
-	tmpDir := path.Join(os.TempDir(), uuid)
+	tmpDir, err := os.MkdirTemp("", "zeabur-nodejs-remix-")
+	if err != nil {
+		return fmt.Errorf("create tmp dir: %w", err)
+	}
 	defer func() {
-		err := os.RemoveAll(tmpDir)
-		if err != nil {
-			log.Printf("remove tmp dir: %s\n", err)
-		}
+		_ = os.RemoveAll(tmpDir)
 	}()
 
-	// /tmpDir/uuid/dist
+	// /tmpDir/dist
 	remixBuildDir := path.Join(tmpDir, "build")
 
 	// /workDir/.zeabur/output
-	zeaburOutputDir := path.Join(workdir, ".zeabur/output")
+	zeaburOutputDir := path.Join(ctx.AppPath, ".zeabur/output")
 
-	fmt.Println("=> Copying build output from image")
-	err := cp.Copy(path.Join(os.TempDir(), "zbpack/buildkit"), path.Join(tmpDir))
+	ctx.Log("=> Copying build output from image\n")
+	err = cp.Copy(ctx.BuildkitPath, tmpDir)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("=> Copying static asset files")
+	ctx.Log("=> Copying static asset files\n")
 
-	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0755)
+	err = os.MkdirAll(path.Join(zeaburOutputDir, "static"), 0o755)
 	if err != nil {
 		return fmt.Errorf("create static dir: %w", err)
 	}
@@ -50,14 +48,14 @@ func TransformServerless(workdir string) error {
 		return fmt.Errorf("copy static dir: %w", err)
 	}
 
-	fmt.Println("=> Copying remix build output")
+	ctx.Log("=> Copying remix build output\n")
 
-	err = os.MkdirAll(path.Join(zeaburOutputDir, "functions"), 0755)
+	err = os.MkdirAll(path.Join(zeaburOutputDir, "functions"), 0o755)
 	if err != nil {
 		return fmt.Errorf("create functions dir: %w", err)
 	}
 
-	_ = os.MkdirAll(path.Join(zeaburOutputDir, "functions/index.func"), 0755)
+	_ = os.MkdirAll(path.Join(zeaburOutputDir, "functions/index.func"), 0o755)
 
 	err = cp.Copy(remixBuildDir, path.Join(zeaburOutputDir, "functions/index.func/build"))
 	if err != nil {
@@ -78,14 +76,14 @@ func TransformServerless(workdir string) error {
 		return fmt.Errorf("Failed to write function config to \".zeabur/output/functions/index.func\": %s", err)
 	}
 
-	fmt.Println("=> Copying node_modules")
+	ctx.Log("=> Copying node_modules\n")
 
 	err = cp.Copy(path.Join(remixBuildDir, "../node_modules"), path.Join(zeaburOutputDir, "functions/index.func/node_modules"))
 	if err != nil {
 		return fmt.Errorf("copy node_modules/waku dir: %w", err)
 	}
 
-	fmt.Println("=> Writing config.json ...")
+	ctx.Log("=> Writing config.json ...\n")
 
 	config := types.ZeaburOutputConfig{Routes: []types.ZeaburOutputConfigRoute{{Src: ".*", Dest: "/"}}}
 
@@ -94,12 +92,12 @@ func TransformServerless(workdir string) error {
 		return err
 	}
 
-	err = os.WriteFile(path.Join(workdir, ".zeabur/output/config.json"), configBytes, 0644)
+	err = os.WriteFile(path.Join(ctx.AppPath, ".zeabur/output/config.json"), configBytes, 0o644)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("=> Copying package.json ...")
+	ctx.Log("=> Copying package.json ...\n")
 
 	err = cp.Copy(path.Join(tmpDir, "package.json"), path.Join(zeaburOutputDir, "functions/index.func/package.json"))
 	if err != nil {

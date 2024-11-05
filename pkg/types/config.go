@@ -37,7 +37,7 @@ func (c ZeaburOutputFunctionConfig) WriteTo(funcPath string) error {
 		return fmt.Errorf("marshal function config: %w", err)
 	}
 
-	err = os.WriteFile(path.Join(funcPath, ".zb-config.json"), funcConfigBytes, 0644)
+	err = os.WriteFile(path.Join(funcPath, ".zb-config.json"), funcConfigBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("write function config: %w", err)
 	}
