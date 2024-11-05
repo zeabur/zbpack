@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -376,7 +377,13 @@ func GetBuildScript(ctx *nodePlanContext) string {
 		return bs.Unwrap()
 	}
 
+	scriptsOrderedKey := make([]string, 0, len(packageJSON.Scripts))
 	for key := range packageJSON.Scripts {
+		scriptsOrderedKey = append(scriptsOrderedKey, key)
+	}
+	slices.Sort(scriptsOrderedKey)
+
+	for _, key := range scriptsOrderedKey {
 		if strings.Contains(key, "build") {
 			*bs = optional.Some(key)
 			return bs.Unwrap()
