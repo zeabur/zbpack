@@ -21,10 +21,10 @@ func ParseFrom(line string) (FromStatement, bool) {
 	}
 
 	for _, child := range parsed.AST.Children {
-		if child.Value == "FROM" {
+		if strings.ToUpper(child.Value) == "FROM" {
 			source := child.Next.Value
 
-			if child.Next.Next != nil && child.Next.Next.Value == "AS" {
+			if child.Next.Next != nil && strings.ToUpper(child.Next.Next.Value) == "AS" {
 				return FromStatement{
 					Source: child.Next.Value,
 					Stage:  mo.Some(child.Next.Next.Next.Value),
