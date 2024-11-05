@@ -265,6 +265,11 @@ var projects = []struct {
 		repo:  "qwik-city-template",
 	},
 	{
+		name:  "nodejs-vite-vanilla",
+		owner: "zeabur",
+		repo:  "vite-vanilla-template",
+	},
+	{
 		name: "nodejs-a-lot-of-dependencies",
 		dir:  "nodejs-a-lot-of-dependencies",
 	},
