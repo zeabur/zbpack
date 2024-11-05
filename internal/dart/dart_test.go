@@ -20,7 +20,7 @@ func TestGenerateDockerfileStatic(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Contains(t, dockerfile, "FROM scratch")
-		assert.NotContains(t, dockerfile, "FROM caddy")
+		assert.NotContains(t, dockerfile, "FROM zeabur/caddy-static")
 	})
 
 	t.Run("flutter, non-serverless", func(t *testing.T) {
@@ -33,6 +33,6 @@ func TestGenerateDockerfileStatic(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Contains(t, dockerfile, "FROM scratch")
-		assert.Contains(t, dockerfile, "FROM caddy")
+		assert.Contains(t, dockerfile, "FROM zeabur/caddy-static")
 	})
 }
