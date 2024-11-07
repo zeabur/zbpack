@@ -985,7 +985,8 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 
 	meta := types.PlanMeta{
-		"bun": strconv.FormatBool(opt.Bun),
+		"bun":        strconv.FormatBool(opt.Bun),
+		"bunVersion": "latest",
 	}
 
 	_, reldir := ctx.GetAppSource()
