@@ -223,7 +223,7 @@ func Build(opt *BuildOptions) error {
 			opt.Log("\033[90m" + "The compiled serverless function has been saved in the .zeabur directory." + "\033[0m\n")
 		} else {
 			opt.Log("\033[90m" + "To run the image, use the following command:" + "\033[0m\n")
-			if m["outputDir"] != "" || (t == types.PlanTypeStatic && m["serverless"] == "true") {
+			if m["outputDir"] != "" && m["serverless"] == "true" {
 				opt.Log("npx serve .zeabur/output/static\n")
 			} else {
 				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it %s\n", *opt.ResultImage)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeabur/zbpack/internal/nodejs"
 )
 
@@ -241,4 +242,38 @@ func TestTemplate_Bun(t *testing.T) {
 	result, err := ctx.Execute()
 	assert.NoError(t, err)
 	snaps.MatchSnapshot(t, result)
+}
+
+func TestTemplate_ServerlessOutputDir(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with serverless", func(t *testing.T) {
+		ctx := nodejs.TemplateContext{
+			NodeVersion: "18",
+			InstallCmd:  "RUN yarn install",
+			Serverless:  true,
+			OutputDir:   "/app/dist",
+		}
+
+		result, err := ctx.Execute()
+		assert.NoError(t, err)
+
+		require.Contains(t, result, "FROM scratch AS output")
+		require.NotContains(t, result, "FROM zeabur/caddy-static AS runtime")
+	})
+
+	t.Run("without serverless", func(t *testing.T) {
+		ctx := nodejs.TemplateContext{
+			NodeVersion: "18",
+			InstallCmd:  "RUN yarn install",
+			Serverless:  false,
+			OutputDir:   "/app/dist",
+		}
+
+		result, err := ctx.Execute()
+		assert.NoError(t, err)
+
+		require.Contains(t, result, "FROM scratch AS output")
+		require.Contains(t, result, "FROM zeabur/caddy-static AS runtime")
+	})
 }

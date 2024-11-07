@@ -39,7 +39,8 @@ func TestTransformStatic(t *testing.T) {
 			BuildkitPath: buildkitPath,
 			AppPath:      appPath,
 			PlanMeta: map[string]string{
-				"outputDir": "dist",
+				"outputDir":  "dist",
+				"serverless": "true",
 			},
 			PlanType: types.PlanTypeStatic,
 		}
@@ -86,7 +87,8 @@ func TestTransformStatic(t *testing.T) {
 			BuildkitPath: buildkitPath,
 			AppPath:      appPath,
 			PlanMeta: map[string]string{
-				"outputDir": "dist",
+				"outputDir":  "dist",
+				"serverless": "true",
 			},
 			PlanType: types.PlanTypeStatic,
 		}

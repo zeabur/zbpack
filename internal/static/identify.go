@@ -33,10 +33,6 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 
 	planMeta := types.PlanMeta{"serverless": strconv.FormatBool(serverless)}
 
-	if !serverless {
-		planMeta["expose"] = "80"
-	}
-
 	if utils.HasFile(options.Source, "hugo.toml", "config/_default/hugo.toml") {
 		planMeta["framework"] = "hugo"
 		return planMeta

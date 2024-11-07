@@ -8,8 +8,7 @@ import (
 
 // GenerateDockerfile generates the Dockerfile for Gleam projects.
 func GenerateDockerfile(m types.PlanMeta) (string, error) {
-	if m["serverless"] == "true" {
-		return `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
+	dockerfile := `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
 RUN apk add --no-cache elixir
 RUN mix local.hex --force
 RUN mix local.rebar --force
@@ -17,25 +16,22 @@ COPY . /build/
 RUN cd /build \
   && gleam export erlang-shipment \
   && mv build/erlang-shipment /app \
-  && rm -r /build
+  && rm -r /build`
 
+	if m["serverless"] == "true" {
+		dockerfile += `
 FROM scratch AS output
 COPY --from=0 /app /
-`, nil
-	}
-
-	return `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
-RUN apk add --no-cache elixir
-RUN mix local.hex --force
-RUN mix local.rebar --force
-COPY . /build/
-RUN cd /build \
-  && gleam export erlang-shipment \
-  && mv build/erlang-shipment /app \
-  && rm -r /build
+`
+	} else {
+		dockerfile += `
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["run"]`, nil
+CMD ["run"]
+`
+	}
+
+	return dockerfile, nil
 }
 
 type pack struct {

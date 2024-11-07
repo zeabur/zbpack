@@ -1,0 +1,13 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "yarn build"
+  bun: "false"
+  framework: "vite"
+  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nRUN yarn install"
+  nodeVersion: "20"
+  outputDir: "dist"
+  packageManager: "unknown"
+  serverless: "true"
+  startCmd: ""

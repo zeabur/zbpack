@@ -11,7 +11,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	build := meta["build"]
 
 	if meta["framework"] == "flutter" {
-		return `FROM ubuntu:latest
+		dockerfile := `FROM ubuntu:latest
 RUN apt-get update && apt-get install -y curl git unzip xz-utils zip libglu1-mesa
 RUN git clone https://github.com/flutter/flutter.git /usr/local/flutter
 ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
@@ -24,7 +24,19 @@ RUN flutter pub get
 
 FROM scratch
 COPY --from=0 /app/build/web /
-`, nil
+`
+
+		// We run it with caddy for Containerized mode.
+		if serverless, ok := meta["serverless"]; ok && serverless != "true" {
+			caddy := `
+FROM zeabur/caddy-static AS runtime
+COPY --from=1 / /usr/share/caddy
+`
+
+			dockerfile += caddy
+		}
+
+		return dockerfile, nil
 	}
 
 	if meta["framework"] == "serverpod" {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -376,7 +377,13 @@ func GetBuildScript(ctx *nodePlanContext) string {
 		return bs.Unwrap()
 	}
 
+	scriptsOrderedKey := make([]string, 0, len(packageJSON.Scripts))
 	for key := range packageJSON.Scripts {
+		scriptsOrderedKey = append(scriptsOrderedKey, key)
+	}
+	slices.Sort(scriptsOrderedKey)
+
+	for _, key := range scriptsOrderedKey {
 		if strings.Contains(key, "build") {
 			*bs = optional.Some(key)
 			return bs.Unwrap()
@@ -730,6 +737,12 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return cmd.Unwrap()
 	}
 
+	// if the app is deployed as static files, we should not start the app.
+	if GetStaticOutputDir(ctx) != "" {
+		*cmd = optional.Some("")
+		return cmd.Unwrap()
+	}
+
 	if startCmd, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
 		*cmd = optional.Some(startCmd)
 		return cmd.Unwrap()
@@ -998,17 +1011,18 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 		meta["serverless"] = strconv.FormatBool(serverless)
 	}
 
-	// only set outputDir if there is no custom start command (because if there is, it shouldn't be a static project)
-	if buildCmd == "" {
+	startCmd := GetStartCmd(ctx)
+	meta["startCmd"] = startCmd
+
+	// only set outputDir if there is no start command
+	// (because if there is, it shouldn't be a static project)
+	if startCmd == "" {
 		staticOutputDir := GetStaticOutputDir(ctx)
 		if staticOutputDir != "" {
 			meta["outputDir"] = staticOutputDir
 			return meta
 		}
 	}
-
-	startCmd := GetStartCmd(ctx)
-	meta["startCmd"] = startCmd
 
 	return meta
 }
