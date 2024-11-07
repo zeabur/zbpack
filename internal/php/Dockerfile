@@ -54,7 +54,6 @@ server {
         fastcgi_param DOCUMENT_ROOT $realpath_root;
         fastcgi_param PATH_INFO $fastcgi_path_info;
         fastcgi_hide_header X-Powered-By;
-        internal;
     }
 
     location / {
