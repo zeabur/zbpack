@@ -1,6 +1,7 @@
 package php
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/samber/lo"
@@ -105,6 +106,9 @@ func DetermineAptDependencies(source afero.Fs) []string {
 		}
 	}
 
+	dependenciesUnique := lo.Uniq(dependencies)
+	slices.Sort(dependenciesUnique)
+
 	return dependencies
 }
 
@@ -126,7 +130,10 @@ func DeterminePHPExtensions(source afero.Fs) (extensions []string) {
 		}
 	}
 
-	return lo.Uniq(extensions)
+	extensionsUnique := lo.Uniq(extensions)
+	slices.Sort(extensionsUnique)
+
+	return extensionsUnique
 }
 
 // DetermineStartCommand determines the start command of the project.
