@@ -63,7 +63,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/evanw/esbuild v0.24.0
 	github.com/gkampitakis/go-snaps v0.5.7
-	github.com/goccy/go-yaml v1.13.5
+	github.com/goccy/go-yaml v1.13.6
 	github.com/google/go-github/v63 v63.0.0
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
