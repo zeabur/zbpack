@@ -23,7 +23,7 @@ RUN corepack enable
 
 {{ if eq .AppDir "" }}COPY . .{{ end }}
 {{ if .Framework | isNitro }}
-{{ if .Serverless }}
+{{ if and .Serverless }}
 ENV NITRO_PRESET=node
 {{ else if and (not .Serverless) (prefixed .StartCmd "bun") }}
 ENV NITRO_PRESET=bun
@@ -35,7 +35,7 @@ ENV HOST=0.0.0.0
 {{ end }}
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
-{{ if .Serverless }}
+{{ if and .Serverless (eq .OutputDir "") }}
 FROM scratch AS output
 COPY --from=build /src/{{ .AppDir }} /
 {{ else if ne .OutputDir "" }}
