@@ -1014,9 +1014,9 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	startCmd := GetStartCmd(ctx)
 	meta["startCmd"] = startCmd
 
-	// only set outputDir if there is no start command
+	// only set outputDir if there is no start command and is serverless
 	// (because if there is, it shouldn't be a static project)
-	if startCmd == "" {
+	if startCmd == "" && serverless {
 		staticOutputDir := GetStaticOutputDir(ctx)
 		if staticOutputDir != "" {
 			meta["outputDir"] = staticOutputDir
