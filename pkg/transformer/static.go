@@ -16,7 +16,7 @@ import (
 // TransformStatic copies the static files from output to .zeabur/output/static
 // and creates a config.json file for SPA
 func TransformStatic(ctx *Context) error {
-	if ctx.PlanMeta["outputDir"] == "" || ctx.PlanMeta["serverless"] != "true" {
+	if ctx.PlanMeta["serverless"] != "true" {
 		return ErrSkip
 	}
 

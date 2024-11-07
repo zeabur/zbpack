@@ -23,6 +23,18 @@ func TestTransformStatic(t *testing.T) {
 		assert.ErrorIs(t, err, ErrSkip)
 	})
 
+	t.Run("should not skip if there is serverless", func(t *testing.T) {
+		ctx := &Context{
+			PlanMeta: map[string]string{
+				"serverless": "true",
+			},
+			PlanType: types.PlanTypeStatic,
+		}
+
+		err := TransformStatic(ctx)
+		assert.NotErrorIs(t, err, ErrSkip)
+	})
+
 	t.Run("should copy files and create config for SPA", func(t *testing.T) {
 		// Setup temp dirs
 		tempDir := t.TempDir()
