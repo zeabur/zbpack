@@ -598,6 +598,11 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		return buildCmd
 	}
 
+	if buildCmd, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
+		*cmd = optional.Some(buildCmd)
+		return cmd.Unwrap()
+	}
+
 	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 
