@@ -83,9 +83,9 @@ RUN set -eux \
 ARG BUILD_COMMAND
 RUN if [ -n "${BUILD_COMMAND}" ]; then ${BUILD_COMMAND}; fi
 
-# compile for frameworks
+# optimization for frameworks
 RUN <<EOF
-	set -eux
+	set -ux
 
 	if [ -x artisan ]; then
 		# Laravel
@@ -103,7 +103,7 @@ RUN <<EOF
 		php bin/console cache:clear
 
 		# AssetMapper (optional)
-		php bin/console asset-map:compile || true
+		php bin/console asset-map:compile
 	fi
 
 	if [ -x ./node_modules/.bin/encore ]; then
