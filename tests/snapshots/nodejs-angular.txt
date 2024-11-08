@@ -4,6 +4,7 @@ Meta:
   appDir: ""
   buildCmd: "npm run build"
   bun: "false"
+  bunVersion: "latest"
   framework: "angular"
   installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY package-lock.json* .\nRUN npm install"
   nodeVersion: "20"

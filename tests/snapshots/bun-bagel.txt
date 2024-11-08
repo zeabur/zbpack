@@ -4,6 +4,7 @@ Meta:
   appDir: ""
   buildCmd: ""
   bun: "true"
+  bunVersion: "latest"
   framework: "bagel"
   installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY bun.lockb* .\nRUN bun install"
   nodeVersion: "20"
