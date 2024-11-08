@@ -84,8 +84,15 @@ ARG BUILD_COMMAND
 RUN if [ -n "${BUILD_COMMAND}" ]; then ${BUILD_COMMAND}; fi
 
 # optimization for frameworks
+ARG PHP_OPTIMIZE
 RUN <<EOF
 	set -ux
+
+	if [ ! "${PHP_OPTIMIZE}" = "true" ]; then
+		echo "ZBPACK_PHP_OPTIMIZE is not set to true, skipping optimization"
+		echo "You will need to run cache, optimization, and some build command manually."
+		exit 0
+	fi
 
 	if [ -x artisan ]; then
 		# Laravel

@@ -24,6 +24,7 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 		"PHP_EXTENSIONS":         meta["exts"],
 		"BUILD_COMMAND":          meta["buildCommand"],
 		"START_COMMAND":          meta["startCommand"],
+		"PHP_OPTIMIZE":           meta["optimize"],
 	}
 
 	for k, v := range variables {

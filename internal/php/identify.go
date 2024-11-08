@@ -1,6 +1,7 @@
 package php
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -33,6 +34,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	exts := DeterminePHPExtensions(options.Source)
 	buildCommand := DetermineBuildCommand(options.Config)
 	startCommand := DetermineStartCommand(options.Config)
+	phpOptimize := DeterminePHPOptimize(options.Config)
 
 	// Some meta will be added to the plan dynamically later.
 	meta := types.PlanMeta{
@@ -42,6 +44,7 @@ func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 		"exts":         strings.Join(exts, " "),
 		"buildCommand": buildCommand,
 		"startCommand": startCommand,
+		"optimize":     strconv.FormatBool(phpOptimize),
 	}
 
 	return meta
