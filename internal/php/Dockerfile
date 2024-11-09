@@ -83,9 +83,16 @@ RUN set -eux \
 ARG BUILD_COMMAND
 RUN if [ -n "${BUILD_COMMAND}" ]; then ${BUILD_COMMAND}; fi
 
-# compile for frameworks
+# optimization for frameworks
+ARG PHP_OPTIMIZE
 RUN <<EOF
-	set -eux
+	set -ux
+
+	if [ ! "${PHP_OPTIMIZE}" = "true" ]; then
+		echo "ZBPACK_PHP_OPTIMIZE is not set to true, skipping optimization"
+		echo "You will need to run cache, optimization, and some build command manually."
+		exit 0
+	fi
 
 	if [ -x artisan ]; then
 		# Laravel
@@ -103,7 +110,7 @@ RUN <<EOF
 		php bin/console cache:clear
 
 		# AssetMapper (optional)
-		php bin/console asset-map:compile || true
+		php bin/console asset-map:compile
 	fi
 
 	if [ -x ./node_modules/.bin/encore ]; then

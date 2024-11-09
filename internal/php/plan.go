@@ -157,3 +157,8 @@ func DetermineBuildCommand(config plan.ImmutableProjectConfiguration) string {
 
 	return ""
 }
+
+// DeterminePHPOptimize determines if we should run optimization on build.
+func DeterminePHPOptimize(config plan.ImmutableProjectConfiguration) bool {
+	return plan.Cast(config.Get(ConfigPHPOptimize), cast.ToBoolE).TakeOr(true)
+}
