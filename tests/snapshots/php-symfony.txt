@@ -5,5 +5,6 @@ Meta:
   deps: ""
   exts: "ctype iconv"
   framework: "symfony"
+  optimize: "true"
   phpVersion: "8"
   startCommand: "_startup() { nginx; php-fpm; }; _startup"

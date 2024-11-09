@@ -5,5 +5,6 @@ Meta:
   deps: ""
   exts: ""
   framework: "thinkphp"
+  optimize: "true"
   phpVersion: "7"
   startCommand: "_startup() { nginx; php-fpm; }; _startup"
