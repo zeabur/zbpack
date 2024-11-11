@@ -12,7 +12,6 @@ require (
 require (
 	github.com/containerd/typeurl/v2 v2.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.0 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
@@ -28,8 +27,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/maruel/natural v1.1.1 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
@@ -63,7 +60,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/evanw/esbuild v0.24.0
 	github.com/gkampitakis/go-snaps v0.5.7
-	github.com/goccy/go-yaml v1.13.6
+	github.com/goccy/go-yaml v1.13.7
 	github.com/google/go-github/v63 v63.0.0
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
