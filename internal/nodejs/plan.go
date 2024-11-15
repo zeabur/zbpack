@@ -25,6 +25,10 @@ const (
 	// It is true by default.
 	ConfigCacheDependencies = "cache_dependencies"
 
+	// ConfigNodeFramework is the key for the configuration for specifying
+	// the Node.js framework explicitly.
+	ConfigNodeFramework = "node.framework"
+
 	// ConfigAppDir indicates the relative path of the app to deploy.
 	//
 	// For example, if the app to deploy is located at `apps/api`,
@@ -160,6 +164,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return framework
 	}
 
+	if framework, err := plan.Cast(ctx.Config.Get(ConfigNodeFramework), cast.ToStringE).Take(); err == nil {
+		*fw = optional.Some(types.NodeProjectFramework(framework))
+		return fw.Unwrap()
+	}
+
 	if _, isGrammY := packageJSON.Dependencies["grammy"]; isGrammY {
 		*fw = optional.Some(types.NodeProjectFrameworkGrammY)
 		return fw.Unwrap()
@@ -259,21 +268,12 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
-	if _, isCreateReactApp := packageJSON.Dependencies["react-scripts"]; isCreateReactApp {
+	if _, isCreateReactApp := packageJSON.FindDependency("react-scripts"); isCreateReactApp {
 		*fw = optional.Some(types.NodeProjectFrameworkCreateReactApp)
 		return fw.Unwrap()
 	}
 
-	if _, isCreateReactApp := packageJSON.DevDependencies["react-scripts"]; isCreateReactApp {
-		*fw = optional.Some(types.NodeProjectFrameworkCreateReactApp)
-		return fw.Unwrap()
-	}
-
-	if _, isNuxtJs := packageJSON.Dependencies["nuxt"]; isNuxtJs {
-		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
-		return fw.Unwrap()
-	}
-	if _, isNuxtJs := packageJSON.DevDependencies["nuxt"]; isNuxtJs {
+	if _, isNuxtJs := packageJSON.FindDependency("nuxt"); isNuxtJs {
 		*fw = optional.Some(types.NodeProjectFrameworkNuxtJs)
 		return fw.Unwrap()
 	}
@@ -288,7 +288,7 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
-	if _, isVitepress := packageJSON.DevDependencies["vitepress"]; isVitepress {
+	if _, isVitepress := packageJSON.FindDependency("vitepress"); isVitepress {
 		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
 	}
