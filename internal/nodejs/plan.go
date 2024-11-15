@@ -25,6 +25,10 @@ const (
 	// It is true by default.
 	ConfigCacheDependencies = "cache_dependencies"
 
+	// ConfigNodeFramework is the key for the configuration for specifying
+	// the Node.js framework explicitly.
+	ConfigNodeFramework = "node.framework"
+
 	// ConfigAppDir indicates the relative path of the app to deploy.
 	//
 	// For example, if the app to deploy is located at `apps/api`,
@@ -158,6 +162,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
+	}
+
+	if framework, err := plan.Cast(ctx.Config.Get(ConfigNodeFramework), cast.ToStringE).Take(); err == nil {
+		*fw = optional.Some(types.NodeProjectFramework(framework))
+		return fw.Unwrap()
 	}
 
 	if _, isGrammY := packageJSON.Dependencies["grammy"]; isGrammY {
