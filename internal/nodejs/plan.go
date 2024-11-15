@@ -288,7 +288,7 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
-	if _, isVitepress := packageJSON.DevDependencies["vitepress"]; isVitepress {
+	if _, isVitepress := packageJSON.FindDependency("vitepress"); isVitepress {
 		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
 	}
