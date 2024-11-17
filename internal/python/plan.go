@@ -199,6 +199,11 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 		return cpm.Unwrap()
 	}
 
+	/* uv */
+	// If there is a uv.lock, we use uv.
+	if utils.HasFile(src, "uv.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerUv)
+		return cpm.Unwrap()
 	}
 
 	*cpm = optional.Some(types.PythonPackageManagerUnknown)
