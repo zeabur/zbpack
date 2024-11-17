@@ -45,6 +45,11 @@ const (
 	// ConfigPythonVersion is the key for specifying the Python version explicitly
 	// in the project configuration.
 	ConfigPythonVersion = "python.version"
+
+	// ConfigPythonPackageManager is the key for specifying the Python package manager
+	// explicitly in the project configuration.
+	// Note that it should be one of the values in `types.PythonPackageManager`.
+	ConfigPythonPackageManager = "python.package_manager"
 )
 
 // DetermineFramework determines the framework of the Python project.
@@ -130,24 +135,26 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 	src := ctx.Src
 	cpm := &ctx.PackageManager
 
-	// Pipfile > pyproject.toml > requirements.txt
-	depFiles := []struct {
-		packageManagerID types.PythonPackageManager
-		filename         string
-		content          string
-		lockFile         string
-	}{
-		{types.PythonPackageManagerPipenv, "Pipfile", "", ""},
-		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
-		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
-		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
-		{types.PythonPackageManagerRye, "pyproject.toml", "[tool.rye]", "requirements.lock"},
-	}
-
 	if packageManager, err := cpm.Take(); err == nil {
 		return packageManager
 	}
 
+	/* User can specify the package manager explicitly */
+	if packageManager, err := plan.Cast(ctx.Config.Get(ConfigPythonPackageManager), cast.ToStringE).Take(); err == nil {
+		switch packageManager {
+		case string(types.PythonPackageManagerPip),
+			string(types.PythonPackageManagerPoetry),
+			string(types.PythonPackageManagerPipenv),
+			string(types.PythonPackageManagerPdm),
+			string(types.PythonPackageManagerRye),
+			string(types.PythonPackageManagerUv):
+			*cpm = optional.Some(types.PythonPackageManager(packageManager))
+			return cpm.Unwrap()
+		default:
+			*cpm = optional.Some(types.PythonPackageManagerUnknown)
+			return cpm.Unwrap()
+		}
+	}
 
 	/* Pipenv */
 	// If there is a Pipfile, we use Pipenv.
