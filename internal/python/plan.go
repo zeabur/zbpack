@@ -515,18 +515,16 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 		filesToCopy = append(filesToCopy, decl+"*")
 	}
 	if lock := getPmLockFile(pm); len(lock) > 0 {
-		lockGlob := lo.Map(lock, func(s string, _ int) string {
-			return s + "*"
-		})
-
-		filesToCopy = append(filesToCopy, lockGlob...)
+		for _, f := range lock {
+			filesToCopy = append(filesToCopy, f+"*")
+		}
 	}
 
 	if cmd := getPmInitCmd(pm); cmd != "" {
 		commands = append(commands, "RUN "+cmd)
 	}
 	if len(filesToCopy) > 0 {
-		commands = append(commands, fmt.Sprintf("COPY %s .", strings.Join(filesToCopy, " ")))
+		commands = append(commands, fmt.Sprintf("COPY %s ./", strings.Join(filesToCopy, " ")))
 	}
 	if cmd := getPmAddCmd(pm, depToInstall...); cmd != "" {
 		commands = append(commands, "RUN "+cmd)

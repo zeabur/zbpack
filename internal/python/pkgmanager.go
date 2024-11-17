@@ -112,9 +112,9 @@ func getPmLockFile(pm types.PythonPackageManager) []string {
 	case types.PythonPackageManagerPdm:
 		return []string{"pdm.lock"}
 	case types.PythonPackageManagerRye:
-		return []string{"requirements.lock"}
+		return []string{"requirements.lock", ".python-version"}
 	case types.PythonPackageManagerUv:
-		return []string{"uv.lock"}
+		return []string{"uv.lock", ".python-version"}
 	}
 
 	return nil
