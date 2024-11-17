@@ -577,7 +577,7 @@ func TestGetStartCommand_Entry(t *testing.T) {
 				}
 
 				startCmd := GetStartCmd(ctx)
-				assert.Equal(t, "node .output/server/index.mjs", startCmd)
+				assert.Equal(t, "HOST=0.0.0.0 node .output/server/index.mjs", startCmd)
 			})
 
 			t.Run("bun", func(t *testing.T) {
@@ -594,7 +594,7 @@ func TestGetStartCommand_Entry(t *testing.T) {
 				}
 
 				startCmd := GetStartCmd(ctx)
-				assert.Equal(t, "bun .output/server/index.mjs", startCmd)
+				assert.Equal(t, "HOST=0.0.0.0 bun .output/server/index.mjs", startCmd)
 			})
 		})
 	}

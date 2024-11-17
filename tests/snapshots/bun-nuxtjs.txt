@@ -2,7 +2,7 @@ PlanType: bun
 
 Meta:
   appDir: ""
-  buildCmd: "bun run build"
+  buildCmd: "NITRO_PRESET=node bun run build"
   bun: "true"
   bunVersion: "latest"
   framework: "nuxt.js"
