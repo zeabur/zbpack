@@ -137,6 +137,27 @@ license = {text = "MIT"}
 	assert.Equal(t, types.PythonPackageManagerRye, pm)
 }
 
+func TestPackageManager_Uv(t *testing.T) {
+	t.Parallel()
+
+	t.Run("contains uv.lock", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "pyproject.toml", nil, 0o644)
+		_ = afero.WriteFile(fs, "uv.lock", nil, 0o644)
+
+		ctx := &pythonPlanContext{
+			Src:    fs,
+			Config: plan.NewProjectConfigurationFromFs(fs, ""),
+		}
+
+		pm := DeterminePackageManager(ctx)
+
+		assert.Equal(t, types.PythonPackageManagerUv, pm)
+	})
+}
+
 func TestPackageManager_PoetryWithOldRequirements(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(strings.TrimSpace(`
@@ -226,6 +247,41 @@ func TestPackageManager_PipenvWithOldRequirements_FixedOrder(t *testing.T) {
 		pm := DeterminePackageManager(ctx)
 		assert.Equal(t, types.PythonPackageManagerPipenv, pm, fmt.Sprintf("in the test round %d", i))
 		ctx.PackageManager = nil
+	}
+}
+
+func TestPackageManager_Specified(t *testing.T) {
+	t.Parallel()
+
+	supportedPackageManagers := []types.PythonPackageManager{
+		types.PythonPackageManagerPip,
+		types.PythonPackageManagerPipenv,
+		types.PythonPackageManagerPoetry,
+		types.PythonPackageManagerPdm,
+		types.PythonPackageManagerRye,
+		types.PythonPackageManagerUv,
+	}
+
+	for _, pm := range supportedPackageManagers {
+		pm := pm
+
+		t.Run(string(pm), func(t *testing.T) {
+			t.Parallel()
+
+			fs := afero.NewMemMapFs()
+			config := plan.NewProjectConfigurationFromFs(fs, "")
+
+			config.Set(ConfigPythonPackageManager, string(pm))
+
+			ctx := pythonPlanContext{
+				Src:    fs,
+				Config: config,
+			}
+
+			determinedPm := DeterminePackageManager(&ctx)
+
+			assert.Equal(t, pm, determinedPm)
+		})
 	}
 }
 
@@ -710,7 +766,53 @@ func TestHasDependency_CaseInsensitive(t *testing.T) {
 	assert.False(t, HasDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Pip(t *testing.T) {
+func TestHasDependency_Uv(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+[project]
+name = "midexam"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.9.2",
+    "notebook>=7.2.2",
+    "pandas[output-formatting,performance,plot]>=2.2.3",
+    "polars[numpy,pandas,plot]>=1.13.1",
+    "scikit-learn>=1.5.2",
+    "seaborn>=0.13.2",
+]`), 0o644)
+	_ = afero.WriteFile(fs, "uv.lock", []byte(`version = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "altair"
+version = "5.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "jsonschema" },
+    { name = "narwhals" },
+    { name = "packaging" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ae/09/38904138a49f29e529b61b4f39954a6837f443d828c1bc57814be7bd4813/altair-5.4.1.tar.gz", hash = "sha256:0ce8c2e66546cb327e5f2d7572ec0e7c6feece816203215613962f0ec1d76a82", size = 636465 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/52/4a86a4fa1cc2aae79137cc9510b7080c3e5aede2310d14fae5486feec7f7/altair-5.4.1-py3-none-any.whl", hash = "sha256:0fb130b8297a569d08991fb6fe763582e7569f8a04643bbd9212436e3be04aef", size = 658150 },
+]`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
+	}
+
+	assert.True(t, HasDependency(ctx, "matplotlib"))
+	assert.True(t, HasDependency(ctx, "notebook"))
+	assert.True(t, HasDependency(ctx, "altair"))
+}
+
+func TestHasExplicitDependency_Pip(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "requirements.txt", []byte("foo"), 0o644)
 
@@ -724,7 +826,7 @@ func TestHasDependencyWithFile_Pip(t *testing.T) {
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Pipenv(t *testing.T) {
+func TestHasExplicitDependency_Pipenv(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "Pipfile", []byte(`
 [[source]]
@@ -749,7 +851,7 @@ pytest = "*"`), 0o644)
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Poetry(t *testing.T) {
+func TestHasExplicitDependency_Poetry(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
 [tool.poetry]
@@ -779,7 +881,7 @@ build-backend = "poetry.core.masonry.api"`), 0o644)
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Pdm(t *testing.T) {
+func TestHasExplicitDependency_Pdm(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
 
@@ -806,7 +908,7 @@ license = {text = "MIT"}`), 0o644)
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Rye(t *testing.T) {
+func TestHasExplicitDependency_Rye(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
 
@@ -833,7 +935,53 @@ license = {text = "MIT"}`), 0o644)
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
 }
 
-func TestHasDependencyWithFile_Unknown(t *testing.T) {
+func TestHasExplicitDependency_Uv(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "pyproject.toml", []byte(`
+[project]
+name = "midexam"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.9.2",
+    "notebook>=7.2.2",
+    "pandas[output-formatting,performance,plot]>=2.2.3",
+    "polars[numpy,pandas,plot]>=1.13.1",
+    "scikit-learn>=1.5.2",
+    "seaborn>=0.13.2",
+]`), 0o644)
+	_ = afero.WriteFile(fs, "uv.lock", []byte(`version = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "altair"
+version = "5.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "jsonschema" },
+    { name = "narwhals" },
+    { name = "packaging" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ae/09/38904138a49f29e529b61b4f39954a6837f443d828c1bc57814be7bd4813/altair-5.4.1.tar.gz", hash = "sha256:0ce8c2e66546cb327e5f2d7572ec0e7c6feece816203215613962f0ec1d76a82", size = 636465 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/52/4a86a4fa1cc2aae79137cc9510b7080c3e5aede2310d14fae5486feec7f7/altair-5.4.1-py3-none-any.whl", hash = "sha256:0fb130b8297a569d08991fb6fe763582e7569f8a04643bbd9212436e3be04aef", size = 658150 },
+]`), 0o644)
+
+	ctx := &pythonPlanContext{
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
+	}
+
+	assert.True(t, HasExplicitDependency(ctx, "matplotlib"))
+	assert.True(t, HasExplicitDependency(ctx, "notebook"))
+	assert.False(t, HasExplicitDependency(ctx, "altair"))
+}
+
+func TestHasExplicitDependency_Unknown(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	ctx := &pythonPlanContext{
 		Src:            fs,
