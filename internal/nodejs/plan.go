@@ -605,6 +605,8 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 
 	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
+	framework := DetermineAppFramework(ctx)
+	serverless := getServerless(ctx)
 
 	var buildCmd string
 	switch pkgManager {
@@ -618,6 +620,18 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		fallthrough
 	default:
 		buildCmd = "yarn " + buildScript
+	}
+
+	// if this is a Nitro-based framework, we should pass NITRO_PRESET
+	// to the default build command.
+	if slices.Contains(types.NitroBasedFrameworks, framework) {
+		if serverless {
+			buildCmd = "NITRO_PRESET=node " + buildCmd
+		} else if pkgManager == types.NodePackageManagerBun {
+			buildCmd = "NITRO_PRESET=bun " + buildCmd
+		} else {
+			buildCmd = "NITRO_PRESET=node-server " + buildCmd
+		}
 	}
 
 	if buildScript == "" {
@@ -782,9 +796,9 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			}
 		case types.IsNitroBasedFramework(string(framework)):
 			if ctx.Bun {
-				startCmd = "bun .output/server/index.mjs"
+				startCmd = "HOST=0.0.0.0 bun .output/server/index.mjs"
 			} else {
-				startCmd = "node .output/server/index.mjs"
+				startCmd = "HOST=0.0.0.0 node .output/server/index.mjs"
 			}
 		default:
 			if ctx.Bun {
