@@ -148,25 +148,57 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 		return packageManager
 	}
 
-	for _, depFile := range depFiles {
-		if depFile.content == "" && depFile.lockFile == "" {
-			if utils.HasFile(src, depFile.filename) {
-				*cpm = optional.Some(depFile.packageManagerID)
-				return cpm.Unwrap()
-			}
-		} else if depFile.content != "" && depFile.lockFile == "" {
-			if utils.HasFile(src, depFile.filename) && weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) {
-				*cpm = optional.Some(depFile.packageManagerID)
-				return cpm.Unwrap()
-			}
-		} else if depFile.content != "" && depFile.lockFile != "" {
-			if utils.HasFile(src, depFile.filename) {
-				if weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
-					*cpm = optional.Some(depFile.packageManagerID)
-					return cpm.Unwrap()
-				}
-			}
-		}
+
+	/* Pipenv */
+	// If there is a Pipfile, we use Pipenv.
+	if utils.HasFile(src, "Pipfile") {
+		*cpm = optional.Some(types.PythonPackageManagerPipenv)
+		return cpm.Unwrap()
+	}
+
+	/* Poetry */
+	// If there is poetry.lock, we use Poetry.
+	if utils.HasFile(src, "poetry.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerPoetry)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.poetry], we use Poetry.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.poetry]") {
+		*cpm = optional.Some(types.PythonPackageManagerPoetry)
+		return cpm.Unwrap()
+	}
+
+	/* Pdm */
+	// If there is pdm.lock, we use Pdm.
+	if utils.HasFile(src, "pdm.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerPdm)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.pdm], we use Pdm.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.pdm]") {
+		*cpm = optional.Some(types.PythonPackageManagerPdm)
+		return cpm.Unwrap()
+	}
+
+	/* Pip */
+	// If there is a requirements.txt, we use Pip.
+	if utils.HasFile(src, "requirements.txt") {
+		*cpm = optional.Some(types.PythonPackageManagerPip)
+		return cpm.Unwrap()
+	}
+
+	/* Rye */
+	// If there is a requirements.lock, we use Rye.
+	if utils.HasFile(src, "requirements.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerRye)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.rye], we use Rye.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.rye]") {
+		*cpm = optional.Some(types.PythonPackageManagerRye)
+		return cpm.Unwrap()
+	}
+
 	}
 
 	*cpm = optional.Some(types.PythonPackageManagerUnknown)
