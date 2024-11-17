@@ -28,7 +28,8 @@ func TestPackageManager_Pip(t *testing.T) {
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -40,7 +41,8 @@ func TestPackageManager_Pipenv(t *testing.T) {
 	_ = afero.WriteFile(fs, "Pipfile", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -71,7 +73,8 @@ build-backend = "poetry.core.masonry.api"
 `)), 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -98,7 +101,8 @@ license = {text = "MIT"}
 	_ = afero.WriteFile(fs, "pdm.lock", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -125,7 +129,8 @@ license = {text = "MIT"}
 	_ = afero.WriteFile(fs, "requirements.lock", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -156,7 +161,8 @@ build-backend = "poetry.core.masonry.api"
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -184,7 +190,8 @@ license = {text = "MIT"}
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -197,7 +204,8 @@ func TestPackageManager_PipenvWithOldRequirements(t *testing.T) {
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 	pm := DeterminePackageManager(ctx)
 
@@ -210,7 +218,8 @@ func TestPackageManager_PipenvWithOldRequirements_FixedOrder(t *testing.T) {
 	_ = afero.WriteFile(fs, "requirements.txt", nil, 0o644)
 
 	ctx := &pythonPlanContext{
-		Src: fs,
+		Src:    fs,
+		Config: plan.NewProjectConfigurationFromFs(fs, ""),
 	}
 
 	for i := 0; i < 1_000; i++ {
@@ -381,6 +390,7 @@ func TestHasDependency_Unknown(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
 	}
 
@@ -395,6 +405,7 @@ func TestHasDependency_Pip(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
@@ -408,6 +419,7 @@ func TestHasDependency_Poetry(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -421,6 +433,7 @@ func TestHasDependency_PoetryDep(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -434,6 +447,7 @@ func TestHasDependency_Pipenv(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -447,6 +461,7 @@ func TestHasDependency_PipenvDep(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -461,6 +476,7 @@ func TestHasDependency_Pipenv_WithObsoleteRequirements(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -475,6 +491,7 @@ func TestHasDependency_PipenvDep_WithObsoleteRequirements(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -488,6 +505,7 @@ func TestHasDependency_Pip_HasMysqlClient(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
@@ -500,6 +518,7 @@ func TestHasDependency_Pip_NoMysqlClient(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
@@ -515,6 +534,7 @@ mysqlclient = "*"
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -556,6 +576,7 @@ func TestHasDependency_Pipenv_DependOnMysqlClient(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -600,6 +621,7 @@ mysqlalt = "*"
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -615,6 +637,7 @@ mysqlclient = "^12.34.56"
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -640,6 +663,7 @@ files = [
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -665,6 +689,7 @@ files = [
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -677,6 +702,7 @@ func TestHasDependency_CaseInsensitive(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
@@ -690,6 +716,7 @@ func TestHasDependencyWithFile_Pip(t *testing.T) {
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPip),
 	}
 
@@ -714,6 +741,7 @@ pytest = "*"`), 0o644)
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPipenv),
 	}
 
@@ -743,6 +771,7 @@ build-backend = "poetry.core.masonry.api"`), 0o644)
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPoetry),
 	}
 
@@ -769,6 +798,7 @@ license = {text = "MIT"}`), 0o644)
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerPdm),
 	}
 
@@ -795,6 +825,7 @@ license = {text = "MIT"}`), 0o644)
 
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerRye),
 	}
 
@@ -806,6 +837,7 @@ func TestHasDependencyWithFile_Unknown(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	ctx := &pythonPlanContext{
 		Src:            fs,
+		Config:         plan.NewProjectConfigurationFromFs(fs, ""),
 		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
 	}
 
