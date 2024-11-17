@@ -4,7 +4,7 @@ Meta:
   apt-deps: "build-essential pkg-config"
   build: "RUN pip install -r requirements.txt"
   framework: "streamlit"
-  install: "COPY requirements.txt* .\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
+  install: "COPY requirements.txt* ./\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
   packageManager: "pip"
   pythonVersion: "3.10"
   start: "_startup() { streamlit run streamlit_app.py --server.port=8080 --server.address=0.0.0.0; }; _startup"

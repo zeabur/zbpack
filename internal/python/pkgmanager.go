@@ -15,6 +15,8 @@ func getPmInitCmd(pm types.PythonPackageManager) string {
 	case types.PythonPackageManagerPdm:
 		return "pip install pdm"
 	case types.PythonPackageManagerRye: // managed with pip
+	case types.PythonPackageManagerUv:
+		return "pip install uv"
 	}
 
 	return ""
@@ -33,6 +35,8 @@ func getPmAddCmd(pm types.PythonPackageManager, deps ...string) string {
 	case types.PythonPackageManagerPdm:
 		return "pdm add " + strings.Join(deps, " ")
 	case types.PythonPackageManagerRye: // managed with pip
+	case types.PythonPackageManagerUv:
+		return "uv add " + strings.Join(deps, " ")
 	}
 
 	return "pip install " + strings.Join(deps, " ")
@@ -50,6 +54,8 @@ func getPmInstallCmd(pm types.PythonPackageManager) string {
 		return "pdm install"
 	case types.PythonPackageManagerRye:
 		return "sed '/-e/d' requirements.lock | pip install -r /dev/stdin"
+	case types.PythonPackageManagerUv:
+		return "uv sync"
 	}
 
 	return ""
@@ -77,6 +83,8 @@ func getPmStartCmdPrefix(pm types.PythonPackageManager) string {
 		return "pdm run"
 	case types.PythonPackageManagerRye:
 		return "" // unneeded
+	case types.PythonPackageManagerUv:
+		return "uv run"
 	}
 
 	return ""
@@ -88,7 +96,7 @@ func getPmDeclarationFile(pm types.PythonPackageManager) string {
 		return "requirements.txt"
 	case types.PythonPackageManagerPipenv:
 		return "Pipfile"
-	case types.PythonPackageManagerPoetry, types.PythonPackageManagerPdm, types.PythonPackageManagerRye:
+	case types.PythonPackageManagerPoetry, types.PythonPackageManagerPdm, types.PythonPackageManagerRye, types.PythonPackageManagerUv:
 		return "pyproject.toml"
 	}
 
@@ -104,7 +112,9 @@ func getPmLockFile(pm types.PythonPackageManager) []string {
 	case types.PythonPackageManagerPdm:
 		return []string{"pdm.lock"}
 	case types.PythonPackageManagerRye:
-		return []string{"requirements.lock"}
+		return []string{"requirements.lock", ".python-version"}
+	case types.PythonPackageManagerUv:
+		return []string{"uv.lock", ".python-version"}
 	}
 
 	return nil

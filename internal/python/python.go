@@ -1,6 +1,8 @@
 package python
 
 import (
+	"strconv"
+
 	"github.com/zeabur/zbpack/pkg/packer"
 	"github.com/zeabur/zbpack/pkg/types"
 )
@@ -90,7 +92,7 @@ server { \
 COPY . .
 ` + buildCmd + `
 EXPOSE 8080
-CMD ` + startCmd
+CMD ["/bin/bash", "-c", ` + strconv.Quote(startCmd) + `]`
 
 	return dockerfile, nil
 }

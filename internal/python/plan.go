@@ -45,6 +45,11 @@ const (
 	// ConfigPythonVersion is the key for specifying the Python version explicitly
 	// in the project configuration.
 	ConfigPythonVersion = "python.version"
+
+	// ConfigPythonPackageManager is the key for specifying the Python package manager
+	// explicitly in the project configuration.
+	// Note that it should be one of the values in `types.PythonPackageManager`.
+	ConfigPythonPackageManager = "python.package_manager"
 )
 
 // DetermineFramework determines the framework of the Python project.
@@ -130,43 +135,82 @@ func DeterminePackageManager(ctx *pythonPlanContext) types.PythonPackageManager 
 	src := ctx.Src
 	cpm := &ctx.PackageManager
 
-	// Pipfile > pyproject.toml > requirements.txt
-	depFiles := []struct {
-		packageManagerID types.PythonPackageManager
-		filename         string
-		content          string
-		lockFile         string
-	}{
-		{types.PythonPackageManagerPipenv, "Pipfile", "", ""},
-		{types.PythonPackageManagerPoetry, "pyproject.toml", "[tool.poetry]", "poetry.lock"},
-		{types.PythonPackageManagerPdm, "pyproject.toml", "[tool.pdm]", "pdm.lock"},
-		{types.PythonPackageManagerPip, "requirements.txt", "", ""},
-		{types.PythonPackageManagerRye, "pyproject.toml", "[tool.rye]", "requirements.lock"},
-	}
-
 	if packageManager, err := cpm.Take(); err == nil {
 		return packageManager
 	}
 
-	for _, depFile := range depFiles {
-		if depFile.content == "" && depFile.lockFile == "" {
-			if utils.HasFile(src, depFile.filename) {
-				*cpm = optional.Some(depFile.packageManagerID)
-				return cpm.Unwrap()
-			}
-		} else if depFile.content != "" && depFile.lockFile == "" {
-			if utils.HasFile(src, depFile.filename) && weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) {
-				*cpm = optional.Some(depFile.packageManagerID)
-				return cpm.Unwrap()
-			}
-		} else if depFile.content != "" && depFile.lockFile != "" {
-			if utils.HasFile(src, depFile.filename) {
-				if weakHasStringsInFiles(src, []string{depFile.filename}, depFile.content) || utils.HasFile(src, depFile.lockFile) {
-					*cpm = optional.Some(depFile.packageManagerID)
-					return cpm.Unwrap()
-				}
-			}
+	/* User can specify the package manager explicitly */
+	if packageManager, err := plan.Cast(ctx.Config.Get(ConfigPythonPackageManager), cast.ToStringE).Take(); err == nil {
+		switch packageManager {
+		case string(types.PythonPackageManagerPip),
+			string(types.PythonPackageManagerPoetry),
+			string(types.PythonPackageManagerPipenv),
+			string(types.PythonPackageManagerPdm),
+			string(types.PythonPackageManagerRye),
+			string(types.PythonPackageManagerUv):
+			*cpm = optional.Some(types.PythonPackageManager(packageManager))
+			return cpm.Unwrap()
+		default:
+			*cpm = optional.Some(types.PythonPackageManagerUnknown)
+			return cpm.Unwrap()
 		}
+	}
+
+	/* Pipenv */
+	// If there is a Pipfile, we use Pipenv.
+	if utils.HasFile(src, "Pipfile") {
+		*cpm = optional.Some(types.PythonPackageManagerPipenv)
+		return cpm.Unwrap()
+	}
+
+	/* Poetry */
+	// If there is poetry.lock, we use Poetry.
+	if utils.HasFile(src, "poetry.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerPoetry)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.poetry], we use Poetry.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.poetry]") {
+		*cpm = optional.Some(types.PythonPackageManagerPoetry)
+		return cpm.Unwrap()
+	}
+
+	/* Pdm */
+	// If there is pdm.lock, we use Pdm.
+	if utils.HasFile(src, "pdm.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerPdm)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.pdm], we use Pdm.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.pdm]") {
+		*cpm = optional.Some(types.PythonPackageManagerPdm)
+		return cpm.Unwrap()
+	}
+
+	/* Pip */
+	// If there is a requirements.txt, we use Pip.
+	if utils.HasFile(src, "requirements.txt") {
+		*cpm = optional.Some(types.PythonPackageManagerPip)
+		return cpm.Unwrap()
+	}
+
+	/* Rye */
+	// If there is a requirements.lock, we use Rye.
+	if utils.HasFile(src, "requirements.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerRye)
+		return cpm.Unwrap()
+	}
+	// If there is a pyproject.toml with [tool.rye], we use Rye.
+	if content, err := utils.ReadFileToUTF8(src, "pyproject.toml"); err == nil && strings.Contains(string(content), "[tool.rye]") {
+		*cpm = optional.Some(types.PythonPackageManagerRye)
+		return cpm.Unwrap()
+	}
+
+	/* uv */
+	// If there is a uv.lock, we use uv.
+	if utils.HasFile(src, "uv.lock") {
+		*cpm = optional.Some(types.PythonPackageManagerUv)
+		return cpm.Unwrap()
 	}
 
 	*cpm = optional.Some(types.PythonPackageManagerUnknown)
@@ -471,18 +515,16 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 		filesToCopy = append(filesToCopy, decl+"*")
 	}
 	if lock := getPmLockFile(pm); len(lock) > 0 {
-		lockGlob := lo.Map(lock, func(s string, _ int) string {
-			return s + "*"
-		})
-
-		filesToCopy = append(filesToCopy, lockGlob...)
+		for _, f := range lock {
+			filesToCopy = append(filesToCopy, f+"*")
+		}
 	}
 
 	if cmd := getPmInitCmd(pm); cmd != "" {
 		commands = append(commands, "RUN "+cmd)
 	}
 	if len(filesToCopy) > 0 {
-		commands = append(commands, fmt.Sprintf("COPY %s .", strings.Join(filesToCopy, " ")))
+		commands = append(commands, fmt.Sprintf("COPY %s ./", strings.Join(filesToCopy, " ")))
 	}
 	if cmd := getPmAddCmd(pm, depToInstall...); cmd != "" {
 		commands = append(commands, "RUN "+cmd)
