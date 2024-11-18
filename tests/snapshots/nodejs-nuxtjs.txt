@@ -2,7 +2,7 @@ PlanType: nodejs
 
 Meta:
   appDir: ""
-  buildCmd: "pnpm run build"
+  buildCmd: "NITRO_PRESET=node pnpm run build"
   bun: "false"
   bunVersion: "latest"
   framework: "nuxt.js"
