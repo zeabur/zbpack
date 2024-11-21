@@ -135,8 +135,8 @@ func TestGetInstallCmd_DefaultInstallCmd(t *testing.T) {
 	// RUN should be provided in planMeta
 	assert.Contains(t, installlCmd, "RUN ")
 
-	// for default installation command, cache are allowed.
-	assert.Contains(t, installlCmd, "COPY yarn.lock* .")
+	// for default installation command, cache is disabled.
+	assert.NotContains(t, installlCmd, "COPY yarn.lock* .")
 
 	// the installation command should be contained
 	assert.Contains(t, installlCmd, "yarn install")
@@ -360,7 +360,7 @@ func TestInstallCommand(t *testing.T) {
 		assert.Contains(t, installCmd, "WORKDIR /src/packages/service1")
 	})
 
-	t.Run("normal", func(t *testing.T) {
+	t.Run("normal (cache is disabled)", func(t *testing.T) {
 		t.Parallel()
 
 		fs := afero.NewMemMapFs()
@@ -373,7 +373,7 @@ func TestInstallCommand(t *testing.T) {
 		}
 
 		installCmd := GetInstallCmd(ctx)
-		assert.NotContains(t, installCmd, "COPY . .")
+		assert.Contains(t, installCmd, "COPY . .")
 		assert.NotContains(t, installCmd, "WORKDIR")
 	})
 
