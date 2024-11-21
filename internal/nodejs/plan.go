@@ -509,7 +509,17 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(true)
+
+	// Disable cache_dependencies by default now due to some known cases:
+	//
+	//   * Monorepos: the critical dependencies are usually in the subdirectories.
+	//   * Some postinstall scripts may require some files (other than package.json and
+	//     lockfiles in the root)
+	//   * Customized installation command
+	//   * app root != project root (which means, there is more than 1 apps in this project)
+	//
+	// Considering we do not cache the Docker layer, let's disable it by default.
+	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(false)
 
 	// disable cache_dependencies for monorepos
 	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
