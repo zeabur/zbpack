@@ -6,7 +6,7 @@ Meta:
   bun: "false"
   bunVersion: "latest"
   framework: "angular"
-  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY package-lock.json* .\nRUN npm install"
+  installCmd: "COPY . .\nRUN npm install"
   nodeVersion: "20"
   outputDir: "dist/angular-template/browser"
   packageManager: "npm"

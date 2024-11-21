@@ -6,7 +6,7 @@ Meta:
   bun: "true"
   bunVersion: "latest"
   framework: "bagel"
-  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY bun.lockb* .\nRUN bun install"
+  installCmd: "COPY . .\nRUN bun install"
   nodeVersion: "20"
   packageManager: "bun"
   startCmd: "bun run start"

@@ -509,7 +509,17 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	}
 
 	pkgManager := DeterminePackageManager(ctx)
-	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(true)
+
+	// Disable cache_dependencies by default now due to some known cases:
+	//
+	//   * Monorepos: the critical dependencies are usually in the subdirectories.
+	//   * Some postinstall scripts may require some files (other than package.json and
+	//     lockfiles in the root)
+	//   * Customized installation command
+	//   * app root != project root (which means, there is more than 1 apps in this project)
+	//
+	// Considering we do not cache the Docker layer, let's disable it by default.
+	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(false)
 
 	// disable cache_dependencies for monorepos
 	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
@@ -574,14 +584,14 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	needPlaywright := DetermineNeedPlaywright(ctx)
 	if needPlaywright {
 		cmds = append([]string{
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2",
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && rm -rf /var/lib/apt/lists/*",
 		}, cmds...)
 	}
 
 	needPuppeteer := DetermineNeedPuppeteer(ctx)
 	if needPuppeteer {
 		cmds = append([]string{
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1",
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && rm -rf /var/lib/apt/lists/*",
 			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
 		}, cmds...)
 	}

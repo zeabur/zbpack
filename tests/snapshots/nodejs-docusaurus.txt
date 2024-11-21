@@ -6,7 +6,7 @@ Meta:
   bun: "false"
   bunVersion: "latest"
   framework: "docusaurus"
-  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY pnpm-lock.yaml* .\nRUN pnpm install"
+  installCmd: "COPY . .\nRUN pnpm install"
   nodeVersion: "16"
   outputDir: "build"
   packageManager: "pnpm"

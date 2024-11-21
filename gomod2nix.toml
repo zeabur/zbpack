@@ -35,8 +35,8 @@ schema = 3
     version = "v0.5.7"
     hash = "sha256-DCfko42wd7W9NadYPPX9c9H2HNH9DQHZTrfI9CTZqXQ="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.13.7"
-    hash = "sha256-d9W2+Ywo6WHV4C6JvkfU/DfO0KPxu7lYlR4PLHv94c8="
+    version = "v1.14.3"
+    hash = "sha256-rdQctQ0723s4WRfhW960dJz545lG4oDMf2K/foiNPZA="
   [mod."github.com/gogo/protobuf"]
     version = "v1.3.2"
     hash = "sha256-pogILFrrk+cAtb0ulqn9+gRZJ7sGnnLLdtqITvxvG6c="

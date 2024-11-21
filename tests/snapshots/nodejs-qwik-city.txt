@@ -6,7 +6,7 @@ Meta:
   bun: "false"
   bunVersion: "latest"
   framework: "qwik"
-  installCmd: "COPY package.json* tsconfig.json* .npmrc* .\nCOPY package-lock.json* .\nRUN npm install"
+  installCmd: "COPY . .\nRUN npm install"
   nodeVersion: "15"
   packageManager: "npm"
   startCmd: "npm run deploy"
