@@ -6,7 +6,7 @@ toolchain go1.22.7
 
 require (
 	github.com/spf13/afero v1.11.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
