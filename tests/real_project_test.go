@@ -270,6 +270,11 @@ var projects = []struct {
 		repo:  "vite-vanilla-template",
 	},
 	{
+		name:  "nodejs-sveltekit-v2",
+		owner: "zeabur",
+		repo:  "sveltekit-v2-template",
+	},
+	{
 		name: "nodejs-a-lot-of-dependencies",
 		dir:  "nodejs-a-lot-of-dependencies",
 	},
