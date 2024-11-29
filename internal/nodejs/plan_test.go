@@ -562,6 +562,49 @@ func TestGetStartCommand_Entry(t *testing.T) {
 		assert.Equal(t, "", startCmd)
 	})
 
+	t.Run("containerized svelte", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"devDependencies": {
+				"svelte": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:        fs,
+			Config:     plan.NewProjectConfigurationFromFs(fs, ""),
+			Framework:  optional.Some(types.NodeProjectFrameworkSvelte),
+			Serverless: optional.Some(false),
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "node build/index.js", startCmd)
+	})
+
+	t.Run("containerized svelte with bun", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"devDependencies": {
+				"svelte": "*"
+			}
+		}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:        fs,
+			Config:     plan.NewProjectConfigurationFromFs(fs, ""),
+			Framework:  optional.Some(types.NodeProjectFrameworkSvelte),
+			Serverless: optional.Some(false),
+			Bun:        true,
+		}
+
+		startCmd := GetStartCmd(ctx)
+		assert.Equal(t, "bun build/index.js", startCmd)
+	})
+
 	for _, framework := range types.NitroBasedFrameworks {
 		t.Run("nitro-"+string(framework), func(t *testing.T) {
 			t.Run("nodejs", func(t *testing.T) {
