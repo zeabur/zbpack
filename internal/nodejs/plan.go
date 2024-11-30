@@ -804,6 +804,12 @@ func GetStartCmd(ctx *nodePlanContext) string {
 			} else {
 				startCmd = "node " + entry
 			}
+		case framework == types.NodeProjectFrameworkSvelte:
+			if ctx.Bun {
+				startCmd = "bun build/index.js"
+			} else {
+				startCmd = "node build/index.js"
+			}
 		case types.IsNitroBasedFramework(string(framework)):
 			if ctx.Bun {
 				startCmd = "HOST=0.0.0.0 bun .output/server/index.mjs"
