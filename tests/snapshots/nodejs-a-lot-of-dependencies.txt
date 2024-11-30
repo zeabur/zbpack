@@ -4,7 +4,6 @@ Meta:
   appDir: ""
   buildCmd: ""
   bun: "false"
-  bunVersion: "latest"
   framework: "next.js"
   installCmd: "COPY . .\nRUN yarn install"
   nodeVersion: "20"

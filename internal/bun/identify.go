@@ -22,22 +22,40 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	hasPackageJSON := utils.HasFile(fs, "package.json")
-	hasBunLockfile := utils.HasFile(fs, "bun.lockb")
-	hasBunTypes := false
-
-	packageJSON, err := utils.ReadFileToUTF8(fs, "package.json")
-	if err == nil {
-		hasBunTypes = bytes.Contains(packageJSON, []byte(`"bun-types"`))
+	strategies := []func() bool{
+		// has bun lockfile
+		func() bool {
+			return utils.HasFile(fs, "bun.lockb")
+		},
+		// has .bun-version
+		func() bool {
+			return utils.HasFile(fs, ".bun-version")
+		},
+		// has bun types
+		func() bool {
+			packageJSON, err := utils.ReadFileToUTF8(fs, "package.json")
+			if err != nil {
+				return false
+			}
+			return bytes.Contains(packageJSON, []byte(`"bun-types"`))
+		},
+		// has bun@ (engine)
+		func() bool {
+			packageJSON, err := utils.ReadFileToUTF8(fs, "package.json")
+			if err != nil {
+				return false
+			}
+			return bytes.Contains(packageJSON, []byte(`bun@`))
+		},
 	}
 
-	// Some developer use bun as package manager for their Next.js project.
-	// In this case, we should treat it as a Node.js project.
-	if bytes.Contains(packageJSON, []byte(`"next"`)) {
-		return false
+	for _, strategy := range strategies {
+		if strategy() {
+			return true
+		}
 	}
 
-	return hasPackageJSON && (hasBunLockfile || hasBunTypes)
+	return false
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {

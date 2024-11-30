@@ -4,7 +4,6 @@ Meta:
   appDir: ""
   buildCmd: "NITRO_PRESET=node pnpm run build"
   bun: "false"
-  bunVersion: "latest"
   framework: "nuxt.js"
   installCmd: "COPY . .\nRUN pnpm install"
   nodeVersion: "20"

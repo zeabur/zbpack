@@ -4,7 +4,6 @@ Meta:
   appDir: ""
   buildCmd: "pnpm run build"
   bun: "false"
-  bunVersion: "latest"
   framework: "remix"
   installCmd: "COPY . .\nRUN pnpm install"
   nodeVersion: "18"

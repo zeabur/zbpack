@@ -1,9 +1,9 @@
-PlanType: nodejs
+PlanType: bun
 
 Meta:
   appDir: ""
   buildCmd: "bun run build"
-  bun: "false"
+  bun: "true"
   bunVersion: "latest"
   framework: "next.js"
   installCmd: "COPY . .\nRUN bun install"
