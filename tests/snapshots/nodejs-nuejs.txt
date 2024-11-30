@@ -4,7 +4,6 @@ Meta:
   appDir: ""
   buildCmd: ""
   bun: "false"
-  bunVersion: "latest"
   framework: "nuejs"
   installCmd: "COPY . .\nRUN pnpm install"
   nodeVersion: "20"
