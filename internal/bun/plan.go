@@ -6,8 +6,10 @@ import (
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/nodejs"
 	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -15,6 +17,7 @@ import (
 type PlanContext struct {
 	PackageJSON nodejs.PackageJSON
 	Src         afero.Fs
+	Config      plan.ImmutableProjectConfiguration
 
 	Framework optional.Option[types.BunFramework]
 }
@@ -62,6 +65,7 @@ func CreateBunContext(opt GetMetaOptions) *PlanContext {
 	return &PlanContext{
 		PackageJSON: packageJSON,
 		Src:         opt.Src,
+		Config:      opt.Config,
 	}
 }
 
@@ -72,6 +76,17 @@ func DetermineFramework(ctx *PlanContext) types.BunFramework {
 
 	if framework, err := fw.Take(); err == nil {
 		return framework
+	}
+
+	// Return None if Node.js framework is specified.
+	if ctx.Config.Get("node.framework").IsSome() {
+		*fw = optional.Some(types.BunFrameworkNone)
+		return fw.Unwrap()
+	}
+
+	if framework, err := plan.Cast(ctx.Config.Get("bun.framework"), cast.ToStringE).Take(); err == nil {
+		*fw = optional.Some(types.BunFramework(framework))
+		return fw.Unwrap()
 	}
 
 	if _, isBaojs := packageJSON.Dependencies["baojs"]; isBaojs {
