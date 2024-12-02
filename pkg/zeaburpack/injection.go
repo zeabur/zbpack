@@ -3,12 +3,17 @@ package zeaburpack
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/pan93412/envexpander/v3"
-	"github.com/zeabur/zbpack/internal/utils"
 	"github.com/zeabur/zbpack/pkg/types"
+)
+
+const (
+	// DockerLabelLanguage is the label key for the language used in the Dockerfile.
+	DockerLabelLanguage = "com.zeabur.zbpack.language"
+	// DockerLabelFramework is the label key for the framework used in the Dockerfile.
+	DockerLabelFramework = "com.zeabur.zbpack.framework"
 )
 
 // InjectDockerfile injects the environment variables and
@@ -21,30 +26,7 @@ func InjectDockerfile(dockerfile string, registry *string, variables map[string]
 	lines := strings.Split(dockerfile, "\n")
 	stageLines := make([]int, 0)
 
-	// construct the labels to indicate the language and framework used
-	labels := []struct {
-		Key   string
-		Value string
-	}{
-		{
-			Key:   "com.zeabur.zbpack.language",
-			Value: string(planType),
-		},
-		{
-			Key:   "com.zeabur.zbpack.framework",
-			Value: planMeta["framework"],
-		},
-	}
-	hasLanguageLabels := false
-
-	for _, line := range lines {
-		for _, label := range labels {
-			if utils.WeakContains(line, label.Key) {
-				hasLanguageLabels = true
-				break
-			}
-		}
-	}
+	labels := ExtractLabels(dockerfile)
 
 	for i, line := range lines {
 		fromStatement, isFromStatement := ParseFrom(line)
@@ -79,22 +61,37 @@ func InjectDockerfile(dockerfile string, registry *string, variables map[string]
 	dockerfileEnv := ""
 
 	for _, key := range sortedResolvedVarsKey {
-		value := strconv.Quote(resolvedVars[key])
-		dockerfileEnv += fmt.Sprintf(`ENV %s=%s`, key, value) + "\n"
+		dockerfileEnv += fmt.Sprintf(`ENV %s=%q`, key, resolvedVars[key]) + "\n"
 	}
 
 	for _, stageLine := range stageLines {
 		lines[stageLine] = lines[stageLine] + "\n" + dockerfileEnv + "\n"
-		if !hasLanguageLabels {
-			for _, label := range labels {
-				if label.Value == "" {
-					continue
-				}
 
-				lines[stageLine] += fmt.Sprintf(`LABEL %s=%q`, label.Key, label.Value) + "\n"
-			}
+		// If this Dockerfile does not define the language, we can define it.
+		if labels[DockerLabelLanguage] == "" {
+			lines[stageLine] += fmt.Sprintf(
+				`LABEL %s=%q %s=%q`,
+				DockerLabelLanguage, string(planType),
+				DockerLabelFramework, planMeta["framework"],
+			) + "\n"
 		}
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+// UpdatePlanMetaWithLabel updates the plan type and plan meta
+// with the language and framework labels.
+func UpdatePlanMetaWithLabel(t types.PlanType, m types.PlanMeta, labels map[string]string) (types.PlanType, types.PlanMeta) {
+	if language, ok := labels[DockerLabelLanguage]; ok {
+		m["plannerLanguage"] = string(t) // save the original language
+		t = types.PlanType(language)
+
+		if framework, ok := labels[DockerLabelFramework]; ok {
+			m["plannerFramework"] = m["framework"] // save the original framework
+			m["framework"] = framework
+		}
+	}
+
+	return t, m
 }

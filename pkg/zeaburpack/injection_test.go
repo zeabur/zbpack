@@ -33,8 +33,7 @@ RUN echo world`
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo hello
 
@@ -42,8 +41,7 @@ FROM test.io/library/alpine:3.12 AS runner
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo world`
 
@@ -72,8 +70,7 @@ RUN echo world`
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo hello
 
@@ -81,8 +78,7 @@ FROM alpine:3.12 AS runner
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo world`
 
@@ -112,8 +108,7 @@ RUN echo world`
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo hello
 
@@ -121,8 +116,7 @@ FROM builder AS runner
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo world`
 
@@ -151,8 +145,7 @@ RUN echo world`
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo hello
 
@@ -160,8 +153,7 @@ FROM builder AS runner
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo world`
 
@@ -190,8 +182,7 @@ RUN echo world`
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo hello
 
@@ -199,8 +190,7 @@ FROM builder AS runner
 ENV KEY="VALUE"
 ENV KEY2="\"Value\\\"\""
 
-LABEL com.zeabur.zbpack.language="swift"
-LABEL com.zeabur.zbpack.framework="vapor"
+LABEL com.zeabur.zbpack.language="swift" com.zeabur.zbpack.framework="vapor"
 
 RUN echo world`
 
@@ -222,7 +212,7 @@ RUN echo hello`
 		expectedDockerfile := `FROM alpine:3.12 AS builder
 ENV KEY="VALUE"
 
-LABEL com.zeabur.zbpack.language="docker"
+LABEL com.zeabur.zbpack.language="docker" com.zeabur.zbpack.framework=""
 
 RUN echo hello`
 
