@@ -146,3 +146,71 @@ func TestParseFrom_String_AllowReplacing(t *testing.T) {
 	fs.Stage = mo.None[string]()
 	assert.Equal(t, "FROM alpine:3.12", fs.String())
 }
+
+func TestExtractLabel(t *testing.T) {
+	t.Parallel()
+
+	testmap := map[string]map[string]string{
+		`LABEL "com.example.vendor"="ACME Incorporated"`: {
+			"com.example.vendor": "ACME Incorporated",
+		},
+		`LABEL com.example.vendor="ACME Incorporated"`: {
+			"com.example.vendor": "ACME Incorporated",
+		},
+		`LABEL com.example.vendor="ACME Incorporated" com.example.license="GPLv2"`: {
+			"com.example.vendor":  "ACME Incorporated",
+			"com.example.license": "GPLv2",
+		},
+		`LABEL com.example.vendor="ACME Incorporated" com.example.license="GPLv2" com.example.version="1.0"`: {
+			"com.example.vendor":  "ACME Incorporated",
+			"com.example.license": "GPLv2",
+			"com.example.version": "1.0",
+		},
+		`LABEL com.example.vendor="ACME Incorporated" com.example.license="GPLv2" com.example.version="1.0" com.example.release-date="2015-02-12"`: {
+			"com.example.vendor":       "ACME Incorporated",
+			"com.example.license":      "GPLv2",
+			"com.example.version":      "1.0",
+			"com.example.release-date": "2015-02-12",
+		},
+	}
+
+	for k, v := range testmap {
+		k := k
+		v := v
+		t.Run(k, func(t *testing.T) {
+			t.Parallel()
+
+			parsed := zeaburpack.ExtractLabels(k)
+			assert.Equal(t, v, parsed)
+		})
+	}
+}
+
+func TestExtractLabelWholeFiles(t *testing.T) {
+	input := `FROM alpine:3.12 AS builder
+ENV KEY="VALUE"
+ENV KEY2="\"Value\\\"\""
+
+LABEL com.zeabur.zbpack.language="swift"
+LABEL com.zeabur.zbpack.framework="vapor"
+
+RUN echo hello
+
+FROM builder AS runner
+ENV KEY="VALUE"
+ENV KEY2="\"Value\\\"\""
+
+LABEL com.zeabur.zbpack.language="docker"
+LABEL com.zeabur.zbpack.framework="test"
+
+RUN echo world`
+
+	expected := map[string]string{
+		"com.zeabur.zbpack.language":  "docker",
+		"com.zeabur.zbpack.framework": "test",
+	}
+
+	parsed := zeaburpack.ExtractLabels(input)
+
+	assert.Equal(t, expected, parsed)
+}
