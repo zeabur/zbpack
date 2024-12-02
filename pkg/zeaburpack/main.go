@@ -137,7 +137,7 @@ func Build(opt *BuildOptions) error {
 	_ = os.RemoveAll(path.Join(*opt.Path, ".zeabur"))
 
 	// Inject dockerfile to contain the variables, registry, etc.
-	newDockerfile := InjectDockerfile(dockerfile, opt.ProxyRegistry, *opt.UserVars)
+	newDockerfile := InjectDockerfile(dockerfile, opt.ProxyRegistry, *opt.UserVars, t, m)
 
 	err = buildImage(
 		&buildImageOptions{
