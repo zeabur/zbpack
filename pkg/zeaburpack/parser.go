@@ -1,6 +1,7 @@
 package zeaburpack
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
@@ -39,6 +40,43 @@ func ParseFrom(line string) (FromStatement, bool) {
 	}
 
 	return FromStatement{}, false
+}
+
+// ExtractLabels extracts the labels from Dockerfile.
+//
+// Note that it picks the final label if there are multiple labels with the same key.
+func ExtractLabels(dockerfile string) map[string]string {
+	labels := make(map[string]string)
+
+	parsed, err := parser.Parse(strings.NewReader(dockerfile))
+	if err != nil {
+		return labels
+	}
+
+	for _, child := range parsed.AST.Children {
+		if strings.ToUpper(child.Value) == "LABEL" {
+			currentLabelNode := child
+
+			for currentLabelNode.Next != nil && currentLabelNode.Next.Next != nil {
+				key, err := strconv.Unquote(currentLabelNode.Next.Value)
+				if err != nil {
+					key = currentLabelNode.Next.Value
+				}
+				value, err := strconv.Unquote(currentLabelNode.Next.Next.Value)
+				if err != nil {
+					value = currentLabelNode.Next.Next.Value
+				}
+
+				labels[key] = value
+
+				if currentLabelNode.Next.Next.Next != nil {
+					currentLabelNode = currentLabelNode.Next.Next.Next
+				}
+			}
+		}
+	}
+
+	return labels
 }
 
 func (fs FromStatement) String() string {
