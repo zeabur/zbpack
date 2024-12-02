@@ -136,8 +136,12 @@ func Build(opt *BuildOptions) error {
 	// Remove .zeabur directory if exists
 	_ = os.RemoveAll(path.Join(*opt.Path, ".zeabur"))
 
+	labels := ExtractLabels(dockerfile)
+
 	// Inject dockerfile to contain the variables, registry, etc.
 	newDockerfile := InjectDockerfile(dockerfile, opt.ProxyRegistry, *opt.UserVars, t, m)
+
+	t, m = UpdatePlanMetaWithLabel(t, m, labels)
 
 	err = buildImage(
 		&buildImageOptions{

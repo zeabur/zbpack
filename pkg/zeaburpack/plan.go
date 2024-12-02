@@ -81,6 +81,13 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 	)
 
 	t, m := planner.Plan()
+
+	// for Docker image, we can extract their new language and framework from the labels.
+	if t == types.PlanTypeDocker {
+		labels := ExtractLabels(m["content"])
+		t, m = UpdatePlanMetaWithLabel(t, m, labels)
+	}
+
 	return t, m
 }
 
@@ -97,7 +104,12 @@ func PlanAndOutputDockerfile(opt PlanOptions) error {
 		log.Printf("Failed to generate Dockerfile: %s\n", err.Error())
 		return err
 	}
-	println(dockerfile)
+
+	// Inject dockerfile to contain the variables, registry, etc.
+	newDockerfile := InjectDockerfile(dockerfile, nil, nil, t, m)
+
+	println(newDockerfile)
+
 	// Remove .zeabur directory if exists
 	if err := os.RemoveAll(path.Join(*opt.Path, ".zeabur")); err != nil {
 		log.Printf("Failed to remove .zeabur directory: %s\n", err)
