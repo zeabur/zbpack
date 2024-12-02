@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/containerd/typeurl/v2 v2.2.2 // indirect
+	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.0 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/google/go-github/v63 v63.0.0
 	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/moby/buildkit v0.17.2
+	github.com/moby/buildkit v0.18.0
 	github.com/moznion/go-optional v0.12.0
 	github.com/otiai10/copy v1.14.0
 	github.com/pan93412/envexpander/v3 v3.0.0
