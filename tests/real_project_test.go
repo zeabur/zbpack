@@ -200,6 +200,11 @@ var projects = []struct {
 		repo:  "umi-template",
 	},
 	{
+		name:  "nodejs-umi-api-route",
+		owner: "dengfuping",
+		repo:  "umi-api-route-template",
+	},
+	{
 		name:  "nodejs-remix",
 		owner: "zeabur",
 		repo:  "remix-template",

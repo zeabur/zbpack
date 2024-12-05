@@ -1,0 +1,14 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "pnpm run build"
+  bun: "false"
+  bunVersion: "latest"
+  framework: "umi"
+  installCmd: "COPY . .\nRUN pnpm install"
+  nodeVersion: "20"
+  outputDir: "dist"
+  packageManager: "pnpm"
+  serverless: "true"
+  startCmd: ""

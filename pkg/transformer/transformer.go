@@ -67,6 +67,7 @@ func Transform(ctx *Context) error {
 		TransformNodejsWaku,
 		TransformNodejsNext,
 		TransformNodejsRemix,
+		TransformNodejsUmi,
 		TransformNodejsNuxt,
 		TransformGleam,
 		TransformStatic,

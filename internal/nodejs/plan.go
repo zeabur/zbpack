@@ -970,6 +970,7 @@ func getServerless(ctx *nodePlanContext) bool {
 		types.NodeProjectFrameworkWaku:    true,
 		types.NodeProjectFrameworkAngular: true,
 		types.NodeProjectFrameworkRemix:   true,
+		types.NodeProjectFrameworkUmi:     true,
 	}
 	for _, framework := range types.NitroBasedFrameworks {
 		defaultServerless[framework] = true
