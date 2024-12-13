@@ -1,7 +1,7 @@
 PlanType: python
 
 Meta:
-  apt-deps: "build-essential pkg-config"
+  apt-deps: "build-essential pkg-config clang"
   build: "RUN pip install -r requirements.txt"
   framework: "flask"
   install: "COPY requirements.txt* ./\nRUN pip install gunicorn\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
