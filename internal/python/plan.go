@@ -551,7 +551,7 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		return []string{"caddy"}
 	}
 
-	deps := []string{"build-essential", "pkg-config"}
+	deps := []string{"build-essential", "pkg-config", "clang"}
 
 	// If we need to host static files, we need nginx.
 	staticPath := DetermineStaticInfo(ctx)
