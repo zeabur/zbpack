@@ -10,6 +10,76 @@ import (
 	"github.com/zeabur/zbpack/pkg/plan"
 )
 
+func TestGetEntry(t *testing.T) {
+	t.Parallel()
+
+	t.Run("without entry", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "test")
+
+		ctx := &goPlanContext{
+			Src:    fs,
+			Config: config,
+		}
+
+		entry := getEntry(ctx)
+		assert.Equal(t, "", entry)
+	})
+
+	t.Run("with root main.go", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "test")
+		_ = afero.WriteFile(fs, "main.go", nil, 0o644)
+
+		ctx := &goPlanContext{
+			Src:           fs,
+			Config:        config,
+			SubmoduleName: "server",
+		}
+
+		entry := getEntry(ctx)
+		assert.Equal(t, "", entry)
+	})
+
+	t.Run("with submodule", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "test")
+
+		_ = afero.WriteFile(fs, "cmd/server/main.go", nil, 0o644)
+
+		ctx := &goPlanContext{
+			Src:           fs,
+			Config:        config,
+			SubmoduleName: "server",
+		}
+
+		entry := getEntry(ctx)
+		assert.Equal(t, "cmd/server/main.go", entry)
+	})
+
+	t.Run("with entry", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "test")
+		config.Set(ConfigGoEntry, "cmd/server/main.go")
+
+		ctx := &goPlanContext{
+			Src:    fs,
+			Config: config,
+		}
+
+		entry := getEntry(ctx)
+		assert.Equal(t, "cmd/server/main.go", entry)
+	})
+}
+
 func TestGetBuildCommand(t *testing.T) {
 	t.Parallel()
 
