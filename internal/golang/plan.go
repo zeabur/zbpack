@@ -14,6 +14,15 @@ import (
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
+// ConfigGoEntry specifies the entry point of the a Go application.
+//
+// You should specify a full path to the entry point file, for example,
+// "cmd/server/main.go" or "app.go".
+//
+// If this key is not set, we discover it from "/main.go" and
+// "/cmd/<submodule>/main.go"
+const ConfigGoEntry = "go.entry"
+
 type goPlanContext struct {
 	Src    afero.Fs
 	Config plan.ImmutableProjectConfiguration
@@ -85,6 +94,11 @@ func getEntry(ctx *goPlanContext) string {
 	ent := &ctx.Entry
 	if entry, err := ent.Take(); err == nil {
 		return entry
+	}
+
+	if entry, err := plan.Cast(ctx.Config.Get(ConfigGoEntry), cast.ToStringE).Take(); err == nil {
+		*ent = optional.Some(entry)
+		return ent.Unwrap()
 	}
 
 	// in a basic go project, we assume the entrypoint is main.go in root directory
