@@ -29,6 +29,7 @@ require (
 	github.com/maruel/natural v1.1.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
@@ -66,7 +67,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/moby/buildkit v0.18.2
 	github.com/moznion/go-optional v0.12.0
-	github.com/otiai10/copy v1.14.0
+	github.com/otiai10/copy v1.14.1
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.47.0
 	github.com/samber/mo v1.13.0
