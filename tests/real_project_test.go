@@ -378,8 +378,8 @@ var projects = []struct {
 	/* static */
 	{
 		name:  "static-html",
-		owner: "pan93412",
-		repo:  "homepage-plain",
+		owner: "schoolofdevops",
+		repo:  "html-sample-app",
 	},
 	{
 		name:  "static-mkdocs",
