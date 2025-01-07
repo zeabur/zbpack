@@ -563,7 +563,8 @@ func determineAptDependencies(ctx *pythonPlanContext) []string {
 		deps = append(deps, "libmariadb-dev")
 	}
 
-	if HasDependency(ctx, "psycopg2") {
+	// psycopg2 included
+	if HasDependency(ctx, "psycopg") {
 		deps = append(deps, "libpq-dev")
 	}
 
