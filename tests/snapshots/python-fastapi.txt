@@ -4,7 +4,7 @@ Meta:
   apt-deps: "build-essential pkg-config clang"
   build: "RUN pip install -r requirements.txt"
   framework: "fastapi"
-  install: "COPY requirements.txt* ./\nRUN pip install uvicorn\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
+  install: "RUN pip install uvicorn\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
   packageManager: "pip"
   pythonVersion: "3.10"
   start: "_startup() { uvicorn main:app --host 0.0.0.0 --port 8080; }; _startup"
