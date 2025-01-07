@@ -45,8 +45,8 @@ CMD ` + startCmd, nil
 	if serverless == "true" {
 		return `FROM docker.io/library/python:` + pyVer + `-slim AS builder
 WORKDIR /app
-` + installCmd + `
 COPY . .
+` + installCmd + `
 ` + buildCmd + `
 
 FROM scratch AS output
@@ -88,9 +88,7 @@ server { \
 }"> /etc/nginx/conf.d/default.conf` + "\n"
 	}
 
-	dockerfile += installCmd + `
-COPY . .
-` + buildCmd + `
+	dockerfile += "COPY . .\n" + installCmd + "\n" + buildCmd + `
 EXPOSE 8080
 CMD ["/bin/bash", "-c", ` + strconv.Quote(startCmd) + `]`
 
