@@ -25,7 +25,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 	strategies := []func() bool{
 		// has bun lockfile
 		func() bool {
-			return utils.HasFile(fs, "bun.lockb")
+			return utils.HasFile(fs, "bun.lockb") || utils.HasFile(fs, "bun.lock")
 		},
 		// has .bun-version
 		func() bool {
