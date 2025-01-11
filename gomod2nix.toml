@@ -95,8 +95,11 @@ schema = 3
     version = "v1.0.0"
     hash = "sha256-cfVDjHyWItmUGZ2dzQhCHgmOmou8v7N+itDkLZVkqkQ="
   [mod."github.com/otiai10/copy"]
-    version = "v1.14.0"
-    hash = "sha256-xsaL1ddkPS544y0Jv7u/INUALBYmYq29ddWvysLXk4A="
+    version = "v1.14.1"
+    hash = "sha256-8RR7u17SbYg9AeBXVHIv5ZMU+kHmOcx0rLUKyz6YtU0="
+  [mod."github.com/otiai10/mint"]
+    version = "v1.6.3"
+    hash = "sha256-/FT3dYP2+UiW/qe1pxQ7HiS8et4+KHGPIMhc+8mHvzw="
   [mod."github.com/pan93412/envexpander/v3"]
     version = "v3.0.0"
     hash = "sha256-k/ASXsh/jVp6g65TJsocIxkjb16+LbIDMpNxA3G0P88="
