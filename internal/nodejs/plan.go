@@ -146,7 +146,7 @@ func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
 		return pm.Unwrap()
 	}
 
-	if utils.HasFile(src, "bun.lockb") {
+	if utils.HasFile(src, "bun.lockb") || utils.HasFile(src, "bun.lock") {
 		*pm = optional.Some(types.NodePackageManagerBun)
 		return pm.Unwrap()
 	}
@@ -568,7 +568,7 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 			cmds = append(cmds, "RUN pnpm install")
 		case types.NodePackageManagerBun:
 			if shouldCacheDependencies && reldir == "" {
-				cmds = append(cmds, "COPY bun.lockb* .")
+				cmds = append(cmds, "COPY bun.lock* .")
 			}
 			cmds = append(cmds, "RUN bun install")
 		case types.NodePackageManagerYarn:
