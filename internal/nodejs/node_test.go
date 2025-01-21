@@ -63,3 +63,23 @@ func TestGetContextBasedOnMeta_WithOutputdirAndMPAFramework(t *testing.T) {
 		OutputDir:   "dist",
 	})
 }
+
+func TestGetContextBasedOnMeta_RuntimeEnvironment(t *testing.T) {
+	meta := getContextBasedOnMeta(types.PlanMeta{
+		"nodeVersion":     "16",
+		"installCmd":      "RUN npm install",
+		"buildCmd":        "npm run build",
+		"buildRuntimeCmd": "npm run build-runtime",
+		"startCmd":        "npm run start",
+		"runtimeBaseDir":  "/src/.output",
+	})
+
+	assert.Equal(t, meta, TemplateContext{
+		NodeVersion:     "16",
+		InstallCmd:      "RUN npm install",
+		BuildCmd:        "npm run build",
+		BuildRuntimeCmd: "npm run build-runtime",
+		StartCmd:        "npm run start",
+		RuntimeBaseDir:  "/src/.output",
+	})
+}

@@ -8,4 +8,4 @@ Meta:
   installCmd: "COPY . .\nRUN pnpm install"
   nodeVersion: "20"
   packageManager: "pnpm"
-  startCmd: "pnpm start"
+  startCmd: "pnpm run start"
