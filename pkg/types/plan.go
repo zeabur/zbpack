@@ -91,6 +91,7 @@ const (
 	NodeProjectFrameworkRspress          NodeProjectFramework = "rspress"
 	NodeProjectFrameworkGrammY           NodeProjectFramework = "grammy"
 	NodeProjectFrameworkNitropack        NodeProjectFramework = "nitropack"
+	NodeProjectFrameworkMedusa           NodeProjectFramework = "medusa"
 )
 
 var NitroBasedFrameworks = []NodeProjectFramework{

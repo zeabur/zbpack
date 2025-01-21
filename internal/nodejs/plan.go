@@ -288,6 +288,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isMedusa := packageJSON.Dependencies["@medusajs/medusa"]; isMedusa {
+		*fw = optional.Some(types.NodeProjectFrameworkMedusa)
+		return fw.Unwrap()
+	}
+
 	if _, isVitepress := packageJSON.FindDependency("vitepress"); isVitepress {
 		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
