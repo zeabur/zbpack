@@ -677,6 +677,25 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		}
 	}
 
+	if framework == types.NodeProjectFrameworkMedusa {
+		var installCmd string
+		switch pkgManager {
+		case types.NodePackageManagerNpm:
+			installCmd = "npm install"
+		case types.NodePackageManagerPnpm:
+			installCmd = "pnpm install"
+		case types.NodePackageManagerYarn:
+			installCmd = "yarn install"
+		case types.NodePackageManagerBun:
+			installCmd = "bun install"
+		default:
+			installCmd = "yarn install"
+		}
+
+		// Install the dependencies in ".medusa/server" directory.
+		buildCmd += " && " + "cd .medusa/server" + " && " + installCmd
+	}
+
 	*cmd = optional.Some(buildCmd)
 	return cmd.Unwrap()
 }
@@ -813,16 +832,16 @@ func GetStartCmd(ctx *nodePlanContext) string {
 	framework := DetermineAppFramework(ctx)
 
 	if startScript != "" {
-		startCommand := GetScriptCommand(ctx, startScript)
+		startCmd := GetScriptCommand(ctx, startScript)
 
 		if predeployScript != "" {
-			predeployCommand := GetScriptCommand(ctx, predeployScript)
-
-			*cmd = optional.Some(predeployCommand + " && " + startCommand)
-			return cmd.Unwrap()
+			startCmd = GetScriptCommand(ctx, predeployScript) + " && " + startCmd
+		}
+		if framework == types.NodeProjectFrameworkMedusa {
+			startCmd = "cd .medusa/server" + " && " + startCmd
 		}
 
-		*cmd = optional.Some(startCommand)
+		*cmd = optional.Some(startCmd)
 		return cmd.Unwrap()
 	}
 
