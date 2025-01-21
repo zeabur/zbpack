@@ -12,6 +12,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/moznion/go-optional"
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/internal/utils"
@@ -27,6 +28,8 @@ const (
 
 	// ConfigNodeFramework is the key for the configuration for specifying
 	// the Node.js framework explicitly.
+	//
+	// This is an undocumented internal configuration and is subjected to change.
 	ConfigNodeFramework = "node.framework"
 
 	// ConfigAppDir indicates the relative path of the app to deploy.
@@ -318,6 +321,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isMedusa := packageJSON.Dependencies["@medusajs/medusa"]; isMedusa {
+		*fw = optional.Some(types.NodeProjectFrameworkMedusa)
+		return fw.Unwrap()
+	}
+
 	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
 		*fw = optional.Some(types.NodeProjectFrameworkVite)
 		return fw.Unwrap()
@@ -453,6 +461,33 @@ func GetStartScript(ctx *nodePlanContext) string {
 
 	*ss = optional.Some("")
 	return ss.Unwrap()
+}
+
+// GetPredeployScript gets the predeploy script in package.json's `scripts` of the Node.js app.
+func GetPredeployScript(ctx *nodePlanContext) string {
+	packageJSON := ctx.GetAppPackageJSON()
+
+	if _, ok := packageJSON.Scripts["predeploy"]; ok {
+		return "predeploy"
+	}
+
+	return ""
+}
+
+// GetScriptCommand gets the command to run a script in the Node.js or Bun app.
+func GetScriptCommand(ctx *nodePlanContext, script string) string {
+	pkgManager := DeterminePackageManager(ctx)
+
+	switch pkgManager {
+	case types.NodePackageManagerNpm:
+		return "npm run " + script
+	case types.NodePackageManagerPnpm:
+		return "pnpm run " + script
+	case types.NodePackageManagerBun:
+		return "bun run " + script
+	}
+
+	return "yarn " + script
 }
 
 const (
@@ -623,19 +658,12 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	framework := DetermineAppFramework(ctx)
 	serverless := getServerless(ctx)
 
-	var buildCmd string
-	switch pkgManager {
-	case types.NodePackageManagerPnpm:
-		buildCmd = "pnpm run " + buildScript
-	case types.NodePackageManagerNpm:
-		buildCmd = "npm run " + buildScript
-	case types.NodePackageManagerBun:
-		buildCmd = "bun run " + buildScript
-	case types.NodePackageManagerYarn:
-		fallthrough
-	default:
-		buildCmd = "yarn " + buildScript
+	if buildScript == "" {
+		*cmd = optional.Some("")
+		return cmd.Unwrap()
 	}
+
+	buildCmd := GetScriptCommand(ctx, buildScript)
 
 	// if this is a Nitro-based framework, we should pass NITRO_PRESET
 	// to the default build command.
@@ -647,10 +675,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		} else {
 			buildCmd = "NITRO_PRESET=node-server " + buildCmd
 		}
-	}
-
-	if buildScript == "" {
-		buildCmd = ""
 	}
 
 	*cmd = optional.Some(buildCmd)
@@ -782,64 +806,46 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return cmd.Unwrap()
 	}
 
+	predeployScript := GetPredeployScript(ctx)
+
 	startScript := GetStartScript(ctx)
-	pkgManager := DeterminePackageManager(ctx)
 	entry := GetEntry(ctx)
 	framework := DetermineAppFramework(ctx)
 
-	var startCmd string
-	switch pkgManager {
-	case types.NodePackageManagerPnpm:
-		startCmd = "pnpm " + startScript
-	case types.NodePackageManagerNpm:
-		startCmd = "npm run " + startScript
-	case types.NodePackageManagerBun:
-		startCmd = "bun run " + startScript
-	case types.NodePackageManagerYarn:
-		fallthrough
-	default:
-		startCmd = "yarn " + startScript
+	if startScript != "" {
+		startCommand := GetScriptCommand(ctx, startScript)
+
+		if predeployScript != "" {
+			predeployCommand := GetScriptCommand(ctx, predeployScript)
+
+			*cmd = optional.Some(predeployCommand + " && " + startCommand)
+			return cmd.Unwrap()
+		}
+
+		*cmd = optional.Some(startCommand)
+		return cmd.Unwrap()
 	}
+
+	var startCmd string
+	runtime := lo.If(ctx.Bun, "bun").Else("node")
 
 	if startScript == "" {
 		switch {
 		case entry != "":
-			if ctx.Bun {
-				startCmd = "bun " + entry
-			} else {
-				startCmd = "node " + entry
-			}
+			startCmd = runtime + " " + entry
 		case framework == types.NodeProjectFrameworkSvelte:
-			if ctx.Bun {
-				startCmd = "bun build/index.js"
-			} else {
-				startCmd = "node build/index.js"
-			}
+			startCmd = runtime + " build/index.js"
 		case types.IsNitroBasedFramework(string(framework)):
-			if ctx.Bun {
-				startCmd = "HOST=0.0.0.0 bun .output/server/index.mjs"
-			} else {
-				startCmd = "HOST=0.0.0.0 node .output/server/index.mjs"
-			}
+			startCmd = "HOST=0.0.0.0 " + runtime + " .output/server/index.mjs"
 		default:
-			if ctx.Bun {
-				startCmd = "bun index.js"
-			} else {
-				startCmd = "node index.js"
-			}
+			startCmd = runtime + " index.js"
 		}
 	}
 
-	// For solid-start projects, when using `solid-start start`
-	// on solid-start-node, we should use the memory-efficient
-	// start script instead.
-	//
-	// For more information, see the discussion in Discord: Solid.js
-	// https://ptb.discord.com/channels/722131463138705510/
-	// 722131463889223772/1140159307648868382
-	if framework == types.NodeProjectFrameworkSolidStartNode && startScript == "start" {
-		// solid-start-node specific start script
-		startCmd = "node dist/server.js"
+	if predeployScript != "" {
+		predeployCommand := GetScriptCommand(ctx, predeployScript)
+
+		*cmd = optional.Some(predeployCommand + " && " + startCmd)
 	}
 
 	*cmd = optional.Some(startCmd)
