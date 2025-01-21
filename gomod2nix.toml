@@ -2,8 +2,8 @@ schema = 3
 
 [mod]
   [mod."github.com/aws/aws-sdk-go"]
-    version = "v1.55.5"
-    hash = "sha256-Duod/yk0bGmbcqgaZg+4XoWwY7Ysq4RA/cFBV8nFX6E="
+    version = "v1.55.6"
+    hash = "sha256-SASq+4NwIUV77faF05oj194tzqLtSHG94u7GgLrwplg="
   [mod."github.com/codeclysm/extract/v3"]
     version = "v3.1.1"
     hash = "sha256-m97BzuMk+rlSfPUnYzWifqQBNNdrWZXhUlQwT2iY59A="
@@ -35,8 +35,8 @@ schema = 3
     version = "v0.5.8"
     hash = "sha256-iEPrDmVP6V73tg4tiiz3DtOHFvckwuG0WQ4KX/D7G14="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.15.13"
-    hash = "sha256-LD7OcQK3/dY8YSkmoVbHjwvVXsRny989sapTB3C94uQ="
+    version = "v1.15.15"
+    hash = "sha256-KngBjCK4FzO7oGdGM2AsAJlOWEqmx7avM/oTXIMe/pI="
   [mod."github.com/gogo/protobuf"]
     version = "v1.3.2"
     hash = "sha256-pogILFrrk+cAtb0ulqn9+gRZJ7sGnnLLdtqITvxvG6c="
@@ -134,8 +134,8 @@ schema = 3
     version = "v0.3.0"
     hash = "sha256-mIdMs9MLAOBKf3/0quf1iI3v8uNWydy7ae5MFa+F2Ko="
   [mod."github.com/spf13/afero"]
-    version = "v1.11.0"
-    hash = "sha256-+rV3cDZr13N8E0rJ7iHmwsKYKH+EhV+IXBut+JbBiIE="
+    version = "v1.12.0"
+    hash = "sha256-TX3DcyAdrXqf+TxmEz4TilWQo2Y4hcBXOeRY6BjDp+s="
   [mod."github.com/spf13/cast"]
     version = "v1.7.1"
     hash = "sha256-BjX0aY/PC37gIdMc7JhMgvhWFsksGdAcp2FgzpuvkPo="
@@ -179,14 +179,14 @@ schema = 3
     version = "v0.10.0"
     hash = "sha256-HWruKClrdoBKVdxKCyoazxeQV4dIYLdkHekQvx275/o="
   [mod."golang.org/x/sys"]
-    version = "v0.26.0"
-    hash = "sha256-YjklsWNhx4g4TaWRWfFe1TMFKujbqiaNvZ38bfI35fM="
+    version = "v0.29.0"
+    hash = "sha256-qfsodJQ1H1CBI8yQWOvsXJgY5qHmiuw566HrrIseYHI="
   [mod."golang.org/x/text"]
     version = "v0.21.0"
     hash = "sha256-QaMwddBRnoS2mv9Y86eVC2x2wx/GZ7kr2zAJvwDeCPc="
   [mod."google.golang.org/protobuf"]
-    version = "v1.35.1"
-    hash = "sha256-4NtUQoBvlPGFGjo7c+E1EBS/sb8oy50MGy45KGWPpWo="
+    version = "v1.36.1"
+    hash = "sha256-qGWEeb6fd16uATHuJ5mDdZKUKnHwKOeneJ6mXEv3prQ="
   [mod."gopkg.in/ini.v1"]
     version = "v1.67.0"
     hash = "sha256-V10ahGNGT+NLRdKUyRg1dos5RxLBXBk1xutcnquc/+4="
