@@ -18,9 +18,11 @@ type TemplateContext struct {
 
 	AppDir string
 
-	InstallCmd string
-	BuildCmd   string
-	StartCmd   string
+	InstallCmd      string
+	BuildCmd        string
+	BuildRuntimeCmd string // currently only used by Medusa
+	StartCmd        string
+	RuntimeBaseDir  string // currently only used by Medusa
 
 	Framework  string
 	Serverless bool
@@ -51,14 +53,16 @@ func (c TemplateContext) Execute() (string, error) {
 
 func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	context := TemplateContext{
-		NodeVersion: meta["nodeVersion"],
-		AppDir:      meta["appDir"],
-		InstallCmd:  meta["installCmd"],
-		BuildCmd:    meta["buildCmd"],
-		StartCmd:    meta["startCmd"],
-		Framework:   meta["framework"],
-		Serverless:  meta["serverless"] == "true",
-		OutputDir:   meta["outputDir"],
+		NodeVersion:     meta["nodeVersion"],
+		AppDir:          meta["appDir"],
+		InstallCmd:      meta["installCmd"],
+		BuildCmd:        meta["buildCmd"],
+		BuildRuntimeCmd: meta["buildRuntimeCmd"],
+		StartCmd:        meta["startCmd"],
+		RuntimeBaseDir:  meta["runtimeBaseDir"],
+		Framework:       meta["framework"],
+		Serverless:      meta["serverless"] == "true",
+		OutputDir:       meta["outputDir"],
 
 		// The flag specific to planner/bun.
 		Bun:        meta["bun"] == "true" || meta["packageManager"] == "bun",
