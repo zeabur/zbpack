@@ -275,6 +275,11 @@ var projects = []struct {
 		repo:  "sveltekit-v2-template",
 	},
 	{
+		name:  "nodejs-medusa",
+		owner: "medusajs",
+		repo:  "medusa-starter-default",
+	},
+	{
 		name: "nodejs-a-lot-of-dependencies",
 		dir:  "nodejs-a-lot-of-dependencies",
 	},

@@ -1,0 +1,13 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "yarn build"
+  buildRuntimeCmd: "yarn install"
+  bun: "false"
+  framework: "medusa"
+  installCmd: "COPY . .\nRUN yarn install"
+  nodeVersion: "20"
+  packageManager: "yarn"
+  runtimeBaseDir: "/src/.medusa/server"
+  startCmd: "yarn start"
