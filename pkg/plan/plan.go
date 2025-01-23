@@ -4,7 +4,9 @@ package plan
 import (
 	"strconv"
 
+	"github.com/samber/lo"
 	"github.com/spf13/afero"
+	"github.com/spf13/cast"
 	"github.com/zeabur/zbpack/pkg/types"
 )
 
@@ -53,7 +55,31 @@ func Continue() types.PlanMeta {
 	return continuePlanMeta
 }
 
+const (
+	// ConfigKeyServerless is the key to enable serverless mode
+	// (ZBPACK_SERVERLESS, ZBPACK_FORCE_CONTAINERIZED)
+	ConfigKeyServerless = "serverless"
+	// ConfigKeyPlanType is the key to specify plan type explicitly.
+	// (ZBPACK_PLAN_TYPE)
+	ConfigKeyPlanType = "plan_type"
+)
+
 func (b planner) Plan() (types.PlanType, types.PlanMeta) {
+	planType, planTypeErr := Cast(b.NewPlannerOptions.Config.Get(ConfigKeyPlanType), cast.ToStringE).Take()
+	serverless := Cast(b.NewPlannerOptions.Config.Get(ConfigKeyServerless), ToWeakBoolE).TakeOr(true)
+
+	if planTypeErr == nil {
+		// find a identifier that matches the specified plan type
+		identifier, ok := lo.Find(b.identifiers, func(i Identifier) bool {
+			return i.PlanType() == types.PlanType(planType)
+		})
+
+		// if found, return the plan type and meta of this identifier
+		if ok {
+			return identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
+		}
+	}
+
 	for _, identifier := range b.identifiers {
 		if identifier.Match(b.Source) {
 			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
@@ -66,8 +92,6 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 			return pt, pm
 		}
 	}
-
-	serverless := Cast(b.NewPlannerOptions.Config.Get("serverless"), ToWeakBoolE).TakeOr(true)
 
 	return types.PlanTypeStatic, types.PlanMeta{"serverless": strconv.FormatBool(serverless)}
 }
