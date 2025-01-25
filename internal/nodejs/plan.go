@@ -677,42 +677,27 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		}
 	}
 
-	*cmd = optional.Some(buildCmd)
-	return cmd.Unwrap()
-}
-
-// GetRuntimeBaseDir gets the base directory of the runtime environment of the Node.js app.
-func GetRuntimeBaseDir(ctx *nodePlanContext) string {
-	framework := DetermineAppFramework(ctx)
-
 	if framework == types.NodeProjectFrameworkMedusa {
-		return "/src/.medusa/server"
-	}
-
-	return ""
-}
-
-// GetBuildRuntimeCmd gets the build command to build the runtime environment of the Node.js app.
-func GetBuildRuntimeCmd(ctx *nodePlanContext) string {
-	pkgManager := DeterminePackageManager(ctx)
-	framework := DetermineAppFramework(ctx)
-
-	if framework == types.NodeProjectFrameworkMedusa {
+		var installCmd string
 		switch pkgManager {
 		case types.NodePackageManagerNpm:
-			return "npm install"
+			installCmd = "npm install"
 		case types.NodePackageManagerPnpm:
-			return "pnpm install"
+			installCmd = "pnpm install"
 		case types.NodePackageManagerYarn:
-			return "yarn install"
+			installCmd = "yarn install"
 		case types.NodePackageManagerBun:
-			return "bun install"
+			installCmd = "bun install"
 		default:
-			return "yarn install"
+			installCmd = "yarn install"
 		}
+
+		// Install the dependencies in ".medusa/server" directory.
+		buildCmd += " && " + "cd .medusa/server" + " && " + installCmd
 	}
 
-	return ""
+	*cmd = optional.Some(buildCmd)
+	return cmd.Unwrap()
 }
 
 // GetMonorepoAppRoot gets the app root of the monorepo project in the Node.js project.
@@ -851,6 +836,9 @@ func GetStartCmd(ctx *nodePlanContext) string {
 
 		if predeployScript != "" {
 			startCmd = GetScriptCommand(ctx, predeployScript) + " && " + startCmd
+		}
+		if framework == types.NodeProjectFrameworkMedusa {
+			startCmd = "cd .medusa/server" + " && " + startCmd
 		}
 
 		*cmd = optional.Some(startCmd)
@@ -1093,16 +1081,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	startCmd := GetStartCmd(ctx)
 	meta["startCmd"] = startCmd
-
-	runtimeBaseDir := GetRuntimeBaseDir(ctx)
-	if runtimeBaseDir != "" {
-		meta["runtimeBaseDir"] = runtimeBaseDir
-	}
-
-	buildRuntimeCmd := GetBuildRuntimeCmd(ctx)
-	if buildRuntimeCmd != "" {
-		meta["buildRuntimeCmd"] = buildRuntimeCmd
-	}
 
 	// only set outputDir if there is no start command
 	// (because if there is, it shouldn't be a static project)

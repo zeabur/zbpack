@@ -280,6 +280,11 @@ var projects = []struct {
 		repo:  "medusa-starter-default",
 	},
 	{
+		name:  "nodejs-medusa-zb",
+		owner: "zeabur",
+		repo:  "medusa-starter-default",
+	},
+	{
 		name: "nodejs-a-lot-of-dependencies",
 		dir:  "nodejs-a-lot-of-dependencies",
 	},

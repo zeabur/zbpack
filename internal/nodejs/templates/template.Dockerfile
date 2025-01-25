@@ -34,14 +34,6 @@ COPY --from=build /src/{{ .AppDir }}/{{ .OutputDir }} /
 FROM zeabur/caddy-static AS runtime
 COPY --from=output / /usr/share/caddy
 {{ end }}
-{{ else if ne .RuntimeBaseDir "" }}
-FROM build AS prod
-COPY --from=build {{ .RuntimeBaseDir }} /app/
-WORKDIR /app
-
-EXPOSE 8080
-RUN {{ .BuildRuntimeCmd }}
-CMD {{ .StartCmd }}
 {{ else }}
 EXPOSE 8080
 CMD {{ .StartCmd }}{{ end }}
