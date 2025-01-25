@@ -8,4 +8,4 @@ Meta:
   installCmd: "COPY . .\nRUN yarn install"
   nodeVersion: "20"
   packageManager: "yarn"
-  startCmd: "cd .medusa/server && yarn start"
+  startCmd: "cd .medusa/server && yarn predeploy && yarn start"
