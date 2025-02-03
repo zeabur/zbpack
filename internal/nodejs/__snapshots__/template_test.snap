@@ -11,9 +11,7 @@ WORKDIR /src
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN bun install
@@ -33,9 +31,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN yarn install
@@ -56,9 +52,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN yarn install
@@ -89,9 +83,7 @@ WORKDIR /src
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN bun install
@@ -111,9 +103,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -134,9 +124,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -158,9 +146,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -186,9 +172,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN yarn install
@@ -208,9 +192,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN yarn install
@@ -230,9 +212,7 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 RUN yarn install
