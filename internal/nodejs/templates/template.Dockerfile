@@ -14,9 +14,7 @@ COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 {{- end }}
 
-# Check if we have 'corepack' available; if none, we
-# install corepack@0.10.0.
-RUN which corepack || npm install -g --force corepack@0.10.0
+RUN npm install -g --force corepack@latest
 RUN corepack enable
 
 {{ .InstallCmd }}
