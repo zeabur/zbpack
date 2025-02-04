@@ -14,7 +14,9 @@ COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 {{- end }}
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 {{ .InstallCmd }}

@@ -11,7 +11,9 @@ WORKDIR /src
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN bun install
@@ -31,7 +33,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN yarn install
@@ -52,7 +56,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN yarn install
@@ -83,7 +89,9 @@ WORKDIR /src
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
 COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN bun install
@@ -103,7 +111,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -124,7 +134,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -146,7 +158,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 WORKDIR /src/myservice
@@ -172,7 +186,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN yarn install
@@ -192,7 +208,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN yarn install
@@ -212,7 +230,9 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-RUN npm install -g --force corepack@latest
+# https://github.com/nodejs/corepack/issues/612 + SUP-1441
+ENV COREPACK_INTEGRITY_KEYS=0
+RUN which corepack || npm install -g --force corepack@0.10.0
 RUN corepack enable
 
 RUN yarn install

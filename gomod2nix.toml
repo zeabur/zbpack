@@ -32,11 +32,11 @@ schema = 3
     version = "v1.3.2"
     hash = "sha256-Qh2lAShlRm571xMxhAOfRoaFYzrfHmmk7RQmSiJxPbo="
   [mod."github.com/gkampitakis/go-snaps"]
-    version = "v0.5.8"
-    hash = "sha256-iEPrDmVP6V73tg4tiiz3DtOHFvckwuG0WQ4KX/D7G14="
+    version = "v0.5.9"
+    hash = "sha256-puyYdQI905gD2F8iHTglZMZ5sQQEMtKNp2eTDy5MFD8="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.15.15"
-    hash = "sha256-KngBjCK4FzO7oGdGM2AsAJlOWEqmx7avM/oTXIMe/pI="
+    version = "v1.15.17"
+    hash = "sha256-v9/eURh/Y0W5rP3VdCkysQwkmbRFYZ5h3AyQm9F2CF4="
   [mod."github.com/gogo/protobuf"]
     version = "v1.3.2"
     hash = "sha256-pogILFrrk+cAtb0ulqn9+gRZJ7sGnnLLdtqITvxvG6c="
@@ -86,8 +86,8 @@ schema = 3
     version = "v1.5.0"
     hash = "sha256-ztVhGQXs67MF8UadVvG72G3ly0ypQW0IRDdOOkjYwoE="
   [mod."github.com/moby/buildkit"]
-    version = "v0.18.2"
-    hash = "sha256-ESPqhzykE5pSRRPqSBAN+7j9Fy96K70pN2r710WJTnY="
+    version = "v0.19.0"
+    hash = "sha256-qkI/meKVAB0ibj0IQ4B6ZAZel0gZ8YfPr4QOPsAis+A="
   [mod."github.com/moznion/go-optional"]
     version = "v0.12.0"
     hash = "sha256-SCkBIo2GsDER5FnyPJknB+V5OC+Hltm9QIrfZK06vQg="
@@ -125,8 +125,8 @@ schema = 3
     version = "v0.1.0"
     hash = "sha256-F92BQXXmn3mCwu3mBaGh+joTRItQDSDhsjU6SofkYdA="
   [mod."github.com/samber/lo"]
-    version = "v1.47.0"
-    hash = "sha256-jMXexVTlPdZ40STRpBLv7b+BIRqdxxra12Pl2Mj7Nz8="
+    version = "v1.49.1"
+    hash = "sha256-xMQS9Sx2Bpvwo/9JvSVkJ4RXYOSHm642WRqWA6y0AnU="
   [mod."github.com/samber/mo"]
     version = "v1.13.0"
     hash = "sha256-mtMkttCJdlTc+gArMqWpkoO2V5Ef/OXuKk/dusez01g="
