@@ -55,6 +55,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/deckarep/golang-set v1.8.0

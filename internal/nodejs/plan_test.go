@@ -1,6 +1,7 @@
 package nodejs
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -695,5 +696,192 @@ func TestGetServerless(t *testing.T) {
 		}
 
 		assert.False(t, getServerless(ctx))
+	})
+}
+
+func TestDeterminePackageManager(t *testing.T) {
+	t.Parallel()
+
+	t.Run("packageManager", func(t *testing.T) {
+		t.Parallel()
+
+		newFixture := func(specification string) *nodePlanContext {
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "package.json", []byte(`{"packageManager": "`+specification+`"}`), 0o644)
+
+			ctx := &nodePlanContext{
+				Src:                fs,
+				Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+				ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			}
+
+			ctx.ProjectPackageJSON.PackageManager = &specification
+
+			return ctx
+		}
+
+		t.Run("npm", func(t *testing.T) {
+			ctx := newFixture("npm@10.2.3")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Equal(t, "npm install -g npm@10", pm.GetInitCommand())
+		})
+
+		t.Run("yarn berry", func(t *testing.T) {
+			ctx := newFixture("yarn@3.2.1")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
+			assert.Equal(t, "npm install -g yarn@latest && yarn set version berry", pm.GetInitCommand())
+		})
+
+		t.Run("yarn v1", func(t *testing.T) {
+			ctx := newFixture("yarn@1.22.10")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
+			assert.Equal(t, "npm install -g yarn@latest", pm.GetInitCommand())
+		})
+
+		t.Run("pnpm", func(t *testing.T) {
+			ctx := newFixture("pnpm@6.7.8")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerPnpm, pm.GetType())
+			assert.Equal(t, "npm install -g pnpm@6", pm.GetInitCommand())
+		})
+	})
+
+	t.Run("engines", func(t *testing.T) {
+		t.Parallel()
+
+		newFixture := func(packageManager string, version string) *nodePlanContext {
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "package.json", []byte(`{
+				"engines": {
+					"`+packageManager+`": "`+version+`"
+				}
+			}`), 0o644)
+
+			ctx := &nodePlanContext{
+				Src:                fs,
+				Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+				ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			}
+
+			return ctx
+		}
+
+		t.Run("npm locked nothing", func(t *testing.T) {
+			ctx := newFixture("npm", ">8")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Equal(t, fmt.Sprintf("npm install -g npm@%d", NpmLatestMajorVersion), pm.GetInitCommand())
+		})
+
+		t.Run("npm major locked", func(t *testing.T) {
+			ctx := newFixture("npm", "^7.23")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Equal(t, "npm install -g npm@7", pm.GetInitCommand())
+		})
+
+		t.Run("npm version range", func(t *testing.T) {
+			ctx := newFixture("npm", ">= 6 <= 8")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Equal(t, "npm install -g npm@8", pm.GetInitCommand())
+		})
+
+		t.Run("npm exact version", func(t *testing.T) {
+			ctx := newFixture("npm", "6.14.0")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Equal(t, "npm install -g npm@6", pm.GetInitCommand())
+		})
+
+		t.Run("yarn", func(t *testing.T) {
+			ctx := newFixture("yarn", "^1")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
+			assert.Equal(t, "npm install -g yarn@latest", pm.GetInitCommand())
+		})
+
+		t.Run("yarn berry", func(t *testing.T) {
+			ctx := newFixture("yarn", "^2")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
+			assert.Equal(t, "npm install -g yarn@latest && yarn set version berry", pm.GetInitCommand())
+		})
+
+		t.Run("pnpm", func(t *testing.T) {
+			ctx := newFixture("pnpm", "^4")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerPnpm, pm.GetType())
+			assert.Equal(t, "npm install -g pnpm@latest || npm install -g pnpm@8", pm.GetInitCommand())
+		})
+	})
+
+	t.Run("lockfile", func(t *testing.T) {
+		t.Parallel()
+
+		newFixture := func(lockfile string) *nodePlanContext {
+			fs := afero.NewMemMapFs()
+			_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+			_ = afero.WriteFile(fs, lockfile, []byte(``), 0o644)
+
+			ctx := &nodePlanContext{
+				Src:                fs,
+				Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+				ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+			}
+
+			return ctx
+		}
+
+		t.Run("yarn.lock", func(t *testing.T) {
+			ctx := newFixture("yarn.lock")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
+		})
+
+		t.Run("pnpm-lock.yaml", func(t *testing.T) {
+			ctx := newFixture("pnpm-lock.yaml")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerPnpm, pm.GetType())
+		})
+
+		t.Run("package-lock.json", func(t *testing.T) {
+			ctx := newFixture("package-lock.json")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+		})
+	})
+
+	t.Run("default", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
+
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		pm := DeterminePackageManager(ctx)
+		assert.Equal(t, types.NodePackageManagerUnknown, pm.GetType())
 	})
 }
