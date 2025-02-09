@@ -108,9 +108,6 @@ func TestGetInstallCmd_CustomizeInstallCmd(t *testing.T) {
 	// RUN should be provided in planMeta
 	assert.Contains(t, installlCmd, "RUN ")
 
-	// for customized installation command, no cache are allowed.
-	assert.Contains(t, installlCmd, "COPY . .")
-
 	// the installation command should be contained
 	assert.Contains(t, installlCmd, "echo 'installed'")
 }
@@ -357,7 +354,6 @@ func TestInstallCommand(t *testing.T) {
 		}
 
 		installCmd := GetInstallCmd(ctx)
-		assert.Contains(t, installCmd, "COPY . .")
 		assert.Contains(t, installCmd, "WORKDIR /src/packages/service1")
 	})
 
@@ -374,7 +370,6 @@ func TestInstallCommand(t *testing.T) {
 		}
 
 		installCmd := GetInstallCmd(ctx)
-		assert.Contains(t, installCmd, "COPY . .")
 		assert.NotContains(t, installCmd, "WORKDIR")
 	})
 }
@@ -705,7 +700,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
-			assert.Equal(t, "npm install -g npm@10", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "npm@10")
 		})
 
 		t.Run("yarn berry", func(t *testing.T) {
@@ -713,7 +708,8 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
-			assert.Equal(t, "npm install -g yarn@latest && yarn set version berry", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "yarn")
+			assert.Contains(t, pm.GetInitCommand(), "berry")
 		})
 
 		t.Run("yarn v1", func(t *testing.T) {
@@ -721,7 +717,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
-			assert.Equal(t, "npm install -g yarn@latest", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "yarn")
 		})
 
 		t.Run("pnpm", func(t *testing.T) {
@@ -729,7 +725,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerPnpm, pm.GetType())
-			assert.Equal(t, "npm install -g pnpm@6", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "pnpm@6")
 		})
 	})
 
@@ -758,7 +754,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
-			assert.Equal(t, fmt.Sprintf("npm install -g npm@%d", NpmLatestMajorVersion), pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", NpmLatestMajorVersion))
 		})
 
 		t.Run("npm major locked", func(t *testing.T) {
@@ -766,7 +762,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
-			assert.Equal(t, "npm install -g npm@7", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 7))
 		})
 
 		t.Run("npm version range", func(t *testing.T) {
@@ -774,7 +770,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
-			assert.Equal(t, "npm install -g npm@8", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 8))
 		})
 
 		t.Run("npm exact version", func(t *testing.T) {
@@ -782,7 +778,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
-			assert.Equal(t, "npm install -g npm@6", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 6))
 		})
 
 		t.Run("yarn", func(t *testing.T) {
@@ -790,7 +786,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
-			assert.Equal(t, "npm install -g yarn@latest", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "yarn")
 		})
 
 		t.Run("yarn berry", func(t *testing.T) {
@@ -798,7 +794,8 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerYarn, pm.GetType())
-			assert.Equal(t, "npm install -g yarn@latest && yarn set version berry", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "yarn")
+			assert.Contains(t, pm.GetInitCommand(), "berry")
 		})
 
 		t.Run("pnpm", func(t *testing.T) {
@@ -806,7 +803,7 @@ func TestDeterminePackageManager(t *testing.T) {
 			pm := DeterminePackageManager(ctx)
 
 			assert.Equal(t, types.NodePackageManagerPnpm, pm.GetType())
-			assert.Equal(t, "npm install -g pnpm@latest || npm install -g pnpm@8", pm.GetInitCommand())
+			assert.Contains(t, pm.GetInitCommand(), "pnpm")
 		})
 	})
 

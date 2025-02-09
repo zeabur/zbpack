@@ -33,7 +33,7 @@ func (n Npm) GetInitCommand() string {
 		return "npm update -g npm"
 	}
 
-	return fmt.Sprintf("npm install -g npm@%d", n.MajorVersion)
+	return fmt.Sprintf("npm install -f -g npm@%d", n.MajorVersion)
 }
 
 // GetInstallProjectDependenciesCommand returns the command to install project dependencies.
@@ -60,7 +60,7 @@ func (Yarn) GetType() types.NodePackageManager {
 
 // GetInitCommand returns the command to install yarn.
 func (y Yarn) GetInitCommand() string {
-	command := "npm install -g yarn@latest"
+	command := "npm install -f -g yarn@latest"
 
 	if y.MajorVersion > 1 { // berry
 		command += " && yarn set version berry"
@@ -94,10 +94,10 @@ func (Pnpm) GetType() types.NodePackageManager {
 // GetInitCommand returns the command to install pnpm.
 func (p Pnpm) GetInitCommand() string {
 	if p.MajorVersion == 0 {
-		return "npm install -g pnpm@latest || npm install -g pnpm@8"
+		return "npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
 	}
 
-	return fmt.Sprintf("npm install -g pnpm@%d", p.MajorVersion)
+	return fmt.Sprintf("npm install -f -g pnpm@%d", p.MajorVersion)
 }
 
 // GetInstallProjectDependenciesCommand returns the command to install project dependencies.
