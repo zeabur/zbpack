@@ -159,13 +159,15 @@ func TestGetInstallCmd_CustomizeInstallCmdDeps(t *testing.T) {
 		Config:             config,
 		Src:                src,
 	}
+	initCmd := GetInitCmd(ctx)
 	installlCmd := GetInstallCmd(ctx)
 
 	// RUN should be provided in planMeta
+	assert.Contains(t, initCmd, "RUN ")
 	assert.Contains(t, installlCmd, "RUN ")
 
 	// the playwright dependencies should be installed
-	assert.Contains(t, installlCmd, "libnss3 libatk1.0-0 libatk-bridge2.0-0")
+	assert.Contains(t, initCmd, "libnss3 libatk1.0-0 libatk-bridge2.0-0")
 
 	// the installation command should be contained
 	assert.Contains(t, installlCmd, "echo 'installed'")
