@@ -3,6 +3,8 @@ FROM node:{{.NodeVersion}} AS build
 ENV PORT=8080
 WORKDIR /src
 
+{{ .InitCmd }}
+COPY . .
 {{ .InstallCmd }}
 
 # Build if we can build it

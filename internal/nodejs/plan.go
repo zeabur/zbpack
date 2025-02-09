@@ -49,6 +49,7 @@ type nodePlanContext struct {
 	BuildScript     optional.Option[string]
 	StartScript     optional.Option[string]
 	Entry           optional.Option[string]
+	InitCmd         optional.Option[string]
 	InstallCmd      optional.Option[string]
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
@@ -580,19 +581,9 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
-// GetInstallCmd gets the installation command of the Node.js app.
-func GetInstallCmd(ctx *nodePlanContext) string {
-	cmd := &ctx.InstallCmd
-	_, reldir := ctx.GetAppSource()
-
-	if installCmd, err := cmd.Take(); err == nil {
-		return installCmd
-	}
-
-	pkgManager := DeterminePackageManager(ctx)
-
-	installCmdConf := plan.Cast(ctx.Config.Get(plan.ConfigInstallCommand), cast.ToStringE)
-
+// GetInitCmd gets the package manager initialization command of the Node.js app.
+func GetInitCmd(ctx *nodePlanContext) string {
+	cmd := &ctx.InitCmd
 	var cmds []string
 
 	needPlaywright := DetermineNeedPlaywright(ctx)
@@ -612,16 +603,38 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 		)
 	}
 
+	pkgManager := DeterminePackageManager(ctx)
+	initCommand := pkgManager.GetInitCommand()
+	cmds = append(cmds, "RUN "+initCommand)
+
+	*cmd = optional.Some(strings.Join(cmds, "\n"))
+	return cmd.Unwrap()
+}
+
+// GetInstallCmd gets the installation command of the Node.js app.
+func GetInstallCmd(ctx *nodePlanContext) string {
+	cmd := &ctx.InstallCmd
+	_, reldir := ctx.GetAppSource()
+
+	if installCmd, err := cmd.Take(); err == nil {
+		return installCmd
+	}
+
+	pkgManager := DeterminePackageManager(ctx)
+
+	installCmdConf := plan.Cast(ctx.Config.Get(plan.ConfigInstallCommand), cast.ToStringE)
+
+	var cmds []string
+
 	if reldir != "" {
 		cmds = append(cmds, "WORKDIR /src/"+reldir)
 	}
 
 	if installCmd, err := installCmdConf.Take(); err == nil {
-		cmds = append(cmds, "COPY . .", "RUN "+installCmd)
+		cmds = append(cmds, "RUN "+installCmd)
 	} else {
-		initCommand := pkgManager.GetInitCommand()
 		installDependenciesCommand := pkgManager.GetInstallProjectDependenciesCommand()
-		cmds = append(cmds, "RUN "+initCommand, "COPY . .", "RUN "+installDependenciesCommand)
+		cmds = append(cmds, "RUN "+installDependenciesCommand)
 	}
 
 	*cmd = optional.Some(strings.Join(cmds, "\n"))
@@ -1043,6 +1056,9 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	nodeVersion := GetNodeVersion(ctx)
 	meta["nodeVersion"] = nodeVersion
+
+	initCmd := GetInitCmd(ctx)
+	meta["initCmd"] = initCmd
 
 	installCmd := GetInstallCmd(ctx)
 	meta["installCmd"] = installCmd

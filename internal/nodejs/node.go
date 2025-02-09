@@ -17,6 +17,7 @@ type TemplateContext struct {
 
 	AppDir string
 
+	InitCmd    string
 	InstallCmd string
 	BuildCmd   string
 	StartCmd   string
@@ -50,6 +51,7 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 	context := TemplateContext{
 		NodeVersion: meta["nodeVersion"],
 		AppDir:      meta["appDir"],
+		InitCmd:     meta["initCmd"],
 		InstallCmd:  meta["installCmd"],
 		BuildCmd:    meta["buildCmd"],
 		StartCmd:    meta["startCmd"],
