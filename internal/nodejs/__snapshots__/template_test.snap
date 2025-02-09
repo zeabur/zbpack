@@ -1,46 +1,14 @@
 
-[TestTemplate_BuildCmd_Bun - 1]
-# Install bun if we need it
-FROM oven/bun:1.2 AS bun-runtime
-FROM node:18 AS build
-
-ENV PORT=8080
-WORKDIR /src
-# Copy the bun binary from the bun-runtime stage directly.
-# A bit hacky but it works.
-COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
-COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
-
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
-RUN bun install
-
-COPY . .
-# Build if we can build it
-
-
-EXPOSE 8080
-CMD bun start main.ts
-
----
-
 [TestTemplate_BuildCmd_NOutputDir - 1]
 FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 RUN yarn install
 
-COPY . .
 # Build if we can build it
 RUN yarn build
 
@@ -56,14 +24,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 RUN yarn install
 
-COPY . .
 # Build if we can build it
 RUN yarn build
 
@@ -77,48 +41,16 @@ COPY --from=output / /usr/share/caddy
 
 ---
 
-[TestTemplate_Bun - 1]
-# Install bun if we need it
-FROM oven/bun:1 AS bun-runtime
-FROM node:18 AS build
-
-ENV PORT=8080
-WORKDIR /src
-# Copy the bun binary from the bun-runtime stage directly.
-# A bit hacky but it works.
-COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
-COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
-
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
-RUN bun install
-
-COPY . .
-# Build if we can build it
-
-
-EXPOSE 8080
-CMD bun start main.ts
-
----
-
 [TestTemplate_Monorepo - 1]
 FROM node:18 AS build
 
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 WORKDIR /src/myservice
 RUN yarn install
-
 
 # Build if we can build it
 
@@ -134,14 +66,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 WORKDIR /src/myservice
 RUN yarn install
-
 
 # Build if we can build it
 
@@ -158,14 +86,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 WORKDIR /src/myservice
 RUN yarn install
-
 
 # Build if we can build it
 
@@ -186,14 +110,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 RUN yarn install
 
-COPY . .
 # Build if we can build it
 
 
@@ -208,14 +128,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 RUN yarn install
 
-COPY . .
 # Build if we can build it
 
 
@@ -230,14 +146,10 @@ FROM node:18 AS build
 ENV PORT=8080
 WORKDIR /src
 
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+RUN npm install -g yarn@latest
+COPY . .
 RUN yarn install
 
-COPY . .
 # Build if we can build it
 
 

@@ -1,27 +1,12 @@
-{{- if .Bun -}}
-# Install bun if we need it
-FROM oven/bun:{{.BunVersion}} AS bun-runtime
-{{ end -}}
 FROM node:{{.NodeVersion}} AS build
 
 ENV PORT=8080
 WORKDIR /src
 
-{{- if .Bun }}
-# Copy the bun binary from the bun-runtime stage directly.
-# A bit hacky but it works.
-COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin
-COPY --from=bun-runtime /usr/local/bin/bunx /usr/local/bin
-{{- end }}
-
-# https://github.com/nodejs/corepack/issues/612 + SUP-1441
-ENV COREPACK_INTEGRITY_KEYS=0
-RUN which corepack || npm install -g --force corepack@0.10.0
-RUN corepack enable
-
+{{ .InitCmd }}
+COPY . .
 {{ .InstallCmd }}
 
-{{ if eq .AppDir "" }}COPY . .{{ end }}
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 {{ if and .Serverless (eq .OutputDir "") }}

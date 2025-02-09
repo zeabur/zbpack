@@ -12,6 +12,10 @@ import (
 type PackageJSONEngine struct {
 	Node string `json:"node"`
 	Bun  string `json:"bun,omitempty"`
+
+	Npm  string `json:"npm,omitempty"`
+	Yarn string `json:"yarn,omitempty"`
+	Pnpm string `json:"pnpm,omitempty"`
 }
 
 // PackageJSON is the structure of `package.json`.

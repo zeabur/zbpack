@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 	"github.com/moznion/go-optional"
 	"github.com/samber/lo"
@@ -21,11 +23,6 @@ import (
 )
 
 const (
-	// ConfigCacheDependencies is the key for the configuration of
-	// whether to cache dependencies.
-	// It is true by default.
-	ConfigCacheDependencies = "cache_dependencies"
-
 	// ConfigNodeFramework is the key for the configuration for specifying
 	// the Node.js framework explicitly.
 	//
@@ -45,13 +42,14 @@ type nodePlanContext struct {
 	Src                afero.Fs
 	Bun                bool
 
-	PackageManager  optional.Option[types.NodePackageManager]
+	PackageManager  optional.Option[PackageManager]
 	Framework       optional.Option[types.NodeProjectFramework]
 	NeedPuppeteer   optional.Option[bool]
 	NeedPlaywright  optional.Option[bool]
 	BuildScript     optional.Option[string]
 	StartScript     optional.Option[string]
 	Entry           optional.Option[string]
+	InitCmd         optional.Option[string]
 	InstallCmd      optional.Option[string]
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
@@ -96,66 +94,129 @@ func (ctx *nodePlanContext) GetAppPackageJSON() PackageJSON {
 	return ctx.AppPackageJSON.Unwrap()
 }
 
+var (
+	// NpmLatestMajorVersion is the latest major version of npm.
+	NpmLatestMajorVersion uint64 = 10
+	// NpmOldestMajorVersion is the oldest major version of npm.
+	NpmOldestMajorVersion uint64 = 6
+	// YarnLatestMajorVersions is the latest major version of yarn.
+	YarnLatestMajorVersions uint64 = 4
+	// YarnOldestMajorVersion is the oldest major version of yarn.
+	YarnOldestMajorVersion uint64 = 1
+	// PnpmLatestMajorVersion is the latest major version of pnpm.
+	PnpmLatestMajorVersion uint64 = 10
+	// PnpmOldestMajorVersion is the oldest major version of pnpm.
+	PnpmOldestMajorVersion uint64 = 5
+)
+
+// packageManagerFieldRegex is the regular expression to match the package manager field in package.json.
+// https://github.com/SchemaStore/schemastore/blob/d75f7a25e595611541644ca3051b1538f865504a/src/schemas/json/package.json#L739
+var packageManagerFieldRegex = regexp.MustCompile(`(npm|pnpm|yarn|bun)@(\d+)\.\d+\.\d+(?:-.+)?`)
+
 // DeterminePackageManager determines the package manager of the Node.js project.
-func DeterminePackageManager(ctx *nodePlanContext) types.NodePackageManager {
-	src := ctx.Src
-	pm := &ctx.PackageManager
-	packageJSON := ctx.ProjectPackageJSON
-
-	if packageManager, err := pm.Take(); err == nil {
-		return packageManager
+func DeterminePackageManager(ctx *nodePlanContext) PackageManager {
+	if pkgManager, err := ctx.PackageManager.Take(); err == nil {
+		return pkgManager
 	}
 
-	if ctx.Bun {
-		*pm = optional.Some(types.NodePackageManagerBun)
-		return pm.Unwrap()
-	}
+	pkgManager := DeterminePackageManagerUncached(ctx)
+	ctx.PackageManager = optional.Some(pkgManager)
+	return pkgManager
+}
 
-	if packageJSON.PackageManager != nil {
-		// [pnpm]@8.4.0
-		packageManagerSection := strings.SplitN(
-			*packageJSON.PackageManager, "@", 2,
-		)
+// DeterminePackageManagerUncached determines the package manager of the Node.js project.
+func DeterminePackageManagerUncached(ctx *nodePlanContext) PackageManager {
+	p := ctx.ProjectPackageJSON
 
-		switch packageManagerSection[0] {
-		case "npm":
-			*pm = optional.Some(types.NodePackageManagerNpm)
-			return pm.Unwrap()
-		case "yarn":
-			*pm = optional.Some(types.NodePackageManagerYarn)
-			return pm.Unwrap()
-		case "pnpm":
-			*pm = optional.Some(types.NodePackageManagerPnpm)
-			return pm.Unwrap()
-		default:
-			log.Printf("Unknown package manager: %s", packageManagerSection[0])
-			*pm = optional.Some(types.NodePackageManagerUnknown)
-			return pm.Unwrap()
+	// Check packageManager.
+	if p.PackageManager != nil && *p.PackageManager != "" {
+		parsedPackageManager := packageManagerFieldRegex.FindStringSubmatch(*p.PackageManager)
+
+		if len(parsedPackageManager) == 3 {
+			switch parsedPackageManager[1] {
+			case "npm":
+				return Npm{MajorVersion: cast.ToUint64(parsedPackageManager[2])}
+			case "pnpm":
+				return Pnpm{MajorVersion: cast.ToUint64(parsedPackageManager[2])}
+			case "yarn":
+				return Yarn{MajorVersion: cast.ToUint64(parsedPackageManager[2])}
+			case "bun":
+				return Bun{}
+			}
 		}
 	}
 
-	if utils.HasFile(src, "yarn.lock") {
-		*pm = optional.Some(types.NodePackageManagerYarn)
-		return pm.Unwrap()
+	// Check engines: https://github.com/nodejs/node/issues/51888
+	if p.Engines.Bun != "" {
+		return Bun{}
 	}
 
-	if utils.HasFile(src, "pnpm-lock.yaml") {
-		*pm = optional.Some(types.NodePackageManagerPnpm)
-		return pm.Unwrap()
+	if p.Engines.Yarn != "" {
+		return Yarn{MajorVersion: findContraintVersion(p.Engines.Yarn, YarnLatestMajorVersions, YarnOldestMajorVersion)}
 	}
 
-	if utils.HasFile(src, "package-lock.json") {
-		*pm = optional.Some(types.NodePackageManagerNpm)
-		return pm.Unwrap()
+	if p.Engines.Pnpm != "" {
+		return Pnpm{MajorVersion: findContraintVersion(p.Engines.Pnpm, PnpmLatestMajorVersion, PnpmOldestMajorVersion)}
 	}
 
-	if utils.HasFile(src, "bun.lockb") || utils.HasFile(src, "bun.lock") {
-		*pm = optional.Some(types.NodePackageManagerBun)
-		return pm.Unwrap()
+	if p.Engines.Npm != "" {
+		return Npm{MajorVersion: findContraintVersion(p.Engines.Npm, NpmLatestMajorVersion, NpmOldestMajorVersion)}
 	}
 
-	*pm = optional.Some(types.NodePackageManagerUnknown)
-	return pm.Unwrap()
+	// Check lockfiles.
+	if utils.HasFile(ctx.Src, "yarn.lock") {
+		return Yarn{}
+	}
+
+	if utils.HasFile(ctx.Src, "pnpm-lock.yaml") {
+		return Pnpm{}
+	}
+
+	if utils.HasFile(ctx.Src, "bun.lock") || utils.HasFile(ctx.Src, "bun.lockb") {
+		return Bun{}
+	}
+
+	if utils.HasFile(ctx.Src, "package-lock.json") {
+		return Npm{}
+	}
+
+	return UnspecifiedPackageManager{PackageManager: Yarn{}}
+}
+
+func findContraintVersion(engineVersion string, latest uint64, oldest uint64) uint64 {
+	// Clean the engineVersion to remove any non-numeric characters.
+	cleaned := engineVersion
+	if strings.HasPrefix(cleaned, "~") || strings.HasPrefix(cleaned, "=") {
+		cleaned = strings.TrimLeft(cleaned, "~=")
+	}
+	if strings.Contains(cleaned, "*") {
+		cleaned = strings.ReplaceAll(cleaned, "*", "0")
+	}
+
+	// Try to parse cleaned engineVersion as a full semantic version.
+	if v, err := semver.NewVersion(cleaned); err == nil {
+		major := v.Major()
+		// If the parsed version's major is within the bounds, return it.
+		if major >= oldest && major <= latest {
+			return major
+		}
+	}
+
+	// Otherwise, treat engineVersion as a constraint.
+	constraint, err := semver.NewConstraint(engineVersion)
+	if err != nil {
+		return 0
+	}
+
+	// Iterate downward from the latest allowed major version.
+	for i := latest; i >= oldest; i-- {
+		v := semver.MustParse(fmt.Sprintf("%d.9999.9999", i))
+		if constraint.Check(v) {
+			return i
+		}
+	}
+
+	return 0
 }
 
 // DetermineAppFramework determines the framework of the Node.js app.
@@ -477,17 +538,7 @@ func GetPredeployScript(ctx *nodePlanContext) string {
 // GetScriptCommand gets the command to run a script in the Node.js or Bun app.
 func GetScriptCommand(ctx *nodePlanContext, script string) string {
 	pkgManager := DeterminePackageManager(ctx)
-
-	switch pkgManager {
-	case types.NodePackageManagerNpm:
-		return "npm run " + script
-	case types.NodePackageManagerPnpm:
-		return "pnpm run " + script
-	case types.NodePackageManagerBun:
-		return "bun run " + script
-	}
-
-	return "yarn " + script
+	return pkgManager.GetRunScript(script)
 }
 
 const (
@@ -539,10 +590,40 @@ func GetEntry(ctx *nodePlanContext) string {
 	return ent.Unwrap()
 }
 
+// GetInitCmd gets the package manager initialization command of the Node.js app.
+func GetInitCmd(ctx *nodePlanContext) string {
+	cmd := &ctx.InitCmd
+	var cmds []string
+
+	needPlaywright := DetermineNeedPlaywright(ctx)
+	if needPlaywright {
+		cmds = append(
+			cmds,
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && rm -rf /var/lib/apt/lists/*",
+		)
+	}
+
+	needPuppeteer := DetermineNeedPuppeteer(ctx)
+	if needPuppeteer {
+		cmds = append(
+			cmds,
+			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && rm -rf /var/lib/apt/lists/*",
+			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
+		)
+	}
+
+	pkgManager := DeterminePackageManager(ctx)
+	initCommand := pkgManager.GetInitCommand()
+	cmds = append(cmds, "RUN "+initCommand)
+
+	*cmd = optional.Some(strings.Join(cmds, "\n"))
+	return cmd.Unwrap()
+}
+
 // GetInstallCmd gets the installation command of the Node.js app.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
-	src, reldir := ctx.GetAppSource()
+	_, reldir := ctx.GetAppSource()
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -550,43 +631,10 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 
 	pkgManager := DeterminePackageManager(ctx)
 
-	// Disable cache_dependencies by default now due to some known cases:
-	//
-	//   * Monorepos: the critical dependencies are usually in the subdirectories.
-	//   * Some postinstall scripts may require some files (other than package.json and
-	//     lockfiles in the root)
-	//   * Customized installation command
-	//   * app root != project root (which means, there is more than 1 apps in this project)
-	//
-	// Considering we do not cache the Docker layer, let's disable it by default.
-	shouldCacheDependencies := plan.Cast(ctx.Config.Get(ConfigCacheDependencies), plan.ToWeakBoolE).TakeOr(false)
-
-	// disable cache_dependencies for monorepos
-	if shouldCacheDependencies && utils.HasFile(src, "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages") {
-		log.Println("Detected Monorepo. Disabling dependency caching.")
-		shouldCacheDependencies = false
-	}
-
-	// disable cache_dependencies if the installation command is customized
 	installCmdConf := plan.Cast(ctx.Config.Get(plan.ConfigInstallCommand), cast.ToStringE)
-	if installCmdConf.IsSome() {
-		shouldCacheDependencies = false
-	}
-
-	// disable cache_dependencies if the app root != project root
-	if reldir != "" {
-		shouldCacheDependencies = false
-	}
 
 	var cmds []string
-	if shouldCacheDependencies {
-		if utils.HasFile(src, "prisma") {
-			cmds = append(cmds, "COPY prisma prisma")
-		}
-		cmds = append(cmds, "COPY package.json* tsconfig.json* .npmrc* .")
-	} else {
-		cmds = append(cmds, "COPY . .")
-	}
+
 	if reldir != "" {
 		cmds = append(cmds, "WORKDIR /src/"+reldir)
 	}
@@ -594,46 +642,8 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 	if installCmd, err := installCmdConf.Take(); err == nil {
 		cmds = append(cmds, "RUN "+installCmd)
 	} else {
-		switch pkgManager {
-		case types.NodePackageManagerNpm:
-			// FIXME: reldir != ""
-			if shouldCacheDependencies && reldir == "" {
-				cmds = append(cmds, "COPY package-lock.json* .")
-			}
-			cmds = append(cmds, "RUN npm install")
-		case types.NodePackageManagerPnpm:
-			if shouldCacheDependencies && reldir == "" {
-				cmds = append(cmds, "COPY pnpm-lock.yaml* .")
-			}
-			cmds = append(cmds, "RUN pnpm install")
-		case types.NodePackageManagerBun:
-			if shouldCacheDependencies && reldir == "" {
-				cmds = append(cmds, "COPY bun.lock* .")
-			}
-			cmds = append(cmds, "RUN bun install")
-		case types.NodePackageManagerYarn:
-			if shouldCacheDependencies && reldir == "" {
-				cmds = append(cmds, "COPY yarn.lock* .")
-			}
-			cmds = append(cmds, "RUN yarn install")
-		default:
-			cmds = append(cmds, "RUN yarn install")
-		}
-	}
-
-	needPlaywright := DetermineNeedPlaywright(ctx)
-	if needPlaywright {
-		cmds = append([]string{
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && rm -rf /var/lib/apt/lists/*",
-		}, cmds...)
-	}
-
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		cmds = append([]string{
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && rm -rf /var/lib/apt/lists/*",
-			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
-		}, cmds...)
+		installDependenciesCommand := pkgManager.GetInstallProjectDependenciesCommand()
+		cmds = append(cmds, "RUN "+installDependenciesCommand)
 	}
 
 	*cmd = optional.Some(strings.Join(cmds, "\n"))
@@ -670,7 +680,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	if slices.Contains(types.NitroBasedFrameworks, framework) {
 		if serverless {
 			buildCmd = "NITRO_PRESET=node " + buildCmd
-		} else if pkgManager == types.NodePackageManagerBun {
+		} else if pkgManager.GetType() == types.NodePackageManagerBun {
 			buildCmd = "NITRO_PRESET=bun " + buildCmd
 		} else {
 			buildCmd = "NITRO_PRESET=node-server " + buildCmd
@@ -678,19 +688,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	}
 
 	if framework == types.NodeProjectFrameworkMedusa {
-		var installCmd string
-		switch pkgManager {
-		case types.NodePackageManagerNpm:
-			installCmd = "npm install"
-		case types.NodePackageManagerPnpm:
-			installCmd = "pnpm install"
-		case types.NodePackageManagerYarn:
-			installCmd = "yarn install"
-		case types.NodePackageManagerBun:
-			installCmd = "bun install"
-		default:
-			installCmd = "yarn install"
-		}
+		installCmd := pkgManager.GetInstallProjectDependenciesCommand()
 
 		// Install the dependencies in ".medusa/server" directory.
 		buildCmd += " && " + "cd .medusa/server" + " && " + installCmd
@@ -1060,13 +1058,16 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	meta["appDir"] = reldir
 
 	pkgManager := DeterminePackageManager(ctx)
-	meta["packageManager"] = string(pkgManager)
+	meta["packageManager"] = string(pkgManager.GetType())
 
 	framework := DetermineAppFramework(ctx)
 	meta["framework"] = string(framework)
 
 	nodeVersion := GetNodeVersion(ctx)
 	meta["nodeVersion"] = nodeVersion
+
+	initCmd := GetInitCmd(ctx)
+	meta["initCmd"] = initCmd
 
 	installCmd := GetInstallCmd(ctx)
 	meta["installCmd"] = installCmd
