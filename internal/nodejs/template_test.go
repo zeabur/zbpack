@@ -93,20 +93,6 @@ func TestTemplate_BuildCmd_OutputDir(t *testing.T) {
 	snaps.MatchSnapshot(t, result)
 }
 
-func TestTemplate_BuildCmd_Bun(t *testing.T) {
-	ctx := nodejs.TemplateContext{
-		Bun:         true,
-		BunVersion:  "1.2",
-		NodeVersion: "18",
-		InstallCmd:  "RUN bun install",
-		StartCmd:    "bun start main.ts",
-	}
-
-	result, err := ctx.Execute()
-	assert.NoError(t, err)
-	snaps.MatchSnapshot(t, result)
-}
-
 func TestTemplate_Monorepo(t *testing.T) {
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
@@ -141,20 +127,6 @@ func TestTemplate_MonorepoServerlessOutDir(t *testing.T) {
 		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
 		StartCmd:    "yarn start",
 		OutputDir:   "/app/dist",
-	}
-
-	result, err := ctx.Execute()
-	assert.NoError(t, err)
-	snaps.MatchSnapshot(t, result)
-}
-
-func TestTemplate_Bun(t *testing.T) {
-	ctx := nodejs.TemplateContext{
-		NodeVersion: "18",
-		InstallCmd:  "RUN bun install",
-		StartCmd:    "bun start main.ts",
-		Bun:         true,
-		BunVersion:  "1",
 	}
 
 	result, err := ctx.Execute()

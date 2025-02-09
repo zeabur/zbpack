@@ -14,7 +14,6 @@ import (
 // TemplateContext is the context for the Node.js Dockerfile template.
 type TemplateContext struct {
 	NodeVersion string
-	BunVersion  string
 
 	AppDir string
 
@@ -25,8 +24,6 @@ type TemplateContext struct {
 	Framework  string
 	Serverless bool
 	OutputDir  string
-
-	Bun bool
 }
 
 //go:embed templates
@@ -59,10 +56,6 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		Framework:   meta["framework"],
 		Serverless:  meta["serverless"] == "true",
 		OutputDir:   meta["outputDir"],
-
-		// The flag specific to planner/bun.
-		Bun:        meta["bun"] == "true" || meta["packageManager"] == "bun",
-		BunVersion: meta["bunVersion"],
 	}
 
 	return context
