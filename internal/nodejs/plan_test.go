@@ -783,6 +783,38 @@ func TestDeterminePackageManager(t *testing.T) {
 			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 6))
 		})
 
+		t.Run("npm minor version", func(t *testing.T) {
+			ctx := newFixture("npm", "~6.14.0")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 6))
+		})
+
+		t.Run("npm equal version", func(t *testing.T) {
+			ctx := newFixture("npm", "=6.14.0")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 6))
+		})
+
+		t.Run("npm any version", func(t *testing.T) {
+			ctx := newFixture("npm", "*")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", NpmLatestMajorVersion))
+		})
+
+		t.Run("npm any minor version", func(t *testing.T) {
+			ctx := newFixture("npm", "8.*")
+			pm := DeterminePackageManager(ctx)
+
+			assert.Equal(t, types.NodePackageManagerNpm, pm.GetType())
+			assert.Contains(t, pm.GetInitCommand(), fmt.Sprintf("npm@%d", 8))
+		})
+
 		t.Run("yarn", func(t *testing.T) {
 			ctx := newFixture("yarn", "^1")
 			pm := DeterminePackageManager(ctx)

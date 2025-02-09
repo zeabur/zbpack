@@ -184,8 +184,17 @@ func DeterminePackageManagerUncached(ctx *nodePlanContext) PackageManager {
 }
 
 func findContraintVersion(engineVersion string, latest uint64, oldest uint64) uint64 {
-	// Try to parse engineVersion as a full semantic version.
-	if v, err := semver.NewVersion(engineVersion); err == nil {
+	// Clean the engineVersion to remove any non-numeric characters.
+	cleaned := engineVersion
+	if strings.HasPrefix(cleaned, "~") || strings.HasPrefix(cleaned, "=") {
+		cleaned = strings.TrimLeft(cleaned, "~=")
+	}
+	if strings.Contains(cleaned, "*") {
+		cleaned = strings.ReplaceAll(cleaned, "*", "0")
+	}
+
+	// Try to parse cleaned engineVersion as a full semantic version.
+	if v, err := semver.NewVersion(cleaned); err == nil {
 		major := v.Major()
 		// If the parsed version's major is within the bounds, return it.
 		if major >= oldest && major <= latest {
