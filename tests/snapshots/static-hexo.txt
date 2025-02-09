@@ -7,7 +7,7 @@ Meta:
   framework: "hexo"
   initCmd: "RUN npm install -f -g yarn@latest"
   installCmd: "RUN yarn install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   outputDir: "public"
   packageManager: "yarn"
   serverless: "true"

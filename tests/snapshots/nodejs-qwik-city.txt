@@ -7,6 +7,6 @@ Meta:
   framework: "qwik"
   initCmd: "RUN npm update -g npm"
   installCmd: "RUN npm install"
-  nodeVersion: "15"
+  nodeVersion: "23"
   packageManager: "npm"
   startCmd: "npm run deploy"

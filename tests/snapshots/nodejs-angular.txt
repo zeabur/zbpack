@@ -7,7 +7,7 @@ Meta:
   framework: "angular"
   initCmd: "RUN npm update -g npm"
   installCmd: "RUN npm install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   outputDir: "dist/angular-template/browser"
   packageManager: "npm"
   serverless: "true"
