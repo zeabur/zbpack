@@ -2,10 +2,11 @@ PlanType: nodejs
 
 Meta:
   appDir: ""
-  buildCmd: "pnpm run build"
+  buildCmd: "pnpm build"
   bun: "false"
   framework: "nest.js"
-  installCmd: "COPY . .\nRUN pnpm install"
+  initCmd: "RUN npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
+  installCmd: "RUN pnpm install"
   nodeVersion: "20"
   packageManager: "pnpm"
-  startCmd: "pnpm run start"
+  startCmd: "pnpm start"

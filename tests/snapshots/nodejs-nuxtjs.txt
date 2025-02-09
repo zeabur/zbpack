@@ -2,10 +2,11 @@ PlanType: nodejs
 
 Meta:
   appDir: ""
-  buildCmd: "NITRO_PRESET=node pnpm run build"
+  buildCmd: "NITRO_PRESET=node pnpm build"
   bun: "false"
   framework: "nuxt.js"
-  installCmd: "COPY . .\nRUN pnpm install"
+  initCmd: "RUN npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
+  installCmd: "RUN pnpm install"
   nodeVersion: "20"
   packageManager: "pnpm"
   serverless: "true"
