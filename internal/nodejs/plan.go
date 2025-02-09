@@ -542,9 +542,9 @@ func GetScriptCommand(ctx *nodePlanContext, script string) string {
 }
 
 const (
-	defaultNodeVersion        = "20"
-	maxNodeVersion     uint64 = 22
-	maxLtsNodeVersion  uint64 = 20
+	defaultNodeVersion        = "22"
+	maxNodeVersion     uint64 = 23
+	maxLtsNodeVersion  uint64 = 22
 )
 
 func getNodeVersion(versionConstraint string) string {
