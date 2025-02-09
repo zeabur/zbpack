@@ -5,7 +5,6 @@ WORKDIR /src
 
 {{ .InstallCmd }}
 
-{{ if eq .AppDir "" }}COPY . .{{ end }}
 # Build if we can build it
 {{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
 {{ if and .Serverless (eq .OutputDir "") }}

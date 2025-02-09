@@ -377,26 +377,6 @@ func TestInstallCommand(t *testing.T) {
 		assert.Contains(t, installCmd, "COPY . .")
 		assert.NotContains(t, installCmd, "WORKDIR")
 	})
-
-	t.Run("shouldCacheDependencies is false", func(t *testing.T) {
-		t.Parallel()
-
-		fs := afero.NewMemMapFs()
-		_ = afero.WriteFile(fs, "package.json", []byte(`{}`), 0o644)
-
-		config := plan.NewProjectConfigurationFromFs(fs, "")
-		config.Set(ConfigCacheDependencies, false)
-
-		ctx := &nodePlanContext{
-			Src:                fs,
-			Config:             config,
-			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
-		}
-
-		installCmd := GetInstallCmd(ctx)
-		assert.Contains(t, installCmd, "COPY . .")
-		assert.NotContains(t, installCmd, "WORKDIR")
-	})
 }
 
 func TestGetStaticOutputDir(t *testing.T) {
