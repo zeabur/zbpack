@@ -1,6 +1,9 @@
 schema = 3
 
 [mod]
+  [mod."github.com/Masterminds/semver/v3"]
+    version = "v3.3.1"
+    hash = "sha256-/4klCUODDVG0qnxNuGCPWUTBzOSgQl4pwvyeQXrqlCw="
   [mod."github.com/aws/aws-sdk-go"]
     version = "v1.55.6"
     hash = "sha256-SASq+4NwIUV77faF05oj194tzqLtSHG94u7GgLrwplg="
@@ -20,8 +23,8 @@ schema = 3
     version = "v0.6.0"
     hash = "sha256-gr4tL+qz4jKyAtl8LINcxMSanztdt+pybj1T+2ulQv4="
   [mod."github.com/evanw/esbuild"]
-    version = "v0.24.2"
-    hash = "sha256-XK2yFobmJnX6Y1SMzWTJCKjjXzt2J6WFFhH9tRKm6Xc="
+    version = "v0.25.0"
+    hash = "sha256-Tu9S1/GToNCQATWTUJnigkhZGAOzxEEK6YKo+1/vk3Y="
   [mod."github.com/fsnotify/fsnotify"]
     version = "v1.8.0"
     hash = "sha256-+Rxg5q17VaqSU1xKPgurq90+Z1vzXwMLIBSe5UsyI/M="
@@ -32,11 +35,11 @@ schema = 3
     version = "v1.3.2"
     hash = "sha256-Qh2lAShlRm571xMxhAOfRoaFYzrfHmmk7RQmSiJxPbo="
   [mod."github.com/gkampitakis/go-snaps"]
-    version = "v0.5.9"
-    hash = "sha256-puyYdQI905gD2F8iHTglZMZ5sQQEMtKNp2eTDy5MFD8="
+    version = "v0.5.10"
+    hash = "sha256-8lN/5584doDamZNiYe8UWIh2aMc8lJ0NH7JXJMaV0K8="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.15.17"
-    hash = "sha256-v9/eURh/Y0W5rP3VdCkysQwkmbRFYZ5h3AyQm9F2CF4="
+    version = "v1.15.19"
+    hash = "sha256-aDncy+24f167yD3q8aRBuwLufU4V+8cl3I9cGo4l24A="
   [mod."github.com/gogo/protobuf"]
     version = "v1.3.2"
     hash = "sha256-pogILFrrk+cAtb0ulqn9+gRZJ7sGnnLLdtqITvxvG6c="
@@ -176,14 +179,14 @@ schema = 3
     version = "v0.0.0-20241009180824-f66d83c29e7c"
     hash = "sha256-ICL1UU2rrOBespsjNrlvrAhZOFLMcxYWAx8pDQCgAXM="
   [mod."golang.org/x/sync"]
-    version = "v0.10.0"
-    hash = "sha256-HWruKClrdoBKVdxKCyoazxeQV4dIYLdkHekQvx275/o="
+    version = "v0.11.0"
+    hash = "sha256-5ZBfDJvNaUBM4Vhk0fgYblCGL3eBxiJL85nIE8LiKl0="
   [mod."golang.org/x/sys"]
     version = "v0.29.0"
     hash = "sha256-qfsodJQ1H1CBI8yQWOvsXJgY5qHmiuw566HrrIseYHI="
   [mod."golang.org/x/text"]
-    version = "v0.21.0"
-    hash = "sha256-QaMwddBRnoS2mv9Y86eVC2x2wx/GZ7kr2zAJvwDeCPc="
+    version = "v0.22.0"
+    hash = "sha256-kUwLNFk9K/YuWmO5/u2IshrmhT2CCuk+mAShSlTTeZo="
   [mod."google.golang.org/protobuf"]
     version = "v1.36.1"
     hash = "sha256-qGWEeb6fd16uATHuJ5mDdZKUKnHwKOeneJ6mXEv3prQ="
