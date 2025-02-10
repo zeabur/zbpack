@@ -60,7 +60,7 @@ require (
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.6.0
-	github.com/evanw/esbuild v0.24.2
+	github.com/evanw/esbuild v0.25.0
 	github.com/gkampitakis/go-snaps v0.5.10
 	github.com/goccy/go-yaml v1.15.17
 	github.com/google/go-github/v63 v63.0.0
