@@ -8,7 +8,7 @@ Meta:
   framework: "next.js"
   initCmd: "RUN npm install -g bun@latest"
   installCmd: "RUN bun install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   packageManager: "bun"
   serverless: "true"
   startCmd: ""

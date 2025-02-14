@@ -7,6 +7,6 @@ Meta:
   framework: "svelte"
   initCmd: "RUN npm update -g npm"
   installCmd: "RUN npm install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   packageManager: "npm"
   startCmd: "node build/index.js"

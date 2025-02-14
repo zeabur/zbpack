@@ -7,6 +7,6 @@ Meta:
   framework: "none"
   initCmd: "RUN npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
   installCmd: "RUN pnpm install"
-  nodeVersion: "18"
+  nodeVersion: "23"
   packageManager: "pnpm"
   startCmd: "pnpm start"

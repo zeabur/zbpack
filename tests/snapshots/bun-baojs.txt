@@ -8,6 +8,6 @@ Meta:
   framework: "baojs"
   initCmd: "RUN npm install -g bun@latest"
   installCmd: "RUN bun install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   packageManager: "bun"
   startCmd: "bun run start"
