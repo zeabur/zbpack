@@ -7,7 +7,7 @@ Meta:
   framework: "vite"
   initCmd: "RUN npm install -f -g yarn@latest"
   installCmd: "RUN yarn install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   outputDir: "dist"
   packageManager: "unknown"
   serverless: "true"

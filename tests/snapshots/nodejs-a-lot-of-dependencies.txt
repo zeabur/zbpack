@@ -7,7 +7,7 @@ Meta:
   framework: "next.js"
   initCmd: "RUN npm install -f -g yarn@latest && yarn set version berry"
   installCmd: "RUN yarn install"
-  nodeVersion: "20"
+  nodeVersion: "22"
   packageManager: "yarn"
   serverless: "true"
   startCmd: ""

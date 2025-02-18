@@ -547,21 +547,47 @@ func GetScriptCommand(ctx *nodePlanContext, script string) string {
 }
 
 const (
-	defaultNodeVersion        = "20"
-	maxNodeVersion     uint64 = 22
-	maxLtsNodeVersion  uint64 = 20
+	defaultNodeVersion        = "22"
+	maxNodeVersion     uint64 = 23
+	maxLtsNodeVersion  uint64 = 22
+	minNodeVersion     uint64 = 16
 )
 
-func getNodeVersion(versionConstraint string) string {
+func getNodeVersion(constraint string) string {
 	// .nvmrc extensions
-	if versionConstraint == "node" {
+	if constraint == "node" {
 		return strconv.FormatUint(maxNodeVersion, 10)
 	}
-	if versionConstraint == "lts/*" {
+	if constraint == "lts/*" {
 		return strconv.FormatUint(maxLtsNodeVersion, 10)
 	}
 
-	return utils.ConstraintToVersion(versionConstraint, defaultNodeVersion)
+	// For tilde versions or wildcards, clean the constraint to extract an exact version.
+	cleaned := constraint
+	if strings.HasPrefix(cleaned, "~") || strings.HasPrefix(cleaned, "=") {
+		cleaned = strings.TrimLeft(cleaned, "~=")
+	}
+	if strings.Contains(cleaned, "*") {
+		cleaned = strings.ReplaceAll(cleaned, "*", "0")
+	}
+
+	// Try to parse the cleaned version.
+	if v, err := semver.NewVersion(strings.TrimSpace(cleaned)); err == nil {
+		return strconv.FormatUint(max(v.Major(), minNodeVersion), 10)
+	}
+
+	// Otherwise, treat "constraint" as a range constraint.
+	constraints, err := semver.NewConstraint(constraint)
+	if err == nil {
+		for i := maxNodeVersion; i >= minNodeVersion; i-- {
+			v := semver.MustParse(fmt.Sprintf("%d.999.999", i))
+			if constraints.Check(v) {
+				return strconv.FormatUint(i, 10)
+			}
+		}
+	}
+
+	return defaultNodeVersion
 }
 
 // GetNodeVersion gets the Node.js version of the project.
@@ -572,11 +598,15 @@ func GetNodeVersion(ctx *nodePlanContext) string {
 
 	// If there are ".node-version" or ".nvmrc" file, we pick
 	// the version from them.
-	if content, err := utils.ReadFileToUTF8(src, ".node-version"); err == nil {
-		projectNodeVersion = strings.TrimSpace(string(content))
-	}
-	if content, err := utils.ReadFileToUTF8(src, ".nvmrc"); err == nil {
-		projectNodeVersion = strings.TrimSpace(string(content))
+	for _, f := range []string{".node-version", ".nvmrc"} {
+		content, err := utils.ReadFileToUTF8(src, f)
+		if err != nil {
+			continue
+		}
+
+		versionConstraint := strings.TrimSpace(string(content))
+
+		return getNodeVersion(versionConstraint)
 	}
 
 	return getNodeVersion(projectNodeVersion)
