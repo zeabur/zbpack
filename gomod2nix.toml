@@ -35,11 +35,11 @@ schema = 3
     version = "v1.3.2"
     hash = "sha256-Qh2lAShlRm571xMxhAOfRoaFYzrfHmmk7RQmSiJxPbo="
   [mod."github.com/gkampitakis/go-snaps"]
-    version = "v0.5.10"
-    hash = "sha256-8lN/5584doDamZNiYe8UWIh2aMc8lJ0NH7JXJMaV0K8="
+    version = "v0.5.11"
+    hash = "sha256-ZSAqsHVVcrbu4BWgIoFigF8yOeI2w1lIdxgxMWrcwZo="
   [mod."github.com/goccy/go-yaml"]
-    version = "v1.15.19"
-    hash = "sha256-aDncy+24f167yD3q8aRBuwLufU4V+8cl3I9cGo4l24A="
+    version = "v1.15.23"
+    hash = "sha256-11AoZgodw3M2FSyu1UYL/RiGt2CfqHxX9JsRMmlDjXA="
   [mod."github.com/gogo/protobuf"]
     version = "v1.3.2"
     hash = "sha256-pogILFrrk+cAtb0ulqn9+gRZJ7sGnnLLdtqITvxvG6c="
@@ -143,11 +143,11 @@ schema = 3
     version = "v1.7.1"
     hash = "sha256-BjX0aY/PC37gIdMc7JhMgvhWFsksGdAcp2FgzpuvkPo="
   [mod."github.com/spf13/cobra"]
-    version = "v1.8.1"
-    hash = "sha256-yDF6yAHycV1IZOrt3/hofR+QINe+B2yqkcIaVov3Ky8="
+    version = "v1.9.1"
+    hash = "sha256-dzEqquABE3UqZmJuj99244QjvfojS8cFlsPr/MXQGj0="
   [mod."github.com/spf13/pflag"]
-    version = "v1.0.5"
-    hash = "sha256-w9LLYzxxP74WHT4ouBspH/iQZXjuAh2WQCHsuvyEjAw="
+    version = "v1.0.6"
+    hash = "sha256-NjrK0FZPIfO/p2xtL1J7fOBQNTZAPZOC6Cb4aMMvhxI="
   [mod."github.com/spf13/viper"]
     version = "v1.19.0"
     hash = "sha256-MZ8EAvdgpGbw6kmUz8UOaAAAMdPPGd14TrCBAY+A1T4="
