@@ -255,11 +255,6 @@ var projects = []struct {
 		repo:  "slidev-template",
 	},
 	{
-		name:  "nodejs-express-minio",
-		owner: "zeabur",
-		repo:  "express-minio-template",
-	},
-	{
 		name:  "nodejs-qwik-city",
 		owner: "zeabur",
 		repo:  "qwik-city-template",
