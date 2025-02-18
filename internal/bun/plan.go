@@ -2,7 +2,6 @@ package bun
 
 import (
 	"log"
-	"strings"
 
 	"github.com/moznion/go-optional"
 	"github.com/spf13/afero"
@@ -36,15 +35,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	bunVersion := DetermineVersion(ctx)
 	meta["bunVersion"] = bunVersion
-
-	if framework == types.BunFrameworkHono {
-		entry := determineEntry(ctx)
-		if entry != "" {
-			meta["entry"] = entry
-		}
-
-		return meta
-	}
 
 	if framework != types.BunFrameworkNone {
 		opt.BunFramework = optional.Some(framework)
@@ -99,29 +89,8 @@ func DetermineFramework(ctx *PlanContext) types.BunFramework {
 		return fw.Unwrap()
 	}
 
-	if _, isHono := packageJSON.Dependencies["hono"]; isHono {
-		*fw = optional.Some(types.BunFrameworkHono)
-		return fw.Unwrap()
-	}
-
 	*fw = optional.Some(types.BunFrameworkNone)
 	return fw.Unwrap()
-}
-
-func determineEntry(ctx *PlanContext) string {
-	if strings.HasPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot") {
-		return strings.TrimPrefix(ctx.PackageJSON.Scripts["dev"], "bun run --hot ")
-	}
-
-	possibleEntries := []string{"index.ts", "index.js", "src/index.ts", "src/index.js"}
-
-	for _, entry := range possibleEntries {
-		if utils.HasFile(ctx.Src, entry) {
-			return entry
-		}
-	}
-
-	return ""
 }
 
 // DetermineVersion determines the Bun version to use.

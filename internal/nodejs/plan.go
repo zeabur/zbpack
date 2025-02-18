@@ -357,6 +357,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isHono := packageJSON.Dependencies["hono"]; isHono {
+		*fw = optional.Some(types.NodeProjectFrameworkHono)
+		return fw.Unwrap()
+	}
+
 	if _, isVitepress := packageJSON.FindDependency("vitepress"); isVitepress {
 		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
@@ -825,6 +830,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 
 	predeployScript := GetPredeployScript(ctx)
 
+	packageJSON := ctx.GetAppPackageJSON()
 	startScript := GetStartScript(ctx)
 	entry := GetEntry(ctx)
 	framework := DetermineAppFramework(ctx)
@@ -840,6 +846,13 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		}
 
 		*cmd = optional.Some(startCmd)
+		return cmd.Unwrap()
+	}
+
+	// create-hono-app: bun run --hot <entrypoint>
+	if devScript := packageJSON.Scripts["dev"]; strings.HasPrefix(devScript, "bun run --hot") {
+		entry := strings.TrimSpace(strings.TrimPrefix(devScript, "bun run --hot"))
+		*cmd = optional.Some("bun " + entry)
 		return cmd.Unwrap()
 	}
 

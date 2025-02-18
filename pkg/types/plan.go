@@ -92,6 +92,7 @@ const (
 	NodeProjectFrameworkGrammY           NodeProjectFramework = "grammy"
 	NodeProjectFrameworkNitropack        NodeProjectFramework = "nitropack"
 	NodeProjectFrameworkMedusa           NodeProjectFramework = "medusa"
+	NodeProjectFrameworkHono             NodeProjectFramework = "hono"
 )
 
 var NitroBasedFrameworks = []NodeProjectFramework{
@@ -244,6 +245,5 @@ const (
 	BunFrameworkElysia BunFramework = "elysia"
 	BunFrameworkBaojs  BunFramework = "baojs"
 	BunFrameworkBagel  BunFramework = "bagel"
-	BunFrameworkHono   BunFramework = "hono"
 	BunFrameworkNone   BunFramework = "none"
 )
