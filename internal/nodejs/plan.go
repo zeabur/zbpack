@@ -357,6 +357,11 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
+	if _, isHono := packageJSON.Dependencies["hono"]; isHono {
+		*fw = optional.Some(types.NodeProjectFrameworkHono)
+		return fw.Unwrap()
+	}
+
 	if _, isVitepress := packageJSON.FindDependency("vitepress"); isVitepress {
 		*fw = optional.Some(types.NodeProjectFrameworkVitepress)
 		return fw.Unwrap()
@@ -825,6 +830,7 @@ func GetStartCmd(ctx *nodePlanContext) string {
 
 	predeployScript := GetPredeployScript(ctx)
 
+	packageJSON := ctx.GetAppPackageJSON()
 	startScript := GetStartScript(ctx)
 	entry := GetEntry(ctx)
 	framework := DetermineAppFramework(ctx)
@@ -855,7 +861,13 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		case types.IsNitroBasedFramework(string(framework)):
 			startCmd = "HOST=0.0.0.0 " + runtime + " .output/server/index.mjs"
 		default:
-			startCmd = runtime + " index.js"
+			if devScript := packageJSON.Scripts["dev"]; devScript != "" && framework == types.NodeProjectFrameworkHono {
+				// create-hono-app does not have "start" script by default.
+				startCmd = devScript
+			} else {
+				// fallback
+				startCmd = runtime + " index.js"
+			}
 		}
 	}
 
