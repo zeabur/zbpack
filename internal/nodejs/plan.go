@@ -849,10 +849,9 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return cmd.Unwrap()
 	}
 
-	// create-hono-app: bun run --hot <entrypoint>
-	if devScript := packageJSON.Scripts["dev"]; strings.HasPrefix(devScript, "bun run --hot") {
-		entry := strings.TrimSpace(strings.TrimPrefix(devScript, "bun run --hot"))
-		*cmd = optional.Some("bun " + entry)
+	// create-hono-app does not have "start" script by default.
+	if devScript := packageJSON.Scripts["dev"]; framework == types.NodeProjectFrameworkHono {
+		*cmd = optional.Some(devScript)
 		return cmd.Unwrap()
 	}
 
