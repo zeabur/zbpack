@@ -849,12 +849,6 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return cmd.Unwrap()
 	}
 
-	// create-hono-app does not have "start" script by default.
-	if devScript := packageJSON.Scripts["dev"]; framework == types.NodeProjectFrameworkHono {
-		*cmd = optional.Some(devScript)
-		return cmd.Unwrap()
-	}
-
 	var startCmd string
 	runtime := lo.If(ctx.Bun, "bun").Else("node")
 
@@ -867,7 +861,13 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		case types.IsNitroBasedFramework(string(framework)):
 			startCmd = "HOST=0.0.0.0 " + runtime + " .output/server/index.mjs"
 		default:
-			startCmd = runtime + " index.js"
+			if devScript := packageJSON.Scripts["dev"]; devScript != "" && framework == types.NodeProjectFrameworkHono {
+				// create-hono-app does not have "start" script by default.
+				startCmd = devScript
+			} else {
+				// fallback
+				startCmd = runtime + " index.js"
+			}
 		}
 	}
 
