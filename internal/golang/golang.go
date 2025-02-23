@@ -37,14 +37,6 @@ RUN go build -o ./bin/server ` + meta["entry"]
 COPY --from=builder /src/bin/server /bin/server
 CMD ["/bin/server"]`
 
-	exportStage := `FROM scratch
-COPY --from=builder /src/bin/server main
-`
-
-	if meta["serverless"] == "true" {
-		return buildStage + "\n" + exportStage, nil
-	}
-
 	return buildStage + "\n" + runtimeStage, nil
 }
 
