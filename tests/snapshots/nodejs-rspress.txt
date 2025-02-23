@@ -10,5 +10,4 @@ Meta:
   nodeVersion: "22"
   outputDir: "doc_build"
   packageManager: "pnpm"
-  serverless: "true"
   startCmd: ""

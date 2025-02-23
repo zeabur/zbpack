@@ -10,5 +10,4 @@ Meta:
   installCmd: "RUN bun install"
   nodeVersion: "22"
   packageManager: "bun"
-  serverless: "true"
-  startCmd: ""
+  startCmd: "bun run start"

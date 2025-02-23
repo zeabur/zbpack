@@ -10,5 +10,4 @@ Meta:
   nodeVersion: "22"
   outputDir: "dist/angular-template/browser"
   packageManager: "npm"
-  serverless: "true"
   startCmd: ""
