@@ -72,8 +72,6 @@ func TestTemplate_BuildCmd_NOutputDir(t *testing.T) {
 		InstallCmd: "RUN yarn install",
 		BuildCmd:   "yarn build",
 		StartCmd:   "yarn start",
-
-		Serverless: true,
 	}
 
 	result, err := ctx.Execute()
@@ -112,68 +110,19 @@ func TestTemplate_Monorepo(t *testing.T) {
 	snaps.MatchSnapshot(t, result)
 }
 
-func TestTemplate_MonorepoServerless(t *testing.T) {
+func TestTemplate_WithOutputDir(t *testing.T) {
+	t.Parallel()
+
 	ctx := nodejs.TemplateContext{
 		NodeVersion: "18",
-		AppDir:      "myservice",
 		InitCmd:     "RUN npm install -g yarn@latest",
-		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
-		StartCmd:    "yarn start",
-		Serverless:  true,
-	}
-
-	result, err := ctx.Execute()
-	assert.NoError(t, err)
-	snaps.MatchSnapshot(t, result)
-}
-
-func TestTemplate_MonorepoServerlessOutDir(t *testing.T) {
-	ctx := nodejs.TemplateContext{
-		NodeVersion: "18",
-		AppDir:      "myservice",
-		InitCmd:     "RUN npm install -g yarn@latest",
-		InstallCmd:  "WORKDIR /src/myservice\nRUN yarn install",
-		StartCmd:    "yarn start",
+		InstallCmd:  "RUN yarn install",
 		OutputDir:   "/app/dist",
 	}
 
 	result, err := ctx.Execute()
 	assert.NoError(t, err)
-	snaps.MatchSnapshot(t, result)
-}
 
-func TestTemplate_ServerlessOutputDir(t *testing.T) {
-	t.Parallel()
-
-	t.Run("with serverless", func(t *testing.T) {
-		ctx := nodejs.TemplateContext{
-			NodeVersion: "18",
-			InitCmd:     "RUN npm install -g yarn@latest",
-			InstallCmd:  "RUN yarn install",
-			Serverless:  true,
-			OutputDir:   "/app/dist",
-		}
-
-		result, err := ctx.Execute()
-		assert.NoError(t, err)
-
-		require.Contains(t, result, "FROM scratch AS output")
-		require.NotContains(t, result, "FROM zeabur/caddy-static AS runtime")
-	})
-
-	t.Run("without serverless", func(t *testing.T) {
-		ctx := nodejs.TemplateContext{
-			NodeVersion: "18",
-			InitCmd:     "RUN npm install -g yarn@latest",
-			InstallCmd:  "RUN yarn install",
-			Serverless:  false,
-			OutputDir:   "/app/dist",
-		}
-
-		result, err := ctx.Execute()
-		assert.NoError(t, err)
-
-		require.Contains(t, result, "FROM scratch AS output")
-		require.Contains(t, result, "FROM zeabur/caddy-static AS runtime")
-	})
+	require.Contains(t, result, "FROM scratch AS output")
+	require.Contains(t, result, "FROM zeabur/caddy-static AS runtime")
 }
