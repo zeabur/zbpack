@@ -1,7 +1,6 @@
 package static
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -29,9 +28,7 @@ func (i *identify) Match(fs afero.Fs) bool {
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
-	serverless := utils.GetExplicitServerlessConfig(options.Config).TakeOr(true)
-
-	planMeta := types.PlanMeta{"serverless": strconv.FormatBool(serverless)}
+	planMeta := types.PlanMeta{}
 
 	if utils.HasFile(options.Source, "hugo.toml", "hugo.json", "hugo.yaml", "config/_default/hugo.toml", "config/_default/hugo.json", "config/_default/hugo.yaml") {
 		planMeta["framework"] = "hugo"
