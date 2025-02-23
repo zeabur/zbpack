@@ -12,9 +12,8 @@ RUN yarn install
 # Build if we can build it
 RUN yarn build
 
-FROM scratch AS output
-COPY --from=build /src/ /
-
+EXPOSE 8080
+CMD yarn start
 
 ---
 
@@ -33,10 +32,8 @@ RUN yarn build
 
 FROM scratch AS output
 COPY --from=build /src///app/dist /
-
 FROM zeabur/caddy-static AS runtime
 COPY --from=output / /usr/share/caddy
-
 
 
 ---
@@ -57,50 +54,6 @@ RUN yarn install
 
 EXPOSE 8080
 CMD yarn start
-
----
-
-[TestTemplate_MonorepoServerless - 1]
-FROM node:18 AS build
-
-ENV PORT=8080
-WORKDIR /src
-
-RUN npm install -g yarn@latest
-COPY . .
-WORKDIR /src/myservice
-RUN yarn install
-
-# Build if we can build it
-
-
-FROM scratch AS output
-COPY --from=build /src/myservice /
-
-
----
-
-[TestTemplate_MonorepoServerlessOutDir - 1]
-FROM node:18 AS build
-
-ENV PORT=8080
-WORKDIR /src
-
-RUN npm install -g yarn@latest
-COPY . .
-WORKDIR /src/myservice
-RUN yarn install
-
-# Build if we can build it
-
-
-FROM scratch AS output
-COPY --from=build /src/myservice//app/dist /
-
-FROM zeabur/caddy-static AS runtime
-COPY --from=output / /usr/share/caddy
-
-
 
 ---
 
