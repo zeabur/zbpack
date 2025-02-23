@@ -17,11 +17,10 @@ var dockerTemplate string
 
 // TemplateContext is the context for the Dockerfile template.
 type TemplateContext struct {
-	OpenSSL    bool
-	Serverless bool
-	Entry      string
-	AppDir     string
-	Assets     []string
+	OpenSSL bool
+	Entry   string
+	AppDir  string
+	Assets  []string
 
 	BuildCommand    string
 	StartCommand    string
@@ -36,7 +35,6 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 
 	context := TemplateContext{
 		OpenSSL:         meta["openssl"] == "true",
-		Serverless:      meta["serverless"] == "true",
 		Entry:           meta["entry"],
 		AppDir:          meta["appDir"],
 		Assets:          strings.FieldsFunc(meta["assets"], func(r rune) bool { return r == ':' }),
