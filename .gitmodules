@@ -1,9 +1,0 @@
-[submodule "tests/elixir-cases/elixir"]
-	path = tests/elixir-cases/elixir
-	url = https://github.com/zeabur/elixir-phoenix-template
-[submodule "tests/elixir-cases/elixir_ecto"]
-	path = tests/elixir-cases/elixir_ecto
-	url = https://github.com/zeabur/elixir-ecto-template
-[submodule "tests/dotnet-samples/dotnetapp"]
-	path = tests/dotnet-samples/dotnetapp
-	url = https://github.com/zeabur/dotnet-cli-template
