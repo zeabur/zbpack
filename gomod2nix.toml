@@ -89,8 +89,8 @@ schema = 3
     version = "v1.5.0"
     hash = "sha256-ztVhGQXs67MF8UadVvG72G3ly0ypQW0IRDdOOkjYwoE="
   [mod."github.com/moby/buildkit"]
-    version = "v0.19.0"
-    hash = "sha256-qkI/meKVAB0ibj0IQ4B6ZAZel0gZ8YfPr4QOPsAis+A="
+    version = "v0.20.0"
+    hash = "sha256-lEN2wciXjKPrQMG0L6JJ8t3O+9yQalyhGTkjWTUUymQ="
   [mod."github.com/moznion/go-optional"]
     version = "v0.12.0"
     hash = "sha256-SCkBIo2GsDER5FnyPJknB+V5OC+Hltm9QIrfZK06vQg="
@@ -176,8 +176,8 @@ schema = 3
     version = "v1.11.0"
     hash = "sha256-Lb6rHHfR62Ozg2j2JZy3MKOMKdsfzd1IYTR57r3Mhp0="
   [mod."golang.org/x/exp"]
-    version = "v0.0.0-20241009180824-f66d83c29e7c"
-    hash = "sha256-ICL1UU2rrOBespsjNrlvrAhZOFLMcxYWAx8pDQCgAXM="
+    version = "v0.0.0-20241108190413-2d47ceb2692f"
+    hash = "sha256-uRR1wFVGutfXAQIG69BD4g5Y8Ejw+ugw28F6ayu2BPY="
   [mod."golang.org/x/sync"]
     version = "v0.11.0"
     hash = "sha256-5ZBfDJvNaUBM4Vhk0fgYblCGL3eBxiJL85nIE8LiKl0="
