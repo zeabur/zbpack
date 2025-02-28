@@ -27,9 +27,8 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 RUN mkdir /src
 WORKDIR /src
 ` + dependencySegment + `
-COPY go.mod go.sum* ./
-RUN go mod download
 COPY . /src/
+RUN go mod download
 ` + cgoEnvSegment + buildCommandSegment + `
 RUN go build -o ./bin/server ` + meta["entry"]
 
