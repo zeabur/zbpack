@@ -17,11 +17,10 @@ func TestGenerateDockerfile_Assets(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "true",
-			"serverless": "true",
-			"entry":      "entry",
-			"appDir":     "appDir",
-			"assets":     "assets",
+			"openssl": "true",
+			"entry":   "entry",
+			"appDir":  "appDir",
+			"assets":  "assets",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -36,11 +35,10 @@ func TestGenerateDockerfile_Assets(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "true",
-			"serverless": "true",
-			"entry":      "entry",
-			"appDir":     "appDir",
-			"assets":     "assets1:assets2",
+			"openssl": "true",
+			"entry":   "entry",
+			"appDir":  "appDir",
+			"assets":  "assets1:assets2",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -60,11 +58,10 @@ func TestGenerateDockerfile_OpenSSL(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "true",
-			"serverless": "false",
-			"entry":      "entry",
-			"appDir":     "appDir",
-			"assets":     "assets",
+			"openssl": "true",
+			"entry":   "entry",
+			"appDir":  "appDir",
+			"assets":  "assets",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -76,49 +73,24 @@ func TestGenerateDockerfile_OpenSSL(t *testing.T) {
 	})
 }
 
-func TestGenerateDockerfile_Serverless(t *testing.T) {
+func TestGenerateDockerfile_Runtime(t *testing.T) {
 	t.Parallel()
 
-	t.Run("true", func(t *testing.T) {
-		t.Parallel()
+	meta := map[string]string{
+		"openssl": "false",
+		"entry":   "entry",
+		"appDir":  "appDir",
+		"assets":  "assets",
+	}
 
-		meta := map[string]string{
-			"openssl":    "false",
-			"serverless": "true",
-			"entry":      "entry",
-			"appDir":     "appDir",
-			"assets":     "assets",
-		}
+	dockerfile, err := rust.GenerateDockerfile(meta)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-		dockerfile, err := rust.GenerateDockerfile(meta)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		assert.Contains(t, dockerfile, "FROM scratch")
-		assert.Contains(t, dockerfile, "COPY --from=post-builder /app .")
-	})
-
-	t.Run("false", func(t *testing.T) {
-		t.Parallel()
-
-		meta := map[string]string{
-			"openssl":    "false",
-			"serverless": "false",
-			"entry":      "entry",
-			"appDir":     "appDir",
-			"assets":     "assets",
-		}
-
-		dockerfile, err := rust.GenerateDockerfile(meta)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		assert.Contains(t, dockerfile, "FROM rust:1-slim AS runtime")
-		assert.Contains(t, dockerfile, "COPY --from=post-builder /app /app")
-		assert.Contains(t, dockerfile, `CMD ["/app/main"]`)
-	})
+	assert.Contains(t, dockerfile, "FROM rust:1-slim AS runtime")
+	assert.Contains(t, dockerfile, "COPY --from=post-builder /app /app")
+	assert.Contains(t, dockerfile, `CMD ["/app/main"]`)
 }
 
 func TestGenerateDockerfile_AppDir(t *testing.T) {
@@ -128,11 +100,10 @@ func TestGenerateDockerfile_AppDir(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "false",
-			"serverless": "false",
-			"entry":      "entry",
-			"appDir":     "configured",
-			"assets":     "assets",
+			"openssl": "false",
+			"entry":   "entry",
+			"appDir":  "configured",
+			"assets":  "assets",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -147,11 +118,10 @@ func TestGenerateDockerfile_AppDir(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "false",
-			"serverless": "false",
-			"entry":      "entry",
-			"appDir":     ".",
-			"assets":     "assets",
+			"openssl": "false",
+			"entry":   "entry",
+			"appDir":  ".",
+			"assets":  "assets",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -170,11 +140,10 @@ func TestGenerateDockerfile_Entry(t *testing.T) {
 		t.Parallel()
 
 		meta := map[string]string{
-			"openssl":    "false",
-			"serverless": "false",
-			"entry":      "configured",
-			"appDir":     ".",
-			"assets":     "assets",
+			"openssl": "false",
+			"entry":   "configured",
+			"appDir":  ".",
+			"assets":  "assets",
 		}
 
 		dockerfile, err := rust.GenerateDockerfile(meta)
@@ -190,7 +159,6 @@ func TestGenerateDockerfile_Entry(t *testing.T) {
 func TestGenerateDockerfile_Commands(t *testing.T) {
 	meta := map[string]string{
 		"openssl":         "false",
-		"serverless":      "false",
 		"entry":           "entry",
 		"appDir":          ".",
 		"assets":          "assets",

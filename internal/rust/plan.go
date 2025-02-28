@@ -48,11 +48,6 @@ type GetMetaOptions struct {
 	SubmoduleName string
 }
 
-// getServerless gets the serverless flag from the configuration.
-func getServerless(ctx *rustPlanContext) bool {
-	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
-}
-
 // getEntry gets the entry name from the configuration.
 func getEntry(ctx *rustPlanContext) string {
 	if entry, err := plan.Cast(ctx.Config.Get(ConfigRustEntry), cast.ToStringE).Take(); err == nil {
@@ -140,10 +135,9 @@ func GetMeta(options GetMetaOptions) types.PlanMeta {
 	}
 
 	meta := types.PlanMeta{
-		"openssl":    strconv.FormatBool(needOpenssl(ctx.Src)),
-		"serverless": strconv.FormatBool(getServerless(ctx)),
-		"entry":      getEntry(ctx),
-		"appDir":     getAppDir(ctx),
+		"openssl": strconv.FormatBool(needOpenssl(ctx.Src)),
+		"entry":   getEntry(ctx),
+		"appDir":  getAppDir(ctx),
 		// assets/1:assets/2:...
 		"assets":          strings.Join(getAssets(ctx), ":"),
 		"buildCommand":    getBuildCommand(ctx),

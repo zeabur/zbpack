@@ -7,7 +7,7 @@ import (
 )
 
 // GenerateDockerfile generates the Dockerfile for Gleam projects.
-func GenerateDockerfile(m types.PlanMeta) (string, error) {
+func GenerateDockerfile(_ types.PlanMeta) (string, error) {
 	dockerfile := `FROM ghcr.io/gleam-lang/gleam:v1.3.2-erlang-alpine
 RUN apk add --no-cache elixir
 RUN mix local.hex --force
@@ -16,20 +16,11 @@ COPY . /build/
 RUN cd /build \
   && gleam export erlang-shipment \
   && mv build/erlang-shipment /app \
-  && rm -r /build`
+  && rm -r /build
 
-	if m["serverless"] == "true" {
-		dockerfile += `
-FROM scratch AS output
-COPY --from=0 /app /
-`
-	} else {
-		dockerfile += `
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["run"]
-`
-	}
+CMD ["run"]`
 
 	return dockerfile, nil
 }

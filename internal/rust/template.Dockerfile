@@ -29,10 +29,6 @@ RUN if [ -x "{{ .Entry }}" ]; then \
   fi
 
 
-{{ if .Serverless }}
-FROM scratch
-COPY --from=post-builder /app .
-{{ else }}
 FROM rust:1-slim AS runtime
 
 {{ if .OpenSSL }}
@@ -50,6 +46,4 @@ COPY --from=post-builder /app /app
 CMD {{ .StartCommand }}
 {{ else }}
 CMD ["/app/main"]
-{{ end }}
-
 {{ end }}

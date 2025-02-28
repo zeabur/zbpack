@@ -4,4 +4,3 @@ Meta:
   build: "RUN flutter build web"
   framework: "flutter"
   outputDir: "build/web"
-  serverless: "true"

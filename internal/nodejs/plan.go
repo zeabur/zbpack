@@ -54,7 +54,6 @@ type nodePlanContext struct {
 	BuildCmd        optional.Option[string]
 	StartCmd        optional.Option[string]
 	StaticOutputDir optional.Option[string]
-	Serverless      optional.Option[bool]
 	// AppDir is the directory of the application to deploy.
 	AppDir optional.Option[string]
 	// AppPackageJSON is the package.json of the app to deploy.
@@ -701,7 +700,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	buildScript := GetBuildScript(ctx)
 	pkgManager := DeterminePackageManager(ctx)
 	framework := DetermineAppFramework(ctx)
-	serverless := getServerless(ctx)
 
 	if buildScript == "" {
 		*cmd = optional.Some("")
@@ -713,9 +711,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	// if this is a Nitro-based framework, we should pass NITRO_PRESET
 	// to the default build command.
 	if slices.Contains(types.NitroBasedFrameworks, framework) {
-		if serverless {
-			buildCmd = "NITRO_PRESET=node " + buildCmd
-		} else if pkgManager.GetType() == types.NodePackageManagerBun {
+		if pkgManager.GetType() == types.NodePackageManagerBun {
 			buildCmd = "NITRO_PRESET=bun " + buildCmd
 		} else {
 			buildCmd = "NITRO_PRESET=node-server " + buildCmd
@@ -840,11 +836,6 @@ func GetStartCmd(ctx *nodePlanContext) string {
 
 	if startCmd, err := cmd.Take(); err == nil {
 		return startCmd
-	}
-
-	if getServerless(ctx) {
-		*cmd = optional.Some("")
-		return cmd.Unwrap()
 	}
 
 	// if the app is deployed as static files, we should not start the app.
@@ -1012,54 +1003,6 @@ func GetStaticOutputDir(ctx *nodePlanContext) string {
 	return dir.Unwrap()
 }
 
-func getServerless(ctx *nodePlanContext) bool {
-	sl := &ctx.Serverless
-
-	if serverless, err := sl.Take(); err == nil {
-		return serverless
-	}
-
-	if value, err := utils.GetExplicitServerlessConfig(ctx.Config).Take(); err == nil {
-		*sl = optional.Some(value)
-		return sl.Unwrap()
-	}
-
-	// For projects with outputDir, it should be always serverless (if not explicitly set).
-	if GetStaticOutputDir(ctx) != "" {
-		*sl = optional.Some(true)
-		return sl.Unwrap()
-	}
-
-	// For monorepo projects, we should not deploy as serverless
-	// until ZEA-3469 is resolved.
-	if GetMonorepoAppRoot(ctx) != "" {
-		*sl = optional.Some(false)
-		return sl.Unwrap()
-	}
-
-	framework := DetermineAppFramework(ctx)
-
-	defaultServerless := map[types.NodeProjectFramework]bool{
-		types.NodeProjectFrameworkNextJs:  true,
-		types.NodeProjectFrameworkAstro:   true,
-		types.NodeProjectFrameworkSvelte:  true,
-		types.NodeProjectFrameworkWaku:    true,
-		types.NodeProjectFrameworkAngular: true,
-		types.NodeProjectFrameworkRemix:   true,
-	}
-	for _, framework := range types.NitroBasedFrameworks {
-		defaultServerless[framework] = true
-	}
-
-	if serverless, ok := defaultServerless[framework]; ok {
-		*sl = optional.Some(serverless)
-		return sl.Unwrap()
-	}
-
-	*sl = optional.Some(false)
-	return sl.Unwrap()
-}
-
 // GetMetaOptions is the options for GetMeta.
 type GetMetaOptions struct {
 	Src    afero.Fs
@@ -1116,11 +1059,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 
 	buildCmd := GetBuildCmd(ctx)
 	meta["buildCmd"] = buildCmd
-
-	serverless := getServerless(ctx)
-	if serverless {
-		meta["serverless"] = strconv.FormatBool(serverless)
-	}
 
 	startCmd := GetStartCmd(ctx)
 	meta["startCmd"] = startCmd

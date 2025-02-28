@@ -24,17 +24,10 @@ RUN flutter pub get
 
 FROM scratch
 COPY --from=0 /app/build/web /
-`
 
-		// We run it with caddy for Containerized mode.
-		if meta["serverless"] != "true" {
-			caddy := `
 FROM zeabur/caddy-static AS runtime
 COPY --from=1 / /usr/share/caddy
 `
-
-			dockerfile += caddy
-		}
 
 		return dockerfile, nil
 	}

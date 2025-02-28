@@ -9,5 +9,4 @@ Meta:
   installCmd: "RUN pnpm install"
   nodeVersion: "22"
   packageManager: "pnpm"
-  serverless: "true"
-  startCmd: ""
+  startCmd: "node build/index.js"

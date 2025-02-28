@@ -2,7 +2,7 @@ PlanType: bun
 
 Meta:
   appDir: ""
-  buildCmd: "NITRO_PRESET=node bun run build"
+  buildCmd: "NITRO_PRESET=bun bun run build"
   bun: "true"
   bunVersion: "latest"
   framework: "nuxt.js"
@@ -10,5 +10,4 @@ Meta:
   installCmd: "RUN bun install"
   nodeVersion: "22"
   packageManager: "bun"
-  serverless: "true"
-  startCmd: ""
+  startCmd: "HOST=0.0.0.0 bun .output/server/index.mjs"

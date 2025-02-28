@@ -7,5 +7,4 @@ Meta:
   entry: "rust-axum"
   openssl: "false"
   preStartCommand: ""
-  serverless: "false"
   startCommand: ""

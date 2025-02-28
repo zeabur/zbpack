@@ -54,13 +54,6 @@ func (vpc *ViperProjectConfiguration) Get(key string) optional.Option[any] {
 
 	/* env */
 
-	// FORCE_CONTAINERIZED {"serverless": false}
-	if key == "serverless" {
-		if v, err := ToWeakBoolE(os.Getenv("FORCE_CONTAINERIZED")); err == nil && v {
-			return optional.Some[any](false)
-		}
-	}
-
 	// ZOLA_VERSION {"zola_version: "1.2.3"}
 	if key == "zolaVersion" || key == "zola_version" {
 		if val, ok := os.LookupEnv("ZOLA_VERSION"); ok {

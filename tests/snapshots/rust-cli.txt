@@ -7,5 +7,4 @@ Meta:
   entry: "rust-cli"
   openssl: "false"
   preStartCommand: ""
-  serverless: "false"
   startCommand: ""

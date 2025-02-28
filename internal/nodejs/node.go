@@ -22,9 +22,8 @@ type TemplateContext struct {
 	BuildCmd   string
 	StartCmd   string
 
-	Framework  string
-	Serverless bool
-	OutputDir  string
+	Framework string
+	OutputDir string
 }
 
 //go:embed templates
@@ -56,7 +55,6 @@ func getContextBasedOnMeta(meta types.PlanMeta) TemplateContext {
 		BuildCmd:    meta["buildCmd"],
 		StartCmd:    meta["startCmd"],
 		Framework:   meta["framework"],
-		Serverless:  meta["serverless"] == "true",
 		OutputDir:   meta["outputDir"],
 	}
 

@@ -31,8 +31,6 @@ type goPlanContext struct {
 
 	GoVersion optional.Option[string]
 	Entry     optional.Option[string]
-
-	Serverless optional.Option[bool]
 }
 
 const (
@@ -128,10 +126,6 @@ type GetMetaOptions struct {
 	SubmoduleName string
 }
 
-func getServerless(ctx *goPlanContext) bool {
-	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
-}
-
 // GetMeta gets the metadata of the Go project.
 func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	ctx := &goPlanContext{
@@ -152,11 +146,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	}
 
 	meta["cgo"] = strconv.FormatBool(isCgoEnabled(ctx))
-
-	serverless := getServerless(ctx)
-	if serverless {
-		meta["serverless"] = "true"
-	}
 
 	return meta
 }

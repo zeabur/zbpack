@@ -9,5 +9,4 @@ Meta:
   installCmd: "RUN yarn install"
   nodeVersion: "22"
   packageManager: "yarn"
-  serverless: "true"
-  startCmd: ""
+  startCmd: "node dist/server.js"

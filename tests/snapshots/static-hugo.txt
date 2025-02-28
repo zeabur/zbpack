@@ -2,4 +2,3 @@ PlanType: static
 
 Meta:
   framework: "hugo"
-  serverless: "true"
