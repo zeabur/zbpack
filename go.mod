@@ -1,8 +1,7 @@
 module github.com/zeabur/zbpack
 
 go 1.22.0
-
-toolchain go1.22.7
+toolchain go1.23.7
 
 require (
 	github.com/spf13/afero v1.12.0
@@ -46,7 +45,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -76,5 +75,5 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 )
