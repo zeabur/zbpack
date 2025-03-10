@@ -73,8 +73,8 @@ github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/moby/buildkit v0.20.0 h1:aF5RujjQ310Pn6SLL/wQYIrSsPXy0sQ5KvWifwq1h8Y=
-github.com/moby/buildkit v0.20.0/go.mod h1:HYFUIK+iGDRxRgdphZ9Nv0y1Fz7mv0HrU7xZoXx217E=
+github.com/moby/buildkit v0.20.1 h1:sT0ZXhhNo5rVbMcYfgttma3TdUHfO5JjFA0UAL8p9fY=
+github.com/moby/buildkit v0.20.1/go.mod h1:Rq9nB/fJImdk6QeM0niKtOHJqwKeYMrK847hTTDVuA4=
 github.com/moznion/go-optional v0.12.0 h1:gM9YSR7kusSQHiaq2IDHU7WoJNGETT1NbuB15XU4ebA=
 github.com/moznion/go-optional v0.12.0/go.mod h1:UP85Bc+uliSDFDzN7Zw8D6gBO1bdPChKFpNu1DJfCqE=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
