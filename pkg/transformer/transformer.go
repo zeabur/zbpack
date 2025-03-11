@@ -59,17 +59,7 @@ type Transformer func(ctx *Context) error
 // Transform runs the transformers in this package.
 func Transform(ctx *Context) error {
 	transformers := []Transformer{
-		TransformZeaburDir,
 		TransformNix,
-		TransformGolang,
-		TransformRust,
-		TransformPython,
-		TransformNodejsWaku,
-		TransformNodejsNext,
-		TransformNodejsRemix,
-		TransformNodejsNuxt,
-		TransformGleam,
-		TransformStatic,
 	}
 
 	for tid, t := range transformers {

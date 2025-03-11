@@ -29,7 +29,6 @@ type pythonPlanContext struct {
 	Wsgi           optional.Option[string]
 	Static         optional.Option[StaticInfo]
 	StreamlitEntry optional.Option[string]
-	Serverless     optional.Option[bool]
 }
 
 const (
@@ -496,13 +495,12 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	pm := DeterminePackageManager(ctx)
 	wsgi := DetermineWsgi(ctx)
 	framework := DetermineFramework(ctx)
-	serverless := getServerless(ctx)
 
 	// will be joined by newline
 	var commands []string
 
 	var depToInstall []string
-	if wsgi != "" && !serverless {
+	if wsgi != "" {
 		if framework == types.PythonFrameworkFastapi {
 			depToInstall = append(depToInstall, "uvicorn")
 		} else {
@@ -528,11 +526,6 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
-	serverless := getServerless(ctx)
-	if serverless {
-		return []string{}
-	}
-
 	framework := DetermineFramework(ctx)
 	if framework == types.PythonFrameworkReflex {
 		return []string{"caddy"}
@@ -647,13 +640,6 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 }
 
 func determineStartCmd(ctx *pythonPlanContext) string {
-	serverless := getServerless(ctx)
-
-	// serverless function doesn't need a start command
-	if serverless {
-		return ""
-	}
-
 	startupFunction := determineDefaultStartupFunction(ctx)
 
 	framework := DetermineFramework(ctx)
@@ -870,10 +856,6 @@ type GetMetaOptions struct {
 	Config plan.ImmutableProjectConfiguration
 }
 
-func getServerless(ctx *pythonPlanContext) bool {
-	return utils.GetExplicitServerlessConfig(ctx.Config).TakeOr(false)
-}
-
 func determinePlaywright(ctx *pythonPlanContext) bool {
 	return HasDependency(ctx, "playwright")
 }
@@ -909,19 +891,6 @@ func GetMeta(opt GetMetaOptions) types.PlanMeta {
 	buildCmd := determineBuildCmd(ctx)
 	if buildCmd != "" {
 		meta["build"] = buildCmd
-	}
-
-	serverless := getServerless(ctx)
-	if serverless {
-		meta["serverless"] = "true"
-	}
-
-	// if serverless, we need a wsgi entry
-	if serverless {
-		wsgi := DetermineWsgi(ctx)
-		if wsgi != "" {
-			meta["entry"] = wsgi
-		}
 	}
 
 	startCmd := determineStartCmd(ctx)

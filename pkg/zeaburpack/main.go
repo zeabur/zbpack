@@ -174,7 +174,7 @@ func Build(opt *BuildOptions) error {
 		// decompress the given TAR file to the output directory
 		tarFile, err := os.Open(ServerlessTarPath)
 		if err != nil {
-			if m["serverless"] == "true" {
+			if !os.IsNotExist(err) {
 				opt.Log("Failed to open TAR file: %s\n", err)
 			}
 			return
@@ -219,15 +219,11 @@ func Build(opt *BuildOptions) error {
 
 	if opt.Interactive != nil && *opt.Interactive {
 		opt.Log("\n\033[32mBuild successful\033[0m\n")
-		if m["serverless"] == "true" {
-			opt.Log("\033[90m" + "The compiled serverless function has been saved in the .zeabur directory." + "\033[0m\n")
+		opt.Log("\033[90m" + "To run the image, use the following command:" + "\033[0m\n")
+		if m["outputDir"] != "" {
+			opt.Log("npx serve .zeabur/output/static\n")
 		} else {
-			opt.Log("\033[90m" + "To run the image, use the following command:" + "\033[0m\n")
-			if m["outputDir"] != "" && m["serverless"] == "true" {
-				opt.Log("npx serve .zeabur/output/static\n")
-			} else {
-				opt.Log("docker run -p 8080:8080 -e PORT=8080 -it %s\n", *opt.ResultImage)
-			}
+			opt.Log("docker run -p 8080:8080 -e PORT=8080 -it %s\n", *opt.ResultImage)
 		}
 	}
 

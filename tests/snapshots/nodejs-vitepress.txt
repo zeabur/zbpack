@@ -10,5 +10,4 @@ Meta:
   nodeVersion: "22"
   outputDir: "docs/.vitepress/dist"
   packageManager: "pnpm"
-  serverless: "true"
   startCmd: ""

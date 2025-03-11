@@ -49,64 +49,18 @@ func TestPlan_Continue(t *testing.T) {
 func TestPlan_DefaultStatic(t *testing.T) {
 	t.Parallel()
 
-	t.Run("default", func(t *testing.T) {
-		fs := afero.NewMemMapFs()
-		config := plan.NewProjectConfigurationFromFs(fs, "")
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
 
-		executor := plan.NewPlanner(
-			&plan.NewPlannerOptions{
-				Source:        fs,
-				Config:        config,
-				SubmoduleName: "",
-			},
-		)
+	executor := plan.NewPlanner(
+		&plan.NewPlannerOptions{
+			Source:        fs,
+			SubmoduleName: "",
+			Config:        config,
+		},
+	)
 
-		planType, planMeta := executor.Plan()
-		assert.Equal(t, types.PlanTypeStatic, planType)
-		assert.Equal(t, types.PlanMeta{
-			"serverless": "true",
-		}, planMeta)
-	})
-
-	t.Run("non-serverless", func(t *testing.T) {
-		fs := afero.NewMemMapFs()
-		config := plan.NewProjectConfigurationFromFs(fs, "")
-
-		config.Set("serverless", false)
-
-		executor := plan.NewPlanner(
-			&plan.NewPlannerOptions{
-				Source:        fs,
-				SubmoduleName: "",
-				Config:        config,
-			},
-		)
-
-		planType, planMeta := executor.Plan()
-		assert.Equal(t, types.PlanTypeStatic, planType)
-		assert.Equal(t, types.PlanMeta{
-			"serverless": "false",
-		}, planMeta)
-	})
-
-	t.Run("explicit serverless", func(t *testing.T) {
-		fs := afero.NewMemMapFs()
-		config := plan.NewProjectConfigurationFromFs(fs, "")
-
-		config.Set("serverless", true)
-
-		executor := plan.NewPlanner(
-			&plan.NewPlannerOptions{
-				Source:        fs,
-				SubmoduleName: "",
-				Config:        config,
-			},
-		)
-
-		planType, planMeta := executor.Plan()
-		assert.Equal(t, types.PlanTypeStatic, planType)
-		assert.Equal(t, types.PlanMeta{
-			"serverless": "true",
-		}, planMeta)
-	})
+	planType, planMeta := executor.Plan()
+	assert.Equal(t, types.PlanTypeStatic, planType)
+	assert.Equal(t, types.PlanMeta{}, planMeta)
 }
