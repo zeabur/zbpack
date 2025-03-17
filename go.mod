@@ -1,11 +1,10 @@
 module github.com/zeabur/zbpack
 
 go 1.22.0
-
-toolchain go1.22.7
+toolchain go1.24.1
 
 require (
-	github.com/spf13/afero v1.12.0
+	github.com/spf13/afero v1.14.0
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -29,7 +28,6 @@ require (
 	github.com/maruel/natural v1.1.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
@@ -46,7 +44,6 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -58,17 +55,13 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/codeclysm/extract/v3 v3.1.1
-	github.com/deckarep/golang-set v1.8.0
 	github.com/distribution/reference v0.6.0
-	github.com/evanw/esbuild v0.25.0
 	github.com/gkampitakis/go-snaps v0.5.11
 	github.com/goccy/go-yaml v1.15.23
 	github.com/google/go-github/v63 v63.0.0
-	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/moby/buildkit v0.20.0
 	github.com/moznion/go-optional v0.12.0
-	github.com/otiai10/copy v1.14.1
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.49.1
 	github.com/samber/mo v1.13.0
@@ -76,5 +69,5 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 )
