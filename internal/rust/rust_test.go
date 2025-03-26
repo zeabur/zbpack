@@ -84,7 +84,7 @@ func TestGetAppDir(t *testing.T) {
 
 		fs := afero.NewMemMapFs()
 		config := plan.NewProjectConfigurationFromFs(fs, "")
-		config.Set(ConfigRustAppDir, "configured")
+		config.Set(ConfigRustAppDirOld, "configured")
 
 		appDir := getAppDir(&rustPlanContext{
 			Src:           fs,
@@ -113,6 +113,21 @@ func TestGetAppDir(t *testing.T) {
 
 		fs := afero.NewMemMapFs()
 		config := plan.NewProjectConfigurationFromFs(fs, "")
+		config.Set(ConfigRustAppDirOld, "/")
+
+		appDir := getAppDir(&rustPlanContext{
+			Src:           fs,
+			Config:        config,
+			SubmoduleName: "",
+		})
+		assert.Equal(t, ".", appDir)
+	})
+
+	t.Run("set ConfigRustAppDir, root", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "")
 		config.Set(ConfigRustAppDir, "/")
 
 		appDir := getAppDir(&rustPlanContext{
@@ -121,6 +136,21 @@ func TestGetAppDir(t *testing.T) {
 			SubmoduleName: "",
 		})
 		assert.Equal(t, ".", appDir)
+	})
+
+	t.Run("set ConfigRustAppDir, subdirectory", func(t *testing.T) {
+		t.Parallel()
+
+		fs := afero.NewMemMapFs()
+		config := plan.NewProjectConfigurationFromFs(fs, "")
+		config.Set(ConfigRustAppDir, "subdir")
+
+		appDir := getAppDir(&rustPlanContext{
+			Src:           fs,
+			Config:        config,
+			SubmoduleName: "",
+		})
+		assert.Equal(t, "subdir", appDir)
 	})
 }
 
