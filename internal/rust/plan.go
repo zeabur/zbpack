@@ -19,10 +19,15 @@ import (
 // If there is no such submodule, it picks the first binary it found.
 const ConfigRustEntry = "rust.entry"
 
+// ConfigRustAppDirOld is the key for the directory of the application.
+//
+// If this key is not set, the default value is the current directory – "/".
+const ConfigRustAppDirOld = "rust.app_dir"
+
 // ConfigRustAppDir is the key for the directory of the application.
 //
 // If this key is not set, the default value is the current directory – "/".
-const ConfigRustAppDir = "rust.app_dir"
+const ConfigRustAppDir = "app_dir"
 
 // ConfigRustAssets is the key for the assets of the application.
 // It is an array.
@@ -65,15 +70,19 @@ func getEntry(ctx *rustPlanContext) string {
 
 // getAppDir gets the application directory from the configuration.
 func getAppDir(ctx *rustPlanContext) string {
-	if appDir, err := plan.Cast(ctx.Config.Get(ConfigRustAppDir), cast.ToStringE).Take(); err == nil {
-		if appDir == "/" {
-			return "."
+	appDir, err := plan.Cast(ctx.Config.Get(ConfigRustAppDir), cast.ToStringE).Take()
+	if err != nil {
+		appDir, err = plan.Cast(ctx.Config.Get(ConfigRustAppDirOld), cast.ToStringE).Take()
+		if err != nil {
+			return "." // current directory relative to root.
 		}
-
-		return appDir
 	}
 
-	return "." // current directory relative to root.
+	if appDir == "/" {
+		return "."
+	}
+
+	return appDir
 }
 
 // getAssets gets the assets list that needs to copy from project directory.

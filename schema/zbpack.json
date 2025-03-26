@@ -1,0 +1,176 @@
+{
+    "$id": "https://schema.zeabur.app/zbpack.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Zeabur Pack configuration",
+    "description": "The schema for zbpack.json, which is used to configure the Zeabur Pack.",
+    "type": "object",
+    "properties": {
+		"bun": {
+            "type": "object",
+            "description": "The configuration for Bun planner.",
+            "properties": {
+                "framework": {
+                    "type": "string",
+                    "description": "The framework to use for the Bun planner. ⚠️ It is unsafe and not recommended to set this value unless you know what you are doing."
+                }
+            }
+        },
+        "node": {
+            "type": "object",
+            "description": "The configuration for Node.js planner.",
+            "properties": {
+                "framework": {
+                    "type": "string",
+                    "description": "The framework to use for the Node.js planner. ⚠️ It is unsafe and not recommended to set this value unless you know what you are doing."
+                }
+            }
+        },
+        "rust": {
+            "type": "object",
+            "description": "The configuration for Rust planner.",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "description": "The entry point for the Rust application."
+                },
+                "app_dir": {
+                    "type": "string",
+                    "description": "The directory containing the Rust application. Deprecated: use app_dir instead."
+                },
+                "assets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "List of asset files to include."
+                }
+            }
+        },
+        "python": {
+            "type": "object",
+            "description": "The configuration for Python planner.",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "description": "The entry point for the Python application."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "The Python version to use."
+                },
+                "package_manager": {
+                    "type": "string",
+                    "description": "The package manager to use (e.g., pip, poetry)."
+                }
+            }
+        },
+        "go": {
+            "type": "object",
+            "description": "The configuration for Go planner.",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "description": "The entry point for the Go application."
+                },
+                "cgo": {
+                    "type": "boolean",
+                    "description": "Whether to enable CGO."
+                }
+            }
+        },
+        "ruby": {
+            "type": "object",
+            "description": "The configuration for Ruby planner.",
+            "properties": {
+                "version": {
+                    "type": "string",
+                    "description": "The Ruby version to use."
+                },
+                "entry": {
+                    "type": "string",
+                    "description": "The entry point for the Ruby application."
+                }
+            }
+        },
+        "php": {
+            "type": "object",
+            "description": "The configuration for PHP planner.",
+            "properties": {
+                "version": {
+                    "type": "string",
+                    "description": "The PHP version to use."
+                },
+                "optimize": {
+                    "type": "boolean",
+                    "description": "Whether to enable PHP optimization."
+                }
+            }
+        },
+        "dockerfile": {
+            "type": "object",
+            "description": "The configuration for Dockerfile planner.",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the Dockerfile to use."
+                }
+            }
+        },
+        "nix": {
+            "type": "object",
+            "description": "The configuration for Nix planner.",
+            "properties": {
+                "docker_package": {
+                    "type": "string",
+                    "description": "The Nix package to use for Docker."
+                }
+            }
+        },
+        "streamlit": {
+            "type": "object",
+            "description": "The configuration for Streamlit applications.",
+            "properties": {
+                "entry": {
+                    "type": "string",
+                    "description": "The entry point for the Streamlit application."
+                }
+            }
+        },
+        "app_dir": {
+            "type": "string",
+            "description": "The directory containing the application. Useful for Node.js Monorepos."
+        },
+        "install_command": {
+            "type": "string",
+            "description": "Custom command to install dependencies."
+        },
+        "build_command": {
+            "type": "string",
+            "description": "Custom command to build the application."
+        },
+        "start_command": {
+            "type": "string",
+            "description": "Custom command to start the application."
+        },
+        "pre_start_command": {
+            "type": "string",
+            "description": "Command to run before starting the application."
+        },
+        "output_dir": {
+            "type": "string",
+            "description": "Directory where the build output placed. Useful for static websites."
+        },
+        "plan_type": {
+            "type": "string",
+            "description": "The type of deployment plan to use."
+        },
+		"javaArgs": {
+			"type": "string",
+			"description": "Additional Java arguments to pass to the JVM. Java planner only."
+		},
+		"zola_version": {
+			"type": "string",
+			"description": "The version of Zola to use. Static planner only."
+		}
+    }
+}
