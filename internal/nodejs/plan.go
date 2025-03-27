@@ -391,7 +391,7 @@ func DetermineAppFramework(ctx *nodePlanContext) types.NodeProjectFramework {
 		return fw.Unwrap()
 	}
 
-	if _, isVite := packageJSON.DevDependencies["vite"]; isVite {
+	if _, isVite := packageJSON.FindDependency("vite"); isVite {
 		*fw = optional.Some(types.NodeProjectFrameworkVite)
 		return fw.Unwrap()
 	}
