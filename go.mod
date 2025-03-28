@@ -1,8 +1,7 @@
 module github.com/zeabur/zbpack
 
 go 1.22.0
-
-toolchain go1.22.7
+toolchain go1.24.1
 
 require (
 	github.com/spf13/afero v1.12.0
@@ -70,5 +69,5 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 )
