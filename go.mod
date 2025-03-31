@@ -2,7 +2,7 @@ module github.com/zeabur/zbpack
 
 go 1.22.0
 
-toolchain go1.22.7
+toolchain go1.24.1
 
 require (
 	github.com/spf13/afero v1.12.0
@@ -61,7 +61,7 @@ require (
 	github.com/goccy/go-yaml v1.16.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/moby/buildkit v0.20.1
+	github.com/moby/buildkit v0.20.2
 	github.com/moznion/go-optional v0.12.0
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.49.1
