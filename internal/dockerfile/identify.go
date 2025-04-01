@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/text/cases"
 
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 type identify struct{}

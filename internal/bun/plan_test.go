@@ -3,10 +3,10 @@ package bun_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/internal/bun"
+	"github.com/salamer/zbpack/pkg/plan"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/bun"
-	"github.com/zeabur/zbpack/pkg/plan"
 )
 
 func TestBunVersion(t *testing.T) {

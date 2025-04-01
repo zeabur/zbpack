@@ -1,8 +1,8 @@
 package zeaburpack
 
 import (
-	"github.com/zeabur/zbpack/internal/static"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/internal/static"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 type generateDockerfileOptions struct {

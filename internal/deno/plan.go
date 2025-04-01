@@ -3,9 +3,9 @@ package deno
 import (
 	"encoding/json"
 
+	"github.com/salamer/zbpack/internal/utils"
+	t "github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
-	t "github.com/zeabur/zbpack/pkg/types"
 )
 
 // DetermineFramework determines the framework of the Deno project.

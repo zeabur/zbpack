@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zeabur/zbpack/pkg/types"
-	"github.com/zeabur/zbpack/pkg/zeaburpack"
+	"github.com/salamer/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/zeaburpack"
 	"golang.org/x/exp/maps"
 )
 

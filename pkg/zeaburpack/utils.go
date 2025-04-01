@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/salamer/zbpack/internal/source"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/source"
 
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 const (

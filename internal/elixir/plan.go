@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 var elixirVersions = map[string]string{

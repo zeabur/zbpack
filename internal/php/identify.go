@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type identify struct{}

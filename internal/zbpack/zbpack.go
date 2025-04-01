@@ -8,9 +8,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/salamer/zbpack/pkg/zeaburpack"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
-	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
 
 var (

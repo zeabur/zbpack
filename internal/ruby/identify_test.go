@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/zeabur/zbpack/internal/ruby"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/internal/ruby"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 func TestMain(m *testing.M) {

@@ -2,8 +2,8 @@
 package golang
 
 import (
-	"github.com/zeabur/zbpack/pkg/packer"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/packer"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // GenerateDockerfile generates the Dockerfile for Golang projects.

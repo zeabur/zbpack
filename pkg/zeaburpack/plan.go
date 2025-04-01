@@ -9,10 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // PlanOptions is the options for Plan function.

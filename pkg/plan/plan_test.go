@@ -3,10 +3,10 @@ package plan_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type alwaysMatchIdentifier struct {

@@ -6,8 +6,8 @@ import (
 	_ "embed"
 	"text/template"
 
-	"github.com/zeabur/zbpack/pkg/packer"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/packer"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 //go:embed Dockerfile.tmpl

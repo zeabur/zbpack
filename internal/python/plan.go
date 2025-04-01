@@ -12,12 +12,12 @@ import (
 	"strings"
 
 	"github.com/moznion/go-optional"
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {

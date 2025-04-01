@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeabur/zbpack/pkg/packer"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/packer"
+	"github.com/salamer/zbpack/pkg/types"
 
 	_ "embed"
 )

@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // DetermineFramework is used to determine the Dotnet framework

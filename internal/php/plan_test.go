@@ -3,11 +3,11 @@ package php_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/internal/php"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/php"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // TODO: coverage of GetPHPVersion

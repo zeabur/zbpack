@@ -2,8 +2,8 @@
 package packer
 
 import (
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // Packer can identify the plan type and generate a Dockerfile.

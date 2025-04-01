@@ -4,10 +4,10 @@ import (
 	"maps"
 	"testing"
 
+	"github.com/salamer/zbpack/internal/golang"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeabur/zbpack/internal/golang"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func TestGenerateDockerfile_CGO(t *testing.T) {

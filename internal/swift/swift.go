@@ -2,8 +2,8 @@
 package swift
 
 import (
-	"github.com/zeabur/zbpack/pkg/packer"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/packer"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 type pack struct {

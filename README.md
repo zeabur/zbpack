@@ -67,6 +67,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
 ## Contributors
 
 <p align="center">
-<a href="https://github.com/zeabur/zbpack/graphs/contributors">
+<a href="https://github.com/salamer/zbpack/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=zeabur/zbpack" />
 </a></p>

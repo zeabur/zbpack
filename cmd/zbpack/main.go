@@ -5,7 +5,7 @@ package main
 import (
 	"log"
 
-	"github.com/zeabur/zbpack/internal/zbpack"
+	"github.com/salamer/zbpack/internal/zbpack"
 )
 
 func main() {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zeabur/zbpack/pkg/packer"
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/packer"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // TemplateContext is the context for the Dotnet Dockerfile template.
