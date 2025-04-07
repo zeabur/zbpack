@@ -58,7 +58,7 @@ require (
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/distribution/reference v0.6.0
 	github.com/gkampitakis/go-snaps v0.5.11
-	github.com/goccy/go-yaml v1.16.0
+	github.com/goccy/go-yaml v1.17.1
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/moby/buildkit v0.20.1
