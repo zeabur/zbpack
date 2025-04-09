@@ -101,36 +101,46 @@ func Build(opt *BuildOptions) error {
 		return fmt.Errorf("build from git repository is not supported yet")
 	}
 
-	src := afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
-	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
-	config := plan.NewProjectConfigurationFromFs(src, submoduleName)
+	var dockerfile string
+	var t types.PlanType
+	var m types.PlanMeta
 
-	planner := plan.NewPlanner(
-		&plan.NewPlannerOptions{
-			Source:        src,
-			Config:        config,
-			SubmoduleName: submoduleName,
-		},
-		SupportedIdentifiers(config)...,
-	)
+	if os.Getenv("DOCKERFILE") != "" {
+		dockerfile = os.Getenv("DOCKERFILE")
+		t = types.PlanTypeDocker
+		m = types.PlanMeta{"content": dockerfile}
+	} else {
+		src := afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
+		submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
+		config := plan.NewProjectConfigurationFromFs(src, submoduleName)
 
-	t, m := planner.Plan()
+		planner := plan.NewPlanner(
+			&plan.NewPlannerOptions{
+				Source:        src,
+				Config:        config,
+				SubmoduleName: submoduleName,
+			},
+			SupportedIdentifiers(config)...,
+		)
 
-	PrintPlanAndMeta(t, m, opt.LogWriter)
+		t, m := planner.Plan()
+
+		PrintPlanAndMeta(t, m, opt.LogWriter)
+
+		dockerfile, err = generateDockerfile(
+			&generateDockerfileOptions{
+				planType: t,
+				planMeta: m,
+			},
+		)
+		if err != nil {
+			opt.Log("Failed to generate Dockerfile: %s\n", err)
+			return err
+		}
+	}
 
 	if opt.HandlePlanDetermined != nil {
 		(*opt.HandlePlanDetermined)(t, m)
-	}
-
-	dockerfile, err := generateDockerfile(
-		&generateDockerfileOptions{
-			planType: t,
-			planMeta: m,
-		},
-	)
-	if err != nil {
-		opt.Log("Failed to generate Dockerfile: %s\n", err)
-		return err
 	}
 
 	// Remove .zeabur directory if exists
