@@ -123,9 +123,7 @@ func Build(opt *BuildOptions) error {
 			SupportedIdentifiers(config)...,
 		)
 
-		t, m := planner.Plan()
-
-		PrintPlanAndMeta(t, m, opt.LogWriter)
+		t, m = planner.Plan()
 
 		dockerfile, err = generateDockerfile(
 			&generateDockerfileOptions{
@@ -138,6 +136,8 @@ func Build(opt *BuildOptions) error {
 			return err
 		}
 	}
+
+	PrintPlanAndMeta(t, m, opt.LogWriter)
 
 	if opt.HandlePlanDetermined != nil {
 		(*opt.HandlePlanDetermined)(t, m)
