@@ -656,34 +656,34 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	return startupFunction + "_startup"
 }
 
-// determinePythonVersion Determine Python Version
+// determinePythonVersion determines the Python version of the project.
 func determinePythonVersion(ctx *pythonPlanContext) string {
 	if pythonVersion, err := plan.Cast(ctx.Config.Get(ConfigPythonVersion), cast.ToStringE).Take(); err == nil {
 		return getPython3Version(pythonVersion)
 	}
 
-	pm := DeterminePackageManager(ctx)
-
-	switch pm {
-	case types.PythonPackageManagerPoetry:
-		return determinePythonVersionWithPoetry(ctx)
-	case types.PythonPackageManagerPdm:
-		return determinePythonVersionWithPdm(ctx)
-	case types.PythonPackageManagerRye:
-		return determinePythonVersionWithRye(ctx)
-	case types.PythonPackageManagerPipenv:
-		return determinePythonVersionWithPipenv(ctx)
-	default:
-		return defaultPython3Version
+	strategies := []func(ctx *pythonPlanContext) string{
+		determinePythonVersionFromPythonVersion,
+		determinePythonVersionFromRequiresPythonField,
+		determinePythonVersionFromPythonField,
+		determinePythonVersionFromPipfile,
 	}
+
+	for _, strategy := range strategies {
+		if version := strategy(ctx); version != "" {
+			return version
+		}
+	}
+
+	return defaultPython3Version
 }
 
-func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
+func determinePythonVersionFromRequiresPythonField(ctx *pythonPlanContext) string {
 	src := ctx.Src
 
 	content, err := utils.ReadFileToUTF8(src, "pyproject.toml")
 	if err != nil {
-		return defaultPython3Version
+		return ""
 	}
 
 	compile := regexp.MustCompile(`requires-python = "(.*?)"`)
@@ -693,15 +693,15 @@ func determinePythonVersionWithPdm(ctx *pythonPlanContext) string {
 		return getPython3Version(version)
 	}
 
-	return defaultPython3Version
+	return ""
 }
 
-func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
+func determinePythonVersionFromPythonField(ctx *pythonPlanContext) string {
 	src := ctx.Src
 
 	content, err := utils.ReadFileToUTF8(src, "pyproject.toml")
 	if err != nil {
-		return defaultPython3Version
+		return ""
 	}
 
 	compile := regexp.MustCompile(`python = "(.*?)"`)
@@ -711,10 +711,10 @@ func determinePythonVersionWithPoetry(ctx *pythonPlanContext) string {
 		return getPython3Version(version)
 	}
 
-	return defaultPython3Version
+	return ""
 }
 
-func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
+func determinePythonVersionFromPythonVersion(ctx *pythonPlanContext) string {
 	// We read from `.python-version`.
 	// The format of `.python-version` is:
 	//
@@ -726,7 +726,7 @@ func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
 
 	content, err := utils.ReadFileToUTF8(src, ".python-version")
 	if err != nil {
-		return defaultPython3Version
+		return ""
 	}
 
 	match := regex.FindSubmatch(content)
@@ -734,15 +734,15 @@ func determinePythonVersionWithRye(ctx *pythonPlanContext) string {
 		return getPython3Version(string(match[1]))
 	}
 
-	return defaultPython3Version
+	return ""
 }
 
-func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
+func determinePythonVersionFromPipfile(ctx *pythonPlanContext) string {
 	src := ctx.Src
 
 	content, err := utils.ReadFileToUTF8(src, "Pipfile")
 	if err != nil {
-		return defaultPython3Version
+		return ""
 	}
 
 	compile := regexp.MustCompile(`python_version\s*=\s*"(.*?)"`)
@@ -751,7 +751,7 @@ func determinePythonVersionWithPipenv(ctx *pythonPlanContext) string {
 		return submatchs[1]
 	}
 
-	return defaultPython3Version
+	return ""
 }
 
 func determineBuildCmd(ctx *pythonPlanContext) string {
