@@ -86,7 +86,7 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 	minorSpecifierRegex := regexp.MustCompile(`^[~=]`)
 
 	// for example, ^8 ~8.3
-	constraintList := strings.Split(strings.Replace(constraints, "||", " ", -1), " ")
+	constraintList := strings.Split(strings.ReplaceAll(constraints, "||", " "), " ")
 
 	// From the lower bit to the upper bit:
 	//     15: minor

@@ -240,10 +240,12 @@ const (
 // BunFramework represents the framework of a Bun project.
 type BunFramework string
 
-//revive:enable:exported
+//revive:disable:exported
 const (
 	BunFrameworkElysia BunFramework = "elysia"
 	BunFrameworkBaojs  BunFramework = "baojs"
 	BunFrameworkBagel  BunFramework = "bagel"
 	BunFrameworkNone   BunFramework = "none"
 )
+
+//revive:enable:exported

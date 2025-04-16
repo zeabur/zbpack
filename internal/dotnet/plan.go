@@ -28,7 +28,7 @@ func DetermineFramework(entryPoint string, src afero.Fs) (string, error) {
 		}
 	}
 
-	return "", errors.New("Unable to determine framework")
+	return "", errors.New("unable to determine framework")
 }
 
 // DetermineSDKVersion returns the version of the SDK.
@@ -43,9 +43,9 @@ func DetermineSDKVersion(entryPoint string, src afero.Fs) (string, error) {
 		// Search for the target framework in the file.
 		matches := pattern.FindStringSubmatch(string(content))
 		if len(matches) > 1 {
-			return strings.Replace(matches[1], "net", "", -1), nil
+			return strings.ReplaceAll(matches[1], "net", ""), nil
 		}
 	}
 
-	return "", errors.New("Unable to determine SDK version")
+	return "", errors.New("unable to determine SDK version")
 }
