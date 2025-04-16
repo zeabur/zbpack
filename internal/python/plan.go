@@ -623,11 +623,12 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 			wsgilistenedPort = "8000"
 		}
 
-		if framework == types.PythonFrameworkFastapi {
+		switch framework {
+		case types.PythonFrameworkFastapi:
 			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
-		} else if framework == types.PythonFrameworkSanic {
+		case types.PythonFrameworkSanic:
 			commandSegment = append(commandSegment, "sanic", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
-		} else {
+		default:
 			commandSegment = append(commandSegment, "gunicorn", "--bind :"+wsgilistenedPort, wsgi)
 		}
 	} else {

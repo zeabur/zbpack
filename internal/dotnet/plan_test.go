@@ -11,7 +11,7 @@ func TestDetermineSDKVersion_EmptyEntryPoint(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	ver, err := DetermineSDKVersion("", fs)
-	assert.ErrorContains(t, err, "Unable to determine SDK version")
+	assert.ErrorContains(t, err, "unable to determine SDK version")
 	assert.Empty(t, ver)
 }
 
@@ -30,7 +30,7 @@ func TestDetermineFramework_EmptyEntryPoint(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
 	framework, err := DetermineFramework("", fs)
-	assert.ErrorContains(t, err, "Unable to determine framework")
+	assert.ErrorContains(t, err, "unable to determine framework")
 	assert.Empty(t, framework)
 }
 
