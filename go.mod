@@ -58,7 +58,7 @@ require (
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/moby/buildkit v0.21.0
-	github.com/moznion/go-optional v0.12.0
+	github.com/moznion/go-optional v0.13.0
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.50.0
 	github.com/samber/mo v1.13.0
