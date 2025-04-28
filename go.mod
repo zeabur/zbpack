@@ -50,7 +50,7 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/aws/aws-sdk-go v1.55.6
+	github.com/aws/aws-sdk-go v1.55.7
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/distribution/reference v0.6.0
 	github.com/gkampitakis/go-snaps v0.5.11
