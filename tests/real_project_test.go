@@ -408,6 +408,20 @@ var projects = []struct {
 		owner: "zeabur",
 		repo:  "vapor-template",
 	},
+
+	/* docker */
+	{
+		name: "docker-test-path",
+		dir:  "dockerfile-test/path",
+	},
+	{
+		name: "docker-test-name",
+		dir:  "dockerfile-test/name",
+	},
+	{
+		name: "docker-test-general",
+		dir:  "dockerfile-test/general",
+	},
 }
 
 func TestRealProjects(t *testing.T) {
