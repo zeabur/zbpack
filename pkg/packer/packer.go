@@ -17,3 +17,18 @@ type V2 interface {
 	plan.IdentifierV2
 	GenerateDockerfile(types.PlanMeta) (string, error)
 }
+
+// WrapV2 wraps a Packer to a V2 packer.
+func WrapV2(p Packer) V2 {
+	return &packerV2Wrapper{
+		Packer: p,
+	}
+}
+
+type packerV2Wrapper struct {
+	Packer
+}
+
+func (p *packerV2Wrapper) Match(ctx plan.MatchContext) bool {
+	return p.Packer.Match(ctx.Source)
+}

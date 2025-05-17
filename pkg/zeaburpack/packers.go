@@ -22,24 +22,24 @@ import (
 )
 
 // SupportedPackers returns all supported identifiers
-func SupportedPackers() []packer.Packer {
-	return []packer.Packer{
-		nix.NewPacker(),
+func SupportedPackers() []packer.V2 {
+	return []packer.V2{
+		packer.WrapV2(nix.NewPacker()),
 		dockerfile.NewPacker(),
-		dart.NewPacker(),
-		php.NewPacker(),
-		bun.NewPacker(),
-		nodejs.NewPacker(),
-		golang.NewPacker(),
-		python.NewPacker(),
-		ruby.NewPacker(),
-		java.NewPacker(),
-		deno.NewPacker(),
-		rust.NewPacker(),
-		dotnet.NewPacker(),
-		elixir.NewPacker(),
-		gleam.NewPacker(),
-		swift.NewPacker(),
-		static.NewPacker(),
+		packer.WrapV2(dart.NewPacker()),
+		packer.WrapV2(php.NewPacker()),
+		packer.WrapV2(bun.NewPacker()),
+		packer.WrapV2(nodejs.NewPacker()),
+		packer.WrapV2(golang.NewPacker()),
+		packer.WrapV2(python.NewPacker()),
+		packer.WrapV2(ruby.NewPacker()),
+		packer.WrapV2(java.NewPacker()),
+		packer.WrapV2(deno.NewPacker()),
+		packer.WrapV2(rust.NewPacker()),
+		packer.WrapV2(dotnet.NewPacker()),
+		packer.WrapV2(elixir.NewPacker()),
+		packer.WrapV2(gleam.NewPacker()),
+		packer.WrapV2(swift.NewPacker()),
+		packer.WrapV2(static.NewPacker()),
 	}
 }

@@ -27,3 +27,18 @@ type MatchContext struct {
 	Config        ImmutableProjectConfiguration
 	SubmoduleName string
 }
+
+// WrapV2 wraps an Identifier to an IdentifierV2.
+func WrapV2(i Identifier) IdentifierV2 {
+	return &identifierV2Wrapper{
+		Identifier: i,
+	}
+}
+
+type identifierV2Wrapper struct {
+	Identifier
+}
+
+func (i *identifierV2Wrapper) Match(ctx MatchContext) bool {
+	return i.Identifier.Match(ctx.Source)
+}

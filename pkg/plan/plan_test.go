@@ -17,7 +17,7 @@ func (mi alwaysMatchIdentifier) PlanType() types.PlanType {
 	return ""
 }
 
-func (mi alwaysMatchIdentifier) Match(_ afero.Fs) bool {
+func (mi alwaysMatchIdentifier) Match(_ plan.MatchContext) bool {
 	return true
 }
 
