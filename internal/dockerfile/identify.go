@@ -1,7 +1,9 @@
 package dockerfile
 
 import (
+	"errors"
 	"log"
+	"os"
 
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -25,7 +27,10 @@ func (i *identify) Match(ctx plan.MatchContext) bool {
 		SubmoduleName: ctx.SubmoduleName,
 	})
 	if err != nil {
-		log.Println("dockerfile: find dockerfile:", err)
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Println("dockerfile: find dockerfile:", err)
+		}
+
 		return false
 	}
 
