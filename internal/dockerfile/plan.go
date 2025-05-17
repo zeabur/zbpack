@@ -31,9 +31,6 @@ type dockerfilePlanContext struct {
 // ErrNoDockerfile is the error when there is no Dockerfile in the project.
 var ErrNoDockerfile = errors.New("no dockerfile in this environment")
 
-// ConfigDockerfileName is the key of the Dockerfile name in the config.
-const ConfigDockerfileName = "dockerfile.name"
-
 // FindDockerfile finds the Dockerfile in the project.
 func FindDockerfile(ctx *dockerfilePlanContext) (string, error) {
 	src := ctx.Source

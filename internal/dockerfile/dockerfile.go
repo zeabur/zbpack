@@ -15,7 +15,7 @@ type pack struct {
 }
 
 // NewPacker returns a new Deno packer.
-func NewPacker() packer.Packer {
+func NewPacker() packer.V2 {
 	return &pack{
 		identify: &identify{},
 	}
@@ -25,4 +25,4 @@ func (p *pack) GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	return GenerateDockerfile(meta)
 }
 
-var _ packer.Packer = (*pack)(nil)
+var _ packer.V2 = (*pack)(nil)
