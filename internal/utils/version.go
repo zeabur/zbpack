@@ -24,6 +24,7 @@ type Version struct {
 	Prerelease string
 }
 
+// ErrEmptyVersion is returned when the version string is empty.
 var ErrEmptyVersion = errors.New("empty version")
 
 // SplitVersion splits the version string into major, minor, patch, and prerelease.
