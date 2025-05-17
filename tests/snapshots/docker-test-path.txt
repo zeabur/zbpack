@@ -1,0 +1,4 @@
+PlanType: docker
+
+Meta:
+  content: "FROM alpine\n\nCMD \"echo dockerfile.path == docker/test.Dockerfile\"\n"

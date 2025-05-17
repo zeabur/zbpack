@@ -1,11 +1,9 @@
 package dockerfile
 
 import (
+	"errors"
 	"log"
-	"strings"
-
-	"github.com/spf13/afero"
-	"golang.org/x/text/cases"
+	"os"
 
 	"github.com/zeabur/zbpack/pkg/plan"
 	"github.com/zeabur/zbpack/pkg/types"
@@ -14,7 +12,7 @@ import (
 type identify struct{}
 
 // NewIdentifier returns a new Dockerfile identifier.
-func NewIdentifier() plan.Identifier {
+func NewIdentifier() plan.IdentifierV2 {
 	return &identify{}
 }
 
@@ -22,35 +20,23 @@ func (i *identify) PlanType() types.PlanType {
 	return types.PlanTypeDocker
 }
 
-func (i *identify) Match(fs afero.Fs) bool {
-	fileInfo, err := afero.ReadDir(fs, ".")
+func (i *identify) Match(ctx plan.MatchContext) bool {
+	_, err := FindDockerfile(&FindContext{
+		Source:        ctx.Source,
+		Config:        ctx.Config,
+		SubmoduleName: ctx.SubmoduleName,
+	})
 	if err != nil {
-		log.Println("dockerfile: read dir:", err)
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Println("dockerfile: find dockerfile:", err)
+		}
+
 		return false
 	}
 
-	converter := cases.Fold()
-
-	for _, file := range fileInfo {
-		if file.IsDir() {
-			continue
-		}
-
-		foldedFilename := converter.String(file.Name())
-
-		// We only care about {*.,}dockerfile{.*,}.
-		if foldedFilename == "dockerfile" ||
-			strings.HasPrefix(foldedFilename, "dockerfile.") ||
-			strings.HasSuffix(foldedFilename, ".dockerfile") {
-			return true
-		}
-	}
-
-	return false
+	return true
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {
 	return GetMeta(options)
 }
-
-var _ plan.Identifier = (*identify)(nil)

@@ -16,7 +16,7 @@ type Planner interface {
 type planner struct {
 	NewPlannerOptions
 
-	identifiers []Identifier
+	identifiers []IdentifierV2
 }
 
 // NewPlannerOptions is the options for NewPlanner.
@@ -36,7 +36,7 @@ type AWSConfig struct {
 }
 
 // NewPlanner creates a new Planner.
-func NewPlanner(opt *NewPlannerOptions, identifiers ...Identifier) Planner {
+func NewPlanner(opt *NewPlannerOptions, identifiers ...IdentifierV2) Planner {
 	return &planner{
 		NewPlannerOptions: *opt,
 		identifiers:       identifiers,
@@ -64,7 +64,7 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 
 	if planTypeErr == nil {
 		// find a identifier that matches the specified plan type
-		identifier, ok := lo.Find(b.identifiers, func(i Identifier) bool {
+		identifier, ok := lo.Find(b.identifiers, func(i IdentifierV2) bool {
 			return i.PlanType() == types.PlanType(planType)
 		})
 
@@ -75,7 +75,11 @@ func (b planner) Plan() (types.PlanType, types.PlanMeta) {
 	}
 
 	for _, identifier := range b.identifiers {
-		if identifier.Match(b.Source) {
+		if identifier.Match(MatchContext{
+			Source:        b.Source,
+			Config:        b.Config,
+			SubmoduleName: b.SubmoduleName,
+		}) {
 			pt, pm := identifier.PlanType(), identifier.PlanMeta(b.NewPlannerOptions)
 
 			// If the planner returns a Continue flag, we find the next matched.

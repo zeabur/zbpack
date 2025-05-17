@@ -23,32 +23,32 @@ import (
 
 // SupportedIdentifiers returns all supported identifiers
 // note that they are in the order of priority
-func SupportedIdentifiers(config plan.ImmutableProjectConfiguration) []plan.Identifier {
-	identifiers := []plan.Identifier{
-		dart.NewIdentifier(),
-		php.NewIdentifier(),
-		ruby.NewIdentifier(),
-		bun.NewIdentifier(),
-		python.NewIdentifier(),
-		nodejs.NewIdentifier(),
-		golang.NewIdentifier(),
-		java.NewIdentifier(),
-		deno.NewIdentifier(),
-		rust.NewIdentifier(),
-		dotnet.NewIdentifier(),
-		elixir.NewIdentifier(),
-		gleam.NewIdentifier(),
-		swift.NewIdentifier(),
-		static.NewIdentifier(),
+func SupportedIdentifiers(config plan.ImmutableProjectConfiguration) []plan.IdentifierV2 {
+	identifiers := []plan.IdentifierV2{
+		plan.WrapV2(dart.NewIdentifier()),
+		plan.WrapV2(php.NewIdentifier()),
+		plan.WrapV2(ruby.NewIdentifier()),
+		plan.WrapV2(bun.NewIdentifier()),
+		plan.WrapV2(python.NewIdentifier()),
+		plan.WrapV2(nodejs.NewIdentifier()),
+		plan.WrapV2(golang.NewIdentifier()),
+		plan.WrapV2(java.NewIdentifier()),
+		plan.WrapV2(deno.NewIdentifier()),
+		plan.WrapV2(rust.NewIdentifier()),
+		plan.WrapV2(dotnet.NewIdentifier()),
+		plan.WrapV2(elixir.NewIdentifier()),
+		plan.WrapV2(gleam.NewIdentifier()),
+		plan.WrapV2(swift.NewIdentifier()),
+		plan.WrapV2(static.NewIdentifier()),
 	}
 
 	if !plan.Cast(config.Get("ignore_nix"), plan.ToWeakBoolE).TakeOr(false) {
-		identifiers = append([]plan.Identifier{nix.NewIdentifier()}, identifiers...)
+		identifiers = append([]plan.IdentifierV2{plan.WrapV2(nix.NewIdentifier())}, identifiers...)
 	}
 
 	// if ignore_dockerfile in config is true, or ZBPACK_IGNORE_DOCKERFILE is true, ignore dockerfile
 	if !plan.Cast(config.Get("ignore_dockerfile"), plan.ToWeakBoolE).TakeOr(false) {
-		identifiers = append([]plan.Identifier{dockerfile.NewIdentifier()}, identifiers...)
+		identifiers = append([]plan.IdentifierV2{dockerfile.NewIdentifier()}, identifiers...)
 	}
 
 	return identifiers

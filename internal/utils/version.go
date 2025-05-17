@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"regexp"
 	"strconv"
@@ -24,6 +24,9 @@ type Version struct {
 	Prerelease string
 }
 
+// ErrEmptyVersion is returned when the version string is empty.
+var ErrEmptyVersion = errors.New("empty version")
+
 // SplitVersion splits the version string into major, minor, patch, and prerelease.
 //
 // If the version string is "8.0.0-beta1", the result will be 8, 0, 0, "beta1".
@@ -33,7 +36,7 @@ func SplitVersion(version string) (Version, error) {
 	parsedVersion := Version{}
 
 	if version == "" {
-		return parsedVersion, fmt.Errorf("empty version")
+		return parsedVersion, ErrEmptyVersion
 	}
 
 	parts := strings.SplitN(version, ".", 3)
@@ -115,7 +118,10 @@ func ConstraintToVersion(constraints string, defaultVersion string) string {
 
 		parsedVersion, err := SplitVersion(cleanR)
 		if err != nil {
-			log.Println("invalid version", err)
+			if !errors.Is(err, ErrEmptyVersion) {
+				log.Println("invalid version", err)
+			}
+
 			continue
 		}
 
