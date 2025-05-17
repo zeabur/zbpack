@@ -13,3 +13,17 @@ type Identifier interface {
 	Match(afero.Fs) bool
 	PlanMeta(NewPlannerOptions) types.PlanMeta
 }
+
+// IdentifierV2 is the new version of Identifier.
+type IdentifierV2 interface {
+	PlanType() types.PlanType
+	Match(MatchContext) bool
+	PlanMeta(NewPlannerOptions) types.PlanMeta
+}
+
+// MatchContext is the context for matching.
+type MatchContext struct {
+	Source        afero.Fs
+	Config        ImmutableProjectConfiguration
+	SubmoduleName string
+}

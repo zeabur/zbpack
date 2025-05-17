@@ -11,3 +11,9 @@ type Packer interface {
 	plan.Identifier
 	GenerateDockerfile(types.PlanMeta) (string, error)
 }
+
+// V2 can identify the plan type and generate a Dockerfile.
+type V2 interface {
+	plan.IdentifierV2
+	GenerateDockerfile(types.PlanMeta) (string, error)
+}
