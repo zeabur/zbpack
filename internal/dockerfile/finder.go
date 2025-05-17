@@ -30,9 +30,10 @@ type FindContext struct {
 func FindDockerfile(ctx *FindContext) (filename string, err error) {
 	dockerfilePath, err := plan.Cast(ctx.Config.Get(ConfigDockerfilePath), cast.ToStringE).Take()
 	if err == nil && dockerfilePath != "" {
-		_, err := ctx.Source.Stat(strings.Trim(dockerfilePath, "/"))
+		trimmedPath := strings.Trim(dockerfilePath, "/")
+		_, err := ctx.Source.Stat(trimmedPath)
 		if err == nil {
-			return dockerfilePath, nil
+			return trimmedPath, nil
 		}
 	}
 
