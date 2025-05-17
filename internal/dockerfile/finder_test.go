@@ -1,6 +1,7 @@
 package dockerfile_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -17,11 +18,12 @@ func TestMatchDockerfile(t *testing.T) {
 
 	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
 
-	identifier := dockerfile.NewIdentifier()
-	assert.True(t, identifier.Match(plan.MatchContext{
+	filename, err := dockerfile.FindDockerfile(&dockerfile.FindContext{
 		Source: fs,
 		Config: config,
-	}))
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "Dockerfile", filename)
 }
 
 func TestMatchDockerfileWithSubmoduleName(t *testing.T) {
@@ -123,12 +125,13 @@ func TestMatchDockerfileWithCustomName(t *testing.T) {
 		config := plan.NewProjectConfigurationFromFs(fs, "")
 		config.Set("dockerfile.name", "custom")
 
-		identifier := dockerfile.NewIdentifier()
-		assert.False(t, identifier.Match(plan.MatchContext{
+		filename, err := dockerfile.FindDockerfile(&dockerfile.FindContext{
 			Source:        fs,
 			Config:        config,
 			SubmoduleName: "Subm",
-		}))
+		})
+		assert.ErrorIs(t, err, os.ErrNotExist)
+		assert.Empty(t, filename)
 	})
 }
 
@@ -182,10 +185,11 @@ func TestMatchDockerfileWithCustomPath(t *testing.T) {
 		config := plan.NewProjectConfigurationFromFs(fs, "")
 		config.Set("dockerfile.path", "custom.Dockerfile")
 
-		identifier := dockerfile.NewIdentifier()
-		assert.False(t, identifier.Match(plan.MatchContext{
+		filename, err := dockerfile.FindDockerfile(&dockerfile.FindContext{
 			Source: fs,
 			Config: config,
-		}))
+		})
+		assert.ErrorIs(t, err, os.ErrNotExist)
+		assert.Empty(t, filename)
 	})
 }
