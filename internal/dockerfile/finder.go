@@ -60,7 +60,7 @@ func FindDockerfile(ctx *FindContext) (filename string, err error) {
 
 		for _, name := range dockerfileNames {
 			if strings.EqualFold(file.Name(), name) {
-				return name, nil
+				return file.Name(), nil
 			}
 		}
 	}
