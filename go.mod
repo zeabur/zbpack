@@ -61,7 +61,7 @@ require (
 	github.com/moznion/go-optional v0.13.0
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.50.0
-	github.com/samber/mo v1.13.0
+	github.com/samber/mo v1.14.0
 	github.com/spf13/cast v1.8.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
