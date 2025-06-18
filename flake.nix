@@ -7,7 +7,13 @@
   inputs.gomod2nix.inputs.nixpkgs.follows = "nixpkgs";
   inputs.gomod2nix.inputs.flake-utils.follows = "flake-utils";
 
-  outputs = { self, nixpkgs, gomod2nix, flake-utils }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      gomod2nix,
+      flake-utils,
+    }:
     let
       # to work with older version of flakes
       lastModifiedDate = self.lastModifiedDate or self.lastModified or "19700101";
@@ -16,28 +22,42 @@
       version = builtins.substring 0 8 lastModifiedDate;
     in
     # Provide some binary packages for selected system types.
-    flake-utils.lib.eachDefaultSystem
-      (system:
-        let
-          buildGoApplication = gomod2nix.legacyPackages.${system}.buildGoApplication;
-          pkgs = nixpkgs.legacyPackages.${system}.extend gomod2nix.overlays.default;
-        in
-        {
-          checks.zbpack = pkgs.runCommand "zbpack-command" {
-            src = ./.;
-            buildInputs = [ self.packages.${system}.default ];
-          } ''
-            zbpack -h
-            mkdir "$out"
-          '';
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        buildGoApplication = gomod2nix.legacyPackages.${system}.buildGoApplication;
+        pkgs = nixpkgs.legacyPackages.${system}.extend gomod2nix.overlays.default;
+      in
+      {
+        checks.zbpack =
+          pkgs.runCommand "zbpack-command"
+            {
+              src = ./.;
+              buildInputs = [ self.packages.${system}.default ];
+            }
+            ''
+              zbpack -h
+              mkdir "$out"
+            '';
 
-          packages.default = buildGoApplication {
-            pname = "zbpack";
-            inherit version;
-            pwd = ./cmd/zbpack;
-            src = ./.;
-            modules = ./gomod2nix.toml;
+        packages.default = buildGoApplication {
+          pname = "zbpack";
+          inherit version;
+          pwd = ./cmd/zbpack;
+          src = ./.;
+          modules = ./gomod2nix.toml;
+        };
+
+        devShells = {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              go
+              gotools
+              golangci-lint
+              gomod2nix.legacyPackages.${system}.gomod2nix
+            ];
           };
-        }
-      );
+        };
+      }
+    );
 }
