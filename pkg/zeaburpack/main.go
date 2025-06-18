@@ -125,10 +125,10 @@ func Build(opt *BuildOptions) error {
 
 		t, m = planner.Plan()
 
-		dockerfile, err = generateDockerfile(
-			&generateDockerfileOptions{
-				planType: t,
-				planMeta: m,
+		dockerfile, err = GenerateDockerfile(
+			&GenerateDockerfileOptions{
+				PlanType: t,
+				PlanMeta: m,
 			},
 		)
 		if err != nil {

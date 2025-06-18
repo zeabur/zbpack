@@ -96,7 +96,7 @@ WORKDIR /app`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := injectLabels(tt.dockerfile, tt.planType, tt.planMeta)
+			result := InjectLabels(tt.dockerfile, tt.planType, tt.planMeta)
 			resultLines := strings.Split(result, "\n")
 
 			if len(resultLines) != len(tt.expectedLines) {
@@ -117,14 +117,14 @@ WORKDIR /app`,
 
 func TestGenerateDockerfile(t *testing.T) {
 	// Test that generateDockerfile calls injectLabels correctly
-	opt := &generateDockerfileOptions{
-		planType: types.PlanTypeStatic,
-		planMeta: types.PlanMeta{
+	opt := &GenerateDockerfileOptions{
+		PlanType: types.PlanTypeStatic,
+		PlanMeta: types.PlanMeta{
 			"framework": "hugo",
 		},
 	}
 
-	dockerfile, err := generateDockerfile(opt)
+	dockerfile, err := GenerateDockerfile(opt)
 	if err != nil {
 		t.Fatalf("generateDockerfile failed: %v", err)
 	}
