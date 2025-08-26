@@ -87,10 +87,10 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 // PlanAndOutputDockerfile output dockerfile.
 func PlanAndOutputDockerfile(opt PlanOptions) error {
 	t, m := Plan(opt)
-	dockerfile, err := generateDockerfile(
-		&generateDockerfileOptions{
-			planType: t,
-			planMeta: m,
+	dockerfile, err := GenerateDockerfile(
+		&GenerateDockerfileOptions{
+			PlanType: t,
+			PlanMeta: m,
 		},
 	)
 	if err != nil {

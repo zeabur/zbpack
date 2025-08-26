@@ -5,5 +5,5 @@ Meta:
   build: "RUN pip install -r requirements.txt"
   install: "RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
   packageManager: "pip"
-  pythonVersion: "3.10"
+  pythonVersion: "3.13"
   start: "_startup() { python main.py; }; _startup"
