@@ -26,6 +26,9 @@ type PlanOptions struct {
 	// Path is the path to the project directory.
 	Path *string
 
+	// Subpath specifies the root directory to plan in the project directory.
+	Subpath *string
+
 	// Access token for GitHub, only used when Path is a GitHub URL.
 	AccessToken *string
 
@@ -66,6 +69,10 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		})
 	} else {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
+	}
+
+	if opt.Subpath != nil {
+		src = afero.NewBasePathFs(src, *opt.Subpath)
 	}
 
 	submoduleName := lo.FromPtrOr(opt.SubmoduleName, "")
