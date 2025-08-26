@@ -13,7 +13,7 @@ require (
 	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gkampitakis/ciinfo v0.3.1 // indirect
+	github.com/gkampitakis/ciinfo v0.3.2 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/codeclysm/extract/v3 v3.1.1
 	github.com/distribution/reference v0.6.0
-	github.com/gkampitakis/go-snaps v0.5.11
+	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
