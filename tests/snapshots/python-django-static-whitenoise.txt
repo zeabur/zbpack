@@ -6,7 +6,7 @@ Meta:
   framework: "django"
   install: "RUN pip install gunicorn\nRUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
   packageManager: "pip"
-  pythonVersion: "3.10"
+  pythonVersion: "3.13"
   start: "_startup() { gunicorn --bind :8080 core.wsgi; }; _startup"
   static-flag: "1"
   static-host-dir: ""

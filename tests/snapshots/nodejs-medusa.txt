@@ -7,6 +7,6 @@ Meta:
   framework: "medusa"
   initCmd: "RUN npm install -f -g yarn@latest"
   installCmd: "RUN yarn install"
-  nodeVersion: "23"
+  nodeVersion: "24"
   packageManager: "yarn"
   startCmd: "cd .medusa/server && yarn start"
