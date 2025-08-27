@@ -39,19 +39,21 @@ func FindDockerfile(ctx *FindContext) (filename string, err error) {
 
 	dockerfileName := plan.Cast(ctx.Config.Get(ConfigDockerfileName), cast.ToStringE).TakeOr(ctx.SubmoduleName)
 
-	// check if there is a 'Dockerfile.[project-name]' in the project.
 	fileInfo, err := afero.ReadDir(ctx.Source, ".")
 	if err != nil {
 		return "", fmt.Errorf("read dir: %w", err)
 	}
 
-	for _, file := range fileInfo {
-		if file.IsDir() {
-			continue
-		}
+	// check if there is a 'Dockerfile.[project-name]' in the project.
+	if dockerfileName != "" {
+		for _, file := range fileInfo {
+			if file.IsDir() {
+				continue
+			}
 
-		if strings.EqualFold(file.Name(), "Dockerfile."+dockerfileName) || strings.EqualFold(file.Name(), dockerfileName+".Dockerfile") {
-			return file.Name(), nil
+			if strings.EqualFold(file.Name(), "Dockerfile."+dockerfileName) || strings.EqualFold(file.Name(), dockerfileName+".Dockerfile") {
+				return file.Name(), nil
+			}
 		}
 	}
 
