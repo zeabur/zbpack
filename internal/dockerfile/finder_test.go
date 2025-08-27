@@ -193,3 +193,21 @@ func TestMatchDockerfileWithCustomPath(t *testing.T) {
 		assert.Empty(t, filename)
 	})
 }
+
+func TestMatchExplicitDockerfileInsteadOfGeneralOne(t *testing.T) {
+	t.Parallel()
+
+	fs := afero.NewMemMapFs()
+	config := plan.NewProjectConfigurationFromFs(fs, "")
+	config.Set("dockerfile.name", "custom")
+
+	_ = afero.WriteFile(fs, "Dockerfile", []byte("FROM alpine"), 0o644)
+	_ = afero.WriteFile(fs, "Dockerfile.custom", []byte("FROM ubuntu"), 0o644)
+
+	filename, err := dockerfile.FindDockerfile(&dockerfile.FindContext{
+		Source: fs,
+		Config: config,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "Dockerfile.custom", filename)
+}
