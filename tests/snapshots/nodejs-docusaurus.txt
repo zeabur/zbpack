@@ -7,7 +7,7 @@ Meta:
   framework: "docusaurus"
   initCmd: "RUN npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
   installCmd: "RUN pnpm install"
-  nodeVersion: "23"
+  nodeVersion: "24"
   outputDir: "build"
   packageManager: "pnpm"
   startCmd: ""

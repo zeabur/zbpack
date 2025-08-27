@@ -6,5 +6,5 @@ Meta:
   framework: "streamlit"
   install: "RUN sed '/-e/d' requirements.txt | pip install -r /dev/stdin"
   packageManager: "pip"
-  pythonVersion: "3.10"
+  pythonVersion: "3.13"
   start: "_startup() { streamlit run streamlit_app.py --server.port=8080 --server.address=0.0.0.0; }; _startup"
