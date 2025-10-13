@@ -1,8 +1,6 @@
 module github.com/zeabur/zbpack
 
-go 1.23.0
-
-toolchain go1.23.6
+go 1.24.0
 
 require (
 	github.com/spf13/afero v1.14.0
@@ -42,7 +40,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/ulikunitz/xz v0.5.13 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
+	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -56,7 +54,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/moby/buildkit v0.23.2
+	github.com/moby/buildkit v0.25.1
 	github.com/moznion/go-optional v0.13.0
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.51.0
