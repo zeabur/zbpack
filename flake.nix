@@ -55,6 +55,7 @@
               gotools
               golangci-lint
               gomod2nix.legacyPackages.${system}.gomod2nix
+              buildkit
             ];
           };
         };
