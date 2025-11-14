@@ -18,22 +18,51 @@ func GenerateDockerfile(meta types.PlanMeta) (string, error) {
 	isGradle := projectType == string(types.JavaProjectTypeGradle)
 	isSpringBoot := framework == string(types.JavaFrameworkSpringBoot)
 
-	baseImage := "docker.io/library/openjdk:" + jdkVersion + "-jdk-slim"
-
-	dockerfile := ""
+	var dockerfile string
+	baseImage := "docker.io/library/eclipse-temurin:" + jdkVersion
 
 	switch projectType {
 	case string(types.JavaProjectTypeMaven):
 		dockerfile += `FROM ` + baseImage + `
-RUN apt-get update && apt-get install -y maven
-RUN apt-get install -y ca-certificates-java
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt update \
+  	&& apt-get --no-install-recommends install -y \
+		maven \
+		ca-certificates-java
 WORKDIR /src
 COPY . .
 RUN mvn clean dependency:list install -Dmaven.test.skip=true
 `
 	case string(types.JavaProjectTypeGradle):
-		baseImage = "docker.io/library/gradle:8.1.0-jdk" + jdkVersion + "-alpine"
 		dockerfile += `FROM ` + baseImage + `
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt update \
+  	&& apt-get --no-install-recommends install -y \
+		ca-certificates-java \
+		unzip
+
+# https://github.com/gradle/docker-gradle/blob/master/jdk17-jammy/Dockerfile
+ENV GRADLE_HOME=/opt/gradle
+ENV GRADLE_VERSION=8.14.3
+ARG GRADLE_DOWNLOAD_SHA256=bd71102213493060956ec229d946beee57158dbd89d0e62b91bca0fa2c5f3531
+RUN set -o errexit -o nounset \
+    && echo "Downloading Gradle" \
+    && wget --no-verbose --output-document=gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+    \
+    && echo "Checking Gradle download hash" \
+    && echo "${GRADLE_DOWNLOAD_SHA256} *gradle.zip" | sha256sum --check - \
+    \
+    && echo "Installing Gradle" \
+    && unzip gradle.zip \
+    && rm gradle.zip \
+    && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
+    && ln --symbolic "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle
+
+# Disable Gradle daemon
+RUN mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+
 WORKDIR /src
 COPY . .
 RUN gradle build -x test
