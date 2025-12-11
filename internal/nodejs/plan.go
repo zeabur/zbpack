@@ -838,14 +838,14 @@ func GetStartCmd(ctx *nodePlanContext) string {
 		return startCmd
 	}
 
-	// if the app is deployed as static files, we should not start the app.
-	if GetStaticOutputDir(ctx) != "" {
-		*cmd = optional.Some("")
+	if startCmd, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
+		*cmd = optional.Some(startCmd)
 		return cmd.Unwrap()
 	}
 
-	if startCmd, err := plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).Take(); err == nil {
-		*cmd = optional.Some(startCmd)
+	// if the app is deployed as static files, we should not start the app.
+	if GetStaticOutputDir(ctx) != "" {
+		*cmd = optional.Some("")
 		return cmd.Unwrap()
 	}
 
