@@ -5,7 +5,7 @@ Meta:
   buildCmd: "NITRO_PRESET=node-server pnpm build"
   bun: "false"
   framework: "nuxt.js"
-  initCmd: "RUN npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
+  initCmd: "RUN npm install -f -g pnpm@10 || npm install -f -g pnpm@8"
   installCmd: "RUN pnpm install"
   nodeVersion: "22"
   packageManager: "pnpm"
