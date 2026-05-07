@@ -94,7 +94,7 @@ func (Pnpm) GetType() types.NodePackageManager {
 // GetInitCommand returns the command to install pnpm.
 func (p Pnpm) GetInitCommand() string {
 	if p.MajorVersion == 0 {
-		return "npm install -f -g pnpm@latest || npm install -f -g pnpm@8"
+		return "npm install -f -g pnpm@10 || npm install -f -g pnpm@8"
 	}
 
 	return fmt.Sprintf("npm install -f -g pnpm@%d", p.MajorVersion)
