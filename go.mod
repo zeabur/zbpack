@@ -56,7 +56,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.42.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.24
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.103.3
-	github.com/codeclysm/extract/v3 v3.1.1
+	github.com/codeclysm/extract/v4 v4.0.0
 	github.com/distribution/reference v0.6.0
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.19.2
