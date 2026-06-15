@@ -279,10 +279,6 @@ var projects = []struct {
 		owner: "zeabur",
 		repo:  "medusa-starter-default",
 	},
-	{
-		name: "nodejs-a-lot-of-dependencies",
-		dir:  "nodejs-a-lot-of-dependencies",
-	},
 
 	/* php */
 	{
