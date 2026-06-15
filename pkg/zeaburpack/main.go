@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/codeclysm/extract/v3"
+	"github.com/codeclysm/extract/v4"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/plan"

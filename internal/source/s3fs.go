@@ -2,6 +2,7 @@ package source
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/spf13/afero"
 )
 
@@ -29,15 +30,14 @@ var (
 
 // s3Fs is a read-only filesystem abstraction for Amazon S3.
 type s3Fs struct {
-	S3Client *s3.S3
+	S3Client *s3.Client
 	Bucket   string
 	Prefix   string
 }
 
 // NewS3Fs creates a new S3 filesystem with the given bucket name.
-func NewS3Fs(s3Url string, sessCfg *aws.Config) afero.Fs {
-	sess := session.Must(session.NewSession(sessCfg))
-	client := s3.New(sess)
+func NewS3Fs(s3Url string, cfg *aws.Config) afero.Fs {
+	client := s3.NewFromConfig(*cfg)
 	bucket := strings.Split(strings.TrimPrefix(s3Url, "s3://"), "/")[0]
 	prefix := strings.TrimPrefix(s3Url, "s3://"+bucket+"/")
 	return &s3Fs{S3Client: client, Bucket: bucket, Prefix: prefix}
@@ -69,16 +69,17 @@ func (fs *s3Fs) OpenFile(name string, flag int, _ os.FileMode) (afero.File, erro
 		Key:    aws.String(path.Join(fs.Prefix, name)),
 	}
 
-	result, err := fs.S3Client.GetObject(input)
+	result, err := fs.S3Client.GetObject(context.TODO(), input)
 	if err != nil {
 		// if the object does not exist, maybe it's a directory
-		if strings.Contains(err.Error(), "NoSuchKey") {
+		var noSuchKey *s3types.NoSuchKey
+		if errors.As(err, &noSuchKey) || strings.Contains(err.Error(), "NoSuchKey") {
 			listInput := &s3.ListObjectsV2Input{
 				Bucket:    aws.String(fs.Bucket),
 				Prefix:    aws.String(path.Join(fs.Prefix, name) + "/"),
 				Delimiter: aws.String("/"),
 			}
-			listResult, listErr := fs.S3Client.ListObjectsV2(listInput)
+			listResult, listErr := fs.S3Client.ListObjectsV2(context.TODO(), listInput)
 			if listErr == nil && len(listResult.CommonPrefixes) > 0 {
 				return &s3File{
 					fs: fs,
@@ -133,7 +134,7 @@ func (fs *s3Fs) Stat(name string) (os.FileInfo, error) {
 		Key:    aws.String(path.Join(fs.Prefix, name)),
 	}
 
-	result, err := fs.S3Client.HeadObject(input)
+	result, err := fs.S3Client.HeadObject(context.TODO(), input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to stat object in S3: %w", err)
 	}
@@ -198,7 +199,7 @@ func (f *s3File) Readdir(count int) ([]os.FileInfo, error) {
 		Delimiter: aws.String("/"),
 	}
 
-	result, err := f.fs.S3Client.ListObjectsV2(input)
+	result, err := f.fs.S3Client.ListObjectsV2(context.TODO(), input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to list objects in S3: %w", err)
 	}
