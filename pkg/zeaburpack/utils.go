@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/internal/source"
 

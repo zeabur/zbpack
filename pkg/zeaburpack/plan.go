@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/zeabur/zbpack/pkg/plan"
@@ -64,8 +64,8 @@ func Plan(opt PlanOptions) (types.PlanType, types.PlanMeta) {
 		}
 
 		src = getS3SourceFromURL(*opt.Path, &aws.Config{
-			Region:      aws.String(opt.AWSConfig.Region),
-			Credentials: credentials.NewStaticCredentials(opt.AWSConfig.AccessKeyID, opt.AWSConfig.SecretAccessKey, ""),
+			Region:      opt.AWSConfig.Region,
+			Credentials: credentials.NewStaticCredentialsProvider(opt.AWSConfig.AccessKeyID, opt.AWSConfig.SecretAccessKey, ""),
 		})
 	} else {
 		src = afero.NewBasePathFs(afero.NewOsFs(), *opt.Path)
