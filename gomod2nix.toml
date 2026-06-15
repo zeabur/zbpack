@@ -53,9 +53,9 @@ schema = 3
     version = 'v1.27.1'
     hash = 'sha256-vhtOyv8p3w8p0gPIOOO2WiiJcSwM1KYqahPNCBuNtZY='
 
-  [mod.'github.com/codeclysm/extract/v3']
-    version = 'v3.1.1'
-    hash = 'sha256-m97BzuMk+rlSfPUnYzWifqQBNNdrWZXhUlQwT2iY59A='
+  [mod.'github.com/codeclysm/extract/v4']
+    version = 'v4.0.0'
+    hash = 'sha256-n7FeiXFznYM7OdOKqXVptCYyps04xHDQ6eAMCYCE8Ok='
 
   [mod.'github.com/containerd/typeurl/v2']
     version = 'v2.3.0'
