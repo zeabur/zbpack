@@ -1,6 +1,6 @@
 module github.com/zeabur/zbpack
 
-go 1.25.5
+go 1.25.9
 
 require (
 	github.com/spf13/afero v1.15.0
@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.29 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.29 // indirect
-	github.com/aws/smithy-go v1.27.1 // indirect
+	github.com/aws/smithy-go v1.27.2 // indirect
 	github.com/containerd/typeurl/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/google/go-github/v63 v63.0.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/moby/buildkit v0.30.0
+	github.com/moby/buildkit v0.31.1
 	github.com/moznion/go-optional v0.13.0
 	github.com/pan93412/envexpander/v3 v3.0.0
 	github.com/samber/lo v1.53.0
@@ -70,6 +70,6 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/exp v0.0.0-20260603202125-055de637280b
 	golang.org/x/text v0.38.0
 )
