@@ -1,0 +1,12 @@
+PlanType: nodejs
+
+Meta:
+  appDir: ""
+  buildCmd: "sed -i 's/NITRO_PRESET=zeabur/NITRO_PRESET=node-server/g; s/SERVER_PRESET=zeabur/SERVER_PRESET=node-server/g' package.json && NITRO_PRESET=node-server SERVER_PRESET=node-server pnpm build"
+  bun: "false"
+  framework: "nuxt.js"
+  initCmd: "RUN npm install -f -g pnpm@10"
+  installCmd: "RUN pnpm install"
+  nodeVersion: "22"
+  packageManager: "pnpm"
+  startCmd: "HOST=0.0.0.0 node .output/server/index.mjs"

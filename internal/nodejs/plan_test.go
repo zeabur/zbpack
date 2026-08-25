@@ -836,3 +836,101 @@ func TestDeterminePackageManager(t *testing.T) {
 		assert.Equal(t, types.NodePackageManagerUnknown, pm.GetType())
 	})
 }
+
+func TestGetBuildCmd_NitroPreset(t *testing.T) {
+	t.Parallel()
+
+	newCtx := func(packageJSON string, lockfile string) *nodePlanContext {
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(packageJSON), 0o644)
+		if lockfile != "" {
+			_ = afero.WriteFile(fs, lockfile, []byte(""), 0o644)
+		}
+		return &nodePlanContext{
+			Src:                fs,
+			Config:             plan.NewProjectConfigurationFromFs(fs, ""),
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+	}
+
+	t.Run("auto-detected nuxt uses node-server", func(t *testing.T) {
+		t.Parallel()
+		ctx := newCtx(`{
+			"scripts": { "build": "nuxt build" },
+			"dependencies": { "nuxt": "^3.14.0" }
+		}`, "pnpm-lock.yaml")
+
+		got := GetBuildCmd(ctx)
+		assert.Equal(t, "NITRO_PRESET=node-server SERVER_PRESET=node-server pnpm build", got)
+		assert.NotContains(t, got, "NITRO_PRESET=zeabur")
+		assert.NotContains(t, got, "sed -i")
+	})
+
+	t.Run("explicit NITRO_PRESET=zeabur is remapped", func(t *testing.T) {
+		t.Parallel()
+		ctx := newCtx(`{
+			"scripts": { "build": "NITRO_PRESET=zeabur nuxt build" },
+			"dependencies": { "nuxt": "^3.14.0" }
+		}`, "pnpm-lock.yaml")
+
+		got := GetBuildCmd(ctx)
+		assert.Contains(t, got, "sed -i 's/NITRO_PRESET=zeabur/NITRO_PRESET=node-server/g; s/SERVER_PRESET=zeabur/SERVER_PRESET=node-server/g' package.json")
+		assert.Contains(t, got, "NITRO_PRESET=node-server SERVER_PRESET=node-server pnpm build")
+		assert.NotRegexp(t, `(?m)NITRO_PRESET=zeabur nuxt`, got)
+	})
+
+	t.Run("explicit SERVER_PRESET=zeabur is remapped", func(t *testing.T) {
+		t.Parallel()
+		ctx := newCtx(`{
+			"scripts": { "build": "SERVER_PRESET=zeabur nuxi build" },
+			"dependencies": { "nuxt": "^3.14.0" }
+		}`, "package-lock.json")
+
+		got := GetBuildCmd(ctx)
+		assert.Contains(t, got, "s/SERVER_PRESET=zeabur/SERVER_PRESET=node-server/g")
+		assert.Contains(t, got, "NITRO_PRESET=node-server SERVER_PRESET=node-server npm run build")
+	})
+
+	t.Run("bun package manager uses bun preset", func(t *testing.T) {
+		t.Parallel()
+		ctx := newCtx(`{
+			"scripts": { "build": "NITRO_PRESET=zeabur nuxt build" },
+			"dependencies": { "nuxt": "^3.14.0" }
+		}`, "bun.lock")
+
+		got := GetBuildCmd(ctx)
+		assert.Contains(t, got, "s/NITRO_PRESET=zeabur/NITRO_PRESET=bun/g")
+		assert.Contains(t, got, "NITRO_PRESET=bun SERVER_PRESET=bun bun run build")
+	})
+
+	t.Run("custom build command remaps zeabur preset", func(t *testing.T) {
+		t.Parallel()
+		fs := afero.NewMemMapFs()
+		_ = afero.WriteFile(fs, "package.json", []byte(`{
+			"scripts": { "build": "nuxt build" },
+			"dependencies": { "nuxt": "^3.14.0" }
+		}`), 0o644)
+		_ = afero.WriteFile(fs, "pnpm-lock.yaml", []byte(""), 0o644)
+		config := plan.NewProjectConfigurationFromFs(fs, "")
+		config.Set(plan.ConfigBuildCommand, "NITRO_PRESET=zeabur nuxi build")
+		ctx := &nodePlanContext{
+			Src:                fs,
+			Config:             config,
+			ProjectPackageJSON: lo.Must(DeserializePackageJSON(fs)),
+		}
+
+		got := GetBuildCmd(ctx)
+		assert.Equal(t, "NITRO_PRESET=node-server SERVER_PRESET=node-server nuxi build", got)
+	})
+
+	t.Run("non-nitro app is unchanged", func(t *testing.T) {
+		t.Parallel()
+		ctx := newCtx(`{
+			"scripts": { "build": "next build" },
+			"dependencies": { "next": "^14.0.0" }
+		}`, "pnpm-lock.yaml")
+
+		got := GetBuildCmd(ctx)
+		assert.Equal(t, "pnpm build", got)
+	})
+}

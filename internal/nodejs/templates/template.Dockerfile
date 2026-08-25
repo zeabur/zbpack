@@ -8,7 +8,8 @@ COPY . .
 {{ .InstallCmd }}
 
 # Build if we can build it
-{{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ end }}
+{{ if .BuildCmd }}RUN {{ .BuildCmd }}{{ if isNitro .Framework }}
+RUN if [ -d .zeabur/output ]; then echo "zbpack: Nitro preset 'zeabur' emits unsupported serverless output (.zeabur/output). Use NITRO_PRESET=node-server (or bun) instead of NITRO_PRESET=zeabur / SERVER_PRESET=zeabur." >&2; exit 1; fi{{ end }}{{ end }}
 {{ if ne .OutputDir "" }}
 FROM scratch AS output
 COPY --from=build /src/{{ .AppDir }}/{{ .OutputDir }} /

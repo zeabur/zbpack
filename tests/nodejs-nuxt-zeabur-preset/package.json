@@ -1,0 +1,10 @@
+{
+  "name": "nuxt-zeabur-preset",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "build": "SERVER_PRESET=zeabur NITRO_PRESET=zeabur nuxt build"
+  },
+  "dependencies": {
+    "nuxt": "^3.14.0"
+  }
+}

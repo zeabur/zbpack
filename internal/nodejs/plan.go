@@ -693,7 +693,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 	}
 
 	if buildCmd, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
-		*cmd = optional.Some(buildCmd)
+		*cmd = optional.Some(applyNitroBuildOverrides(ctx, buildCmd))
 		return cmd.Unwrap()
 	}
 
@@ -708,16 +708,6 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 
 	buildCmd := GetScriptCommand(ctx, buildScript)
 
-	// if this is a Nitro-based framework, we should pass NITRO_PRESET
-	// to the default build command.
-	if slices.Contains(types.NitroBasedFrameworks, framework) {
-		if pkgManager.GetType() == types.NodePackageManagerBun {
-			buildCmd = "NITRO_PRESET=bun " + buildCmd
-		} else {
-			buildCmd = "NITRO_PRESET=node-server " + buildCmd
-		}
-	}
-
 	if framework == types.NodeProjectFrameworkMedusa {
 		installCmd := pkgManager.GetInstallProjectDependenciesCommand()
 
@@ -725,7 +715,7 @@ func GetBuildCmd(ctx *nodePlanContext) string {
 		buildCmd += " && " + "cd .medusa/server" + " && " + installCmd
 	}
 
-	*cmd = optional.Some(buildCmd)
+	*cmd = optional.Some(applyNitroBuildOverrides(ctx, buildCmd))
 	return cmd.Unwrap()
 }
 

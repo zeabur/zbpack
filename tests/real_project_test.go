@@ -170,6 +170,14 @@ var projects = []struct {
 		repo:  "nuxtjs-template",
 	},
 	{
+		name: "nodejs-nuxt-autodetect",
+		dir:  "nodejs-nuxt-autodetect",
+	},
+	{
+		name: "nodejs-nuxt-zeabur-preset",
+		dir:  "nodejs-nuxt-zeabur-preset",
+	},
+	{
 		name:  "node-sveltekit",
 		owner: "zeabur",
 		repo:  "svelte-kit-template",
