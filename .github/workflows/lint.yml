@@ -21,7 +21,7 @@ jobs:
               with:
                   go-version-file: "go.mod"
             - name: Install gofumpt
-              run: go install mvdan.cc/gofumpt@latest
+              run: go install mvdan.cc/gofumpt@v0.11.0
             - name: Run gofumpt
               run: gofumpt -l .
     lint:
