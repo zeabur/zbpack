@@ -27,6 +27,10 @@ RUN set -eux \
 ARG PHP_EXTENSIONS
 RUN install-php-extensions @composer apcu bcmath gd intl mysqli opcache pcntl pdo_mysql sysvsem zip ${PHP_EXTENSIONS}
 
+# mitigate PHP2Shell (CVE-2026-109618, CVE-2026-109619) on PHP versions without an upstream fix (e.g. EOL 7.x/8.1).
+# fatal_error_backtraces only exists on PHP 8.5+; older versions ignore unknown directives in ini files.
+RUN printf 'session.upload_progress.enabled=0\nfatal_error_backtraces=0\n' > "${PHP_INI_DIR}/conf.d/zz-zeabur-security.ini"
+
 # nginx configuration
 RUN cat <<'EOF' > /etc/nginx/sites-enabled/default
 server {
